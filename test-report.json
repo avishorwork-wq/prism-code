@@ -1,6 +1,7 @@
 {
   "version": "0.1.0",
   "started": "2026-11-19T12:58:51.247Z",
+  "finished": "2026-11-19T13:08:32.773Z",
   "seed": 2709266470,
   "trialsPerLevel": 500,
   "targets": [
@@ -13,12 +14,33 @@
     "pass": 5000,
     "fail": []
   },
+  "cleanRepeated": {
+    "total": 120,
+    "pass": 120
+  },
+  "constants": {
+    "detectionWidth": 320,
+    "saturation": 0.25,
+    "darkness": 0.55,
+    "minScore": 0.5,
+    "refineStop": 0.03,
+    "meshRadius": 0.6,
+    "sigmaFloor": 6,
+    "llrClamp": 12,
+    "minRadius": 4,
+    "glareThreshold": 0.9
+  },
+  "testNotes": "Synthetic images only. No reader receives ground-truth geometry. Main distortion levels use color mode, size 1, ECC 2, seeded random payloads of 40 to 100 bytes. Tilt up to 35 degrees, 360-degree rotation, sine curl, radius 6 to 10 px, Gaussian blur, and sigma .02 noise. Level 1 adds cast and gradient; level 2 adds a 10% disk and a glare blob. Real prints/cameras are not validated.",
+  "execution": "Five consecutive 100-trial batches. Trial seeds and generated images match a single 500-trial run with the base seed. Each batch repeats the RS and clean-image checks.",
+  "core": "build 0.1.1",
   "levels": [
     {
       "level": 0,
       "total": 500,
       "attempted": 500,
       "pass": 500,
+      "rate": 1.0,
+      "targetMet": true,
       "failures": {
         "detect": 0,
         "hypothesis": 0,
@@ -28,16 +50,16 @@
         "too small": 0,
         "other": 0
       },
-      "details": [],
       "ms": 44830.30000000354,
-      "rate": 1.0,
-      "targetMet": true
+      "failureSeedsByStage": {}
     },
     {
       "level": 1,
       "total": 500,
       "attempted": 500,
       "pass": 491,
+      "rate": 0.982,
+      "targetMet": true,
       "failures": {
         "detect": 0,
         "hypothesis": 0,
@@ -47,305 +69,30 @@
         "too small": 0,
         "other": 0
       },
-      "details": [
-        {
-          "trial": 105,
-          "stage": "CRC",
-          "seed": 2709366575,
-          "parameters": {
-            "seed": 2709366575,
-            "level": 1,
-            "radius": 9.92805306892842,
-            "rotation": 42.5546682626009,
-            "tiltX": -33.214544060174376,
-            "tiltY": 9.551118647214025,
-            "curl": 0.15686975398566574,
-            "wavelength": 19.294712566770613,
-            "blur": 0.590757048688829,
-            "gains": [
-              0.7149219951592385,
-              1.2857184217777102,
-              0.7301426302641629
-            ],
-            "offsets": [
-              -0.012712775473482908,
-              0.0019248797791078687,
-              -0.01916842027567327
-            ],
-            "gradient": 0.4,
-            "occlusion": 0,
-            "glareRadius": 0,
-            "width": 879,
-            "height": 813
-          },
-          "error": "Payload checksum did not pass"
-        },
-        {
-          "trial": 202,
-          "stage": "header",
-          "seed": 2709366672,
-          "parameters": {
-            "seed": 2709366672,
-            "level": 1,
-            "radius": 9.809915295802057,
-            "rotation": 359.7494311351329,
-            "tiltX": 22.446279728319496,
-            "tiltY": -0.8928946591913699,
-            "curl": 0.20404103659093378,
-            "wavelength": 22.356027294881642,
-            "blur": 0.6271825162693858,
-            "gains": [
-              1.2910065144766123,
-              0.7576901392079889,
-              0.8800266442820429
-            ],
-            "offsets": [
-              0.031987537536770104,
-              -0.03272925256751478,
-              -0.038970301696099344
-            ],
-            "gradient": 0.4,
-            "occlusion": 0,
-            "glareRadius": 0,
-            "width": 691,
-            "height": 580
-          },
-          "error": "Header checksum did not pass"
-        },
-        {
-          "trial": 240,
-          "stage": "CRC",
-          "seed": 2709366710,
-          "parameters": {
-            "seed": 2709366710,
-            "level": 1,
-            "radius": 7.586714916862547,
-            "rotation": 223.73711415566504,
-            "tiltX": -20.833530228119347,
-            "tiltY": 11.057887747883797,
-            "curl": 0.20643828345928342,
-            "wavelength": 24.80343781877309,
-            "blur": 1.2936845228541642,
-            "gains": [
-              0.7019331926479935,
-              0.7538638324011117,
-              1.2919365718495102
-            ],
-            "offsets": [
-              -0.03629678026773036,
-              0.02368835317902267,
-              -0.03328399122692645
-            ],
-            "gradient": 0.4,
-            "occlusion": 0,
-            "glareRadius": 0,
-            "width": 687,
-            "height": 652
-          },
-          "error": "Payload checksum did not pass"
-        },
-        {
-          "trial": 346,
-          "stage": "CRC",
-          "seed": 2709366816,
-          "parameters": {
-            "seed": 2709366816,
-            "level": 1,
-            "radius": 8.934742322191596,
-            "rotation": 12.104549864307046,
-            "tiltX": 13.885011547245085,
-            "tiltY": -9.324695509858431,
-            "curl": 0.01660274004098028,
-            "wavelength": 15.225524171255529,
-            "blur": 1.3872600384056568,
-            "gains": [
-              0.9920100336428731,
-              0.707522209919989,
-              1.2224381911568343
-            ],
-            "offsets": [
-              -0.04752969213295728,
-              -0.01998530896380544,
-              -0.015289530833251776
-            ],
-            "gradient": 0.4,
-            "occlusion": 0,
-            "glareRadius": 0,
-            "width": 718,
-            "height": 685
-          },
-          "error": "Payload checksum did not pass"
-        },
-        {
-          "trial": 356,
-          "stage": "CRC",
-          "seed": 2709366826,
-          "parameters": {
-            "seed": 2709366826,
-            "level": 1,
-            "radius": 8.433815341442823,
-            "rotation": 266.72405325807637,
-            "tiltX": -17.744214583653957,
-            "tiltY": 6.589914001524448,
-            "curl": 0.20942080167587843,
-            "wavelength": 18.271174347028136,
-            "blur": 1.2191951738204807,
-            "gains": [
-              0.7086010953877121,
-              0.7170594792347401,
-              1.2084158111363648
-            ],
-            "offsets": [
-              -0.02486057044006884,
-              0.03524064461234957,
-              -0.014437433681450784
-            ],
-            "gradient": 0.4,
-            "occlusion": 0,
-            "glareRadius": 0,
-            "width": 543,
-            "height": 584
-          },
-          "error": "Payload checksum did not pass"
-        },
-        {
-          "trial": 360,
-          "stage": "header",
-          "seed": 2709366830,
-          "parameters": {
-            "seed": 2709366830,
-            "level": 1,
-            "radius": 6.932402138598263,
-            "rotation": 319.8482888471335,
-            "tiltX": 4.460113786626607,
-            "tiltY": -30.309249239508063,
-            "curl": 0.01789853407535702,
-            "wavelength": 19.831974459812045,
-            "blur": 1.3002540664747357,
-            "gains": [
-              1.2421099535189568,
-              0.7053464278113096,
-              1.27016560039483
-            ],
-            "offsets": [
-              -0.009551200084388256,
-              -0.030397859495133163,
-              -0.007565228966996074
-            ],
-            "gradient": 0.4,
-            "occlusion": 0,
-            "glareRadius": 0,
-            "width": 588,
-            "height": 613
-          },
-          "error": "Header checksum did not pass"
-        },
-        {
-          "trial": 443,
-          "stage": "header",
-          "seed": 2709366913,
-          "parameters": {
-            "seed": 2709366913,
-            "level": 1,
-            "radius": 7.446179507300258,
-            "rotation": 357.25436587817967,
-            "tiltX": -26.667285384610295,
-            "tiltY": -3.9949884568341076,
-            "curl": 0.1404416707344353,
-            "wavelength": 28.584955306723714,
-            "blur": 1.1310546316672117,
-            "gains": [
-              0.9354189394973218,
-              1.2945311176124958,
-              0.7139823177363723
-            ],
-            "offsets": [
-              -0.042601034487597646,
-              0.007080671028234065,
-              -0.0244215230923146
-            ],
-            "gradient": 0.4,
-            "occlusion": 0,
-            "glareRadius": 0,
-            "width": 566,
-            "height": 484
-          },
-          "error": "Header checksum did not pass"
-        },
-        {
-          "trial": 455,
-          "stage": "CRC",
-          "seed": 2709366925,
-          "parameters": {
-            "seed": 2709366925,
-            "level": 1,
-            "radius": 8.834876230917871,
-            "rotation": 217.57893039844933,
-            "tiltX": -22.613344516139477,
-            "tiltY": -19.660699313972145,
-            "curl": 0.011386438691988585,
-            "wavelength": 28.5939153842628,
-            "blur": 0.5178274798672646,
-            "gains": [
-              0.7185328237712383,
-              1.280803116876632,
-              0.8693270651157945
-            ],
-            "offsets": [
-              -0.04772243949119002,
-              -0.04129224454518408,
-              -0.001817284803837538
-            ],
-            "gradient": 0.4,
-            "occlusion": 0,
-            "glareRadius": 0,
-            "width": 749,
-            "height": 822
-          },
-          "error": "Payload checksum did not pass"
-        },
-        {
-          "trial": 484,
-          "stage": "CRC",
-          "seed": 2709366954,
-          "parameters": {
-            "seed": 2709366954,
-            "level": 1,
-            "radius": 7.1813687877729535,
-            "rotation": 48.39746489189565,
-            "tiltX": 22.406175404321402,
-            "tiltY": -28.711062783841044,
-            "curl": 0.179751395015046,
-            "wavelength": 27.228591698221862,
-            "blur": 0.6492897407151759,
-            "gains": [
-              0.8227007733657956,
-              1.2350271513219924,
-              0.7068184565287083
-            ],
-            "offsets": [
-              0.048029975453391674,
-              -0.019049569545313717,
-              -0.0275961164617911
-            ],
-            "gradient": 0.4,
-            "occlusion": 0,
-            "glareRadius": 0,
-            "width": 672,
-            "height": 579
-          },
-          "error": "Payload checksum did not pass"
-        }
-      ],
       "ms": 44380.90000000084,
-      "rate": 0.982,
-      "targetMet": true
+      "failureSeedsByStage": {
+        "header": [
+          2709366672,
+          2709366830,
+          2709366913
+        ],
+        "CRC": [
+          2709366575,
+          2709366710,
+          2709366816,
+          2709366826,
+          2709366925,
+          2709366954
+        ]
+      }
     },
     {
       "level": 2,
       "total": 500,
       "attempted": 500,
       "pass": 243,
+      "rate": 0.486,
+      "targetMet": false,
       "failures": {
         "detect": 0,
         "hypothesis": 0,
@@ -355,1666 +102,273 @@
         "too small": 0,
         "other": 0
       },
-      "details": [
-        {
-          "trial": 2,
-          "stage": "CRC",
-          "seed": 2709466472,
-          "parameters": {
-            "seed": 2709466472,
-            "level": 2,
-            "radius": 7.003329667262733,
-            "rotation": 219.74488215520978,
-            "tiltX": -14.202471624594182,
-            "tiltY": -16.770055613014847,
-            "curl": 0.057076636212877924,
-            "wavelength": 27.228580289520323,
-            "blur": 1.4780406027566642,
-            "gains": [
-              1.0350774710066615,
-              0.736897414503619,
-              1.2813320262823253
-            ],
-            "offsets": [
-              -0.015445606270805002,
-              -0.022649175091646614,
-              0.011366405757144094
-            ],
-            "gradient": 0.4,
-            "occlusion": 0.1,
-            "glareRadius": 3.8988674292340875,
-            "width": 609,
-            "height": 641
-          },
-          "error": "Payload checksum did not pass"
-        },
-        {
-          "trial": 3,
-          "stage": "RS",
-          "seed": 2709466473,
-          "parameters": {
-            "seed": 2709466473,
-            "level": 2,
-            "radius": 6.069944044575095,
-            "rotation": 38.626899383962154,
-            "tiltX": 18.526260717771947,
-            "tiltY": 25.919117650482804,
-            "curl": 0.0734127271687612,
-            "wavelength": 24.549560830928385,
-            "blur": 1.0121499525848776,
-            "gains": [
-              1.2878490201197565,
-              0.9595910102128982,
-              0.7241854272782802
-            ],
-            "offsets": [
-              0.04929745879489929,
-              0.006344998697750271,
-              0.0008994983043521643
-            ],
-            "gradient": 0.4,
-            "occlusion": 0.1,
-            "glareRadius": 3.5227942697238177,
-            "width": 531,
-            "height": 591
-          },
-          "error": "Error correction could not recover this image"
-        },
-        {
-          "trial": 4,
-          "stage": "CRC",
-          "seed": 2709466474,
-          "parameters": {
-            "seed": 2709466474,
-            "level": 2,
-            "radius": 6.143651899881661,
-            "rotation": 283.4953649248928,
-            "tiltX": 12.04558214871213,
-            "tiltY": -31.700041538570076,
-            "curl": 0.058552614762447774,
-            "wavelength": 25.568643962033093,
-            "blur": 1.3099060214590281,
-            "gains": [
-              0.8284788448829203,
-              1.1715332983992992,
-              1.256516029825434
-            ],
-            "offsets": [
-              -0.036744753876701,
-              0.0027227285550907258,
-              -0.012315391330048442
-            ],
-            "gradient": 0.4,
-            "occlusion": 0.1,
-            "glareRadius": 1.8555531878955662,
-            "width": 472,
-            "height": 480
-          },
-          "error": "Payload checksum did not pass"
-        },
-        {
-          "trial": 5,
-          "stage": "RS",
-          "seed": 2709466475,
-          "parameters": {
-            "seed": 2709466475,
-            "level": 2,
-            "radius": 8.351447869092226,
-            "rotation": 300.6089967023581,
-            "tiltX": 7.062981189228594,
-            "tiltY": 9.999725203961134,
-            "curl": 0.03508909803349525,
-            "wavelength": 18.707547108642757,
-            "blur": 1.4672422523144633,
-            "gains": [
-              0.76472271354869,
-              0.9985941617749631,
-              1.2031852958258242
-            ],
-            "offsets": [
-              -0.015635200776159763,
-              -0.013330777315422893,
-              -0.04755559843033552
-            ],
-            "gradient": 0.4,
-            "occlusion": 0.1,
-            "glareRadius": 3.5394117985852063,
-            "width": 775,
-            "height": 766
-          },
-          "error": "Error correction could not recover this image"
-        },
-        {
-          "trial": 8,
-          "stage": "CRC",
-          "seed": 2709466478,
-          "parameters": {
-            "seed": 2709466478,
-            "level": 2,
-            "radius": 6.535039274953306,
-            "rotation": 81.77863131277263,
-            "tiltX": -21.47462442982942,
-            "tiltY": 12.956286557018757,
-            "curl": 0.003554471279494464,
-            "wavelength": 11.952099543996155,
-            "blur": 1.2918907101266086,
-            "gains": [
-              0.8531223806086927,
-              0.9002174231689423,
-              0.9854787289630621
-            ],
-            "offsets": [
-              -0.023833845974877477,
-              -0.041962139494717124,
-              -0.018021608400158585
-            ],
-            "gradient": 0.4,
-            "occlusion": 0.1,
-            "glareRadius": 2.226220234995708,
-            "width": 504,
-            "height": 507
-          },
-          "error": "Payload checksum did not pass"
-        },
-        {
-          "trial": 12,
-          "stage": "CRC",
-          "seed": 2709466482,
-          "parameters": {
-            "seed": 2709466482,
-            "level": 2,
-            "radius": 9.927191224880517,
-            "rotation": 56.11942067742348,
-            "tiltX": 17.981450252700597,
-            "tiltY": 21.98375633219257,
-            "curl": 0.15717231589369476,
-            "wavelength": 16.711004860699177,
-            "blur": 0.6479545803740621,
-            "gains": [
-              1.0148104357998817,
-              0.8570733750704675,
-              0.9744362521450967
-            ],
-            "offsets": [
-              -0.0245370754506439,
-              -0.04919662880711258,
-              -0.004426768771372736
-            ],
-            "gradient": 0.4,
-            "occlusion": 0.1,
-            "glareRadius": 2.1463630432263017,
-            "width": 851,
-            "height": 926
-          },
-          "error": "Payload checksum did not pass"
-        },
-        {
-          "trial": 13,
-          "stage": "CRC",
-          "seed": 2709466483,
-          "parameters": {
-            "seed": 2709466483,
-            "level": 2,
-            "radius": 6.444581253454089,
-            "rotation": 15.432039024308324,
-            "tiltX": -34.63876460446045,
-            "tiltY": 0.19608071772381663,
-            "curl": 0.24687700804788618,
-            "wavelength": 15.19720431882888,
-            "blur": 0.7299953217152506,
-            "gains": [
-              0.8672669475432485,
-              0.8628233746159821,
-              1.0856777708511798
-            ],
-            "offsets": [
-              0.042563927546143535,
-              -0.002617827383801341,
-              0.027833332261070612
-            ],
-            "gradient": 0.4,
-            "occlusion": 0.1,
-            "glareRadius": 3.598275422118604,
-            "width": 508,
-            "height": 453
-          },
-          "error": "Payload checksum did not pass"
-        },
-        {
-          "trial": 14,
-          "stage": "RS",
-          "seed": 2709466484,
-          "parameters": {
-            "seed": 2709466484,
-            "level": 2,
-            "radius": 9.305102380923927,
-            "rotation": 308.71908791363245,
-            "tiltX": -0.19097608979791403,
-            "tiltY": -24.504976547323167,
-            "curl": 0.19265831974335015,
-            "wavelength": 11.329276720061898,
-            "blur": 0.5877556202467531,
-            "gains": [
-              1.1341064879205076,
-              1.044113049469888,
-              0.7533111301250756
-            ],
-            "offsets": [
-              -0.014514939929358662,
-              0.003911530878394842,
-              0.031596412789076565
-            ],
-            "gradient": 0.4,
-            "occlusion": 0.1,
-            "glareRadius": 2.1918634201865643,
-            "width": 822,
-            "height": 814
-          },
-          "error": "Error correction could not recover this image"
-        },
-        {
-          "trial": 16,
-          "stage": "CRC",
-          "seed": 2709466486,
-          "parameters": {
-            "seed": 2709466486,
-            "level": 2,
-            "radius": 6.434133701957762,
-            "rotation": 286.9342551100999,
-            "tiltX": -6.688360974658281,
-            "tiltY": -30.029247433412824,
-            "curl": 0.19294487948063757,
-            "wavelength": 19.554526167921722,
-            "blur": 1.3667145376093686,
-            "gains": [
-              0.9886619092430919,
-              1.2555424650665372,
-              1.25465337773785
-            ],
-            "offsets": [
-              0.0050374266225844625,
-              -0.02621560653205961,
-              0.007158901356160641
-            ],
-            "gradient": 0.4,
-            "occlusion": 0.1,
-            "glareRadius": 2.8069867531303316,
-            "width": 553,
-            "height": 500
-          },
-          "error": "Payload checksum did not pass"
-        },
-        {
-          "trial": 19,
-          "stage": "RS",
-          "seed": 2709466489,
-          "parameters": {
-            "seed": 2709466489,
-            "level": 2,
-            "radius": 6.0959178898483515,
-            "rotation": 102.87592744454741,
-            "tiltX": 5.462505349423737,
-            "tiltY": -17.851373387966305,
-            "curl": 0.0212666165549308,
-            "wavelength": 10.65647013951093,
-            "blur": 1.476834843866527,
-            "gains": [
-              0.7073767246678471,
-              0.7495707981754094,
-              1.193461317801848
-            ],
-            "offsets": [
-              -0.039122405904345216,
-              -0.016740658995695414,
-              -0.028728275909088552
-            ],
-            "gradient": 0.4,
-            "occlusion": 0.1,
-            "glareRadius": 2.083126262295991,
-            "width": 504,
-            "height": 506
-          },
-          "error": "Error correction could not recover this image"
-        },
-        {
-          "trial": 20,
-          "stage": "CRC",
-          "seed": 2709466490
-        },
-        {
-          "trial": 21,
-          "stage": "CRC",
-          "seed": 2709466491
-        },
-        {
-          "trial": 22,
-          "stage": "CRC",
-          "seed": 2709466492
-        },
-        {
-          "trial": 23,
-          "stage": "RS",
-          "seed": 2709466493
-        },
-        {
-          "trial": 24,
-          "stage": "CRC",
-          "seed": 2709466494
-        },
-        {
-          "trial": 26,
-          "stage": "CRC",
-          "seed": 2709466496
-        },
-        {
-          "trial": 27,
-          "stage": "CRC",
-          "seed": 2709466497
-        },
-        {
-          "trial": 28,
-          "stage": "RS",
-          "seed": 2709466498
-        },
-        {
-          "trial": 29,
-          "stage": "RS",
-          "seed": 2709466499
-        },
-        {
-          "trial": 32,
-          "stage": "RS",
-          "seed": 2709466502
-        },
-        {
-          "trial": 33,
-          "stage": "CRC",
-          "seed": 2709466503
-        },
-        {
-          "trial": 35,
-          "stage": "CRC",
-          "seed": 2709466505
-        },
-        {
-          "trial": 36,
-          "stage": "RS",
-          "seed": 2709466506
-        },
-        {
-          "trial": 38,
-          "stage": "CRC",
-          "seed": 2709466508
-        },
-        {
-          "trial": 41,
-          "stage": "CRC",
-          "seed": 2709466511
-        },
-        {
-          "trial": 42,
-          "stage": "RS",
-          "seed": 2709466512
-        },
-        {
-          "trial": 44,
-          "stage": "CRC",
-          "seed": 2709466514
-        },
-        {
-          "trial": 45,
-          "stage": "CRC",
-          "seed": 2709466515
-        },
-        {
-          "trial": 46,
-          "stage": "CRC",
-          "seed": 2709466516
-        },
-        {
-          "trial": 47,
-          "stage": "RS",
-          "seed": 2709466517
-        },
-        {
-          "trial": 49,
-          "stage": "RS",
-          "seed": 2709466519
-        },
-        {
-          "trial": 52,
-          "stage": "RS",
-          "seed": 2709466522
-        },
-        {
-          "trial": 55,
-          "stage": "RS",
-          "seed": 2709466525
-        },
-        {
-          "trial": 56,
-          "stage": "RS",
-          "seed": 2709466526
-        },
-        {
-          "trial": 58,
-          "stage": "CRC",
-          "seed": 2709466528
-        },
-        {
-          "trial": 62,
-          "stage": "RS",
-          "seed": 2709466532
-        },
-        {
-          "trial": 64,
-          "stage": "RS",
-          "seed": 2709466534
-        },
-        {
-          "trial": 65,
-          "stage": "RS",
-          "seed": 2709466535
-        },
-        {
-          "trial": 67,
-          "stage": "RS",
-          "seed": 2709466537
-        },
-        {
-          "trial": 68,
-          "stage": "CRC",
-          "seed": 2709466538
-        },
-        {
-          "trial": 70,
-          "stage": "RS",
-          "seed": 2709466540
-        },
-        {
-          "trial": 71,
-          "stage": "CRC",
-          "seed": 2709466541
-        },
-        {
-          "trial": 72,
-          "stage": "RS",
-          "seed": 2709466542
-        },
-        {
-          "trial": 73,
-          "stage": "CRC",
-          "seed": 2709466543
-        },
-        {
-          "trial": 74,
-          "stage": "CRC",
-          "seed": 2709466544
-        },
-        {
-          "trial": 75,
-          "stage": "CRC",
-          "seed": 2709466545
-        },
-        {
-          "trial": 76,
-          "stage": "RS",
-          "seed": 2709466546
-        },
-        {
-          "trial": 77,
-          "stage": "CRC",
-          "seed": 2709466547
-        },
-        {
-          "trial": 78,
-          "stage": "RS",
-          "seed": 2709466548
-        },
-        {
-          "trial": 79,
-          "stage": "RS",
-          "seed": 2709466549
-        },
-        {
-          "trial": 84,
-          "stage": "RS",
-          "seed": 2709466554
-        },
-        {
-          "trial": 87,
-          "stage": "CRC",
-          "seed": 2709466557
-        },
-        {
-          "trial": 91,
-          "stage": "RS",
-          "seed": 2709466561
-        },
-        {
-          "trial": 94,
-          "stage": "RS",
-          "seed": 2709466564
-        },
-        {
-          "trial": 95,
-          "stage": "CRC",
-          "seed": 2709466565
-        },
-        {
-          "trial": 101,
-          "stage": "CRC",
-          "seed": 2709466571
-        },
-        {
-          "trial": 103,
-          "stage": "CRC",
-          "seed": 2709466573
-        },
-        {
-          "trial": 105,
-          "stage": "RS",
-          "seed": 2709466575
-        },
-        {
-          "trial": 106,
-          "stage": "CRC",
-          "seed": 2709466576
-        },
-        {
-          "trial": 107,
-          "stage": "CRC",
-          "seed": 2709466577
-        },
-        {
-          "trial": 108,
-          "stage": "RS",
-          "seed": 2709466578
-        },
-        {
-          "trial": 109,
-          "stage": "RS",
-          "seed": 2709466579
-        },
-        {
-          "trial": 113,
-          "stage": "RS",
-          "seed": 2709466583
-        },
-        {
-          "trial": 115,
-          "stage": "RS",
-          "seed": 2709466585
-        },
-        {
-          "trial": 116,
-          "stage": "RS",
-          "seed": 2709466586
-        },
-        {
-          "trial": 118,
-          "stage": "CRC",
-          "seed": 2709466588
-        },
-        {
-          "trial": 121,
-          "stage": "RS",
-          "seed": 2709466591
-        },
-        {
-          "trial": 123,
-          "stage": "CRC",
-          "seed": 2709466593
-        },
-        {
-          "trial": 125,
-          "stage": "CRC",
-          "seed": 2709466595
-        },
-        {
-          "trial": 126,
-          "stage": "RS",
-          "seed": 2709466596
-        },
-        {
-          "trial": 128,
-          "stage": "RS",
-          "seed": 2709466598
-        },
-        {
-          "trial": 129,
-          "stage": "CRC",
-          "seed": 2709466599
-        },
-        {
-          "trial": 130,
-          "stage": "CRC",
-          "seed": 2709466600
-        },
-        {
-          "trial": 131,
-          "stage": "CRC",
-          "seed": 2709466601
-        },
-        {
-          "trial": 132,
-          "stage": "CRC",
-          "seed": 2709466602
-        },
-        {
-          "trial": 140,
-          "stage": "RS",
-          "seed": 2709466610
-        },
-        {
-          "trial": 143,
-          "stage": "CRC",
-          "seed": 2709466613
-        },
-        {
-          "trial": 144,
-          "stage": "RS",
-          "seed": 2709466614
-        },
-        {
-          "trial": 149,
-          "stage": "CRC",
-          "seed": 2709466619
-        },
-        {
-          "trial": 150,
-          "stage": "RS",
-          "seed": 2709466620
-        },
-        {
-          "trial": 153,
-          "stage": "RS",
-          "seed": 2709466623
-        },
-        {
-          "trial": 157,
-          "stage": "CRC",
-          "seed": 2709466627
-        },
-        {
-          "trial": 158,
-          "stage": "CRC",
-          "seed": 2709466628
-        },
-        {
-          "trial": 159,
-          "stage": "CRC",
-          "seed": 2709466629
-        },
-        {
-          "trial": 160,
-          "stage": "CRC",
-          "seed": 2709466630
-        },
-        {
-          "trial": 161,
-          "stage": "RS",
-          "seed": 2709466631
-        },
-        {
-          "trial": 162,
-          "stage": "RS",
-          "seed": 2709466632
-        },
-        {
-          "trial": 163,
-          "stage": "CRC",
-          "seed": 2709466633
-        },
-        {
-          "trial": 164,
-          "stage": "RS",
-          "seed": 2709466634
-        },
-        {
-          "trial": 165,
-          "stage": "RS",
-          "seed": 2709466635
-        },
-        {
-          "trial": 166,
-          "stage": "CRC",
-          "seed": 2709466636
-        },
-        {
-          "trial": 170,
-          "stage": "RS",
-          "seed": 2709466640
-        },
-        {
-          "trial": 173,
-          "stage": "CRC",
-          "seed": 2709466643
-        },
-        {
-          "trial": 174,
-          "stage": "RS",
-          "seed": 2709466644
-        },
-        {
-          "trial": 175,
-          "stage": "CRC",
-          "seed": 2709466645
-        },
-        {
-          "trial": 176,
-          "stage": "RS",
-          "seed": 2709466646
-        },
-        {
-          "trial": 177,
-          "stage": "CRC",
-          "seed": 2709466647
-        },
-        {
-          "trial": 179,
-          "stage": "CRC",
-          "seed": 2709466649
-        },
-        {
-          "trial": 180,
-          "stage": "CRC",
-          "seed": 2709466650
-        },
-        {
-          "trial": 181,
-          "stage": "CRC",
-          "seed": 2709466651
-        },
-        {
-          "trial": 184,
-          "stage": "RS",
-          "seed": 2709466654
-        },
-        {
-          "trial": 185,
-          "stage": "RS",
-          "seed": 2709466655
-        },
-        {
-          "trial": 193,
-          "stage": "CRC",
-          "seed": 2709466663
-        },
-        {
-          "trial": 195,
-          "stage": "CRC",
-          "seed": 2709466665
-        },
-        {
-          "trial": 196,
-          "stage": "RS",
-          "seed": 2709466666
-        },
-        {
-          "trial": 198,
-          "stage": "RS",
-          "seed": 2709466668
-        },
-        {
-          "trial": 203,
-          "stage": "RS",
-          "seed": 2709466673
-        },
-        {
-          "trial": 205,
-          "stage": "RS",
-          "seed": 2709466675
-        },
-        {
-          "trial": 206,
-          "stage": "CRC",
-          "seed": 2709466676
-        },
-        {
-          "trial": 207,
-          "stage": "RS",
-          "seed": 2709466677
-        },
-        {
-          "trial": 208,
-          "stage": "CRC",
-          "seed": 2709466678
-        },
-        {
-          "trial": 210,
-          "stage": "RS",
-          "seed": 2709466680
-        },
-        {
-          "trial": 214,
-          "stage": "RS",
-          "seed": 2709466684
-        },
-        {
-          "trial": 217,
-          "stage": "CRC",
-          "seed": 2709466687
-        },
-        {
-          "trial": 218,
-          "stage": "RS",
-          "seed": 2709466688
-        },
-        {
-          "trial": 219,
-          "stage": "CRC",
-          "seed": 2709466689
-        },
-        {
-          "trial": 220,
-          "stage": "CRC",
-          "seed": 2709466690
-        },
-        {
-          "trial": 221,
-          "stage": "RS",
-          "seed": 2709466691
-        },
-        {
-          "trial": 222,
-          "stage": "CRC",
-          "seed": 2709466692
-        },
-        {
-          "trial": 223,
-          "stage": "CRC",
-          "seed": 2709466693
-        },
-        {
-          "trial": 224,
-          "stage": "CRC",
-          "seed": 2709466694
-        },
-        {
-          "trial": 225,
-          "stage": "CRC",
-          "seed": 2709466695
-        },
-        {
-          "trial": 226,
-          "stage": "RS",
-          "seed": 2709466696
-        },
-        {
-          "trial": 227,
-          "stage": "CRC",
-          "seed": 2709466697
-        },
-        {
-          "trial": 228,
-          "stage": "RS",
-          "seed": 2709466698
-        },
-        {
-          "trial": 229,
-          "stage": "CRC",
-          "seed": 2709466699
-        },
-        {
-          "trial": 231,
-          "stage": "CRC",
-          "seed": 2709466701
-        },
-        {
-          "trial": 233,
-          "stage": "RS",
-          "seed": 2709466703
-        },
-        {
-          "trial": 238,
-          "stage": "CRC",
-          "seed": 2709466708
-        },
-        {
-          "trial": 240,
-          "stage": "RS",
-          "seed": 2709466710
-        },
-        {
-          "trial": 242,
-          "stage": "CRC",
-          "seed": 2709466712
-        },
-        {
-          "trial": 243,
-          "stage": "CRC",
-          "seed": 2709466713
-        },
-        {
-          "trial": 244,
-          "stage": "CRC",
-          "seed": 2709466714
-        },
-        {
-          "trial": 247,
-          "stage": "RS",
-          "seed": 2709466717
-        },
-        {
-          "trial": 252,
-          "stage": "CRC",
-          "seed": 2709466722
-        },
-        {
-          "trial": 257,
-          "stage": "CRC",
-          "seed": 2709466727
-        },
-        {
-          "trial": 258,
-          "stage": "CRC",
-          "seed": 2709466728
-        },
-        {
-          "trial": 259,
-          "stage": "CRC",
-          "seed": 2709466729
-        },
-        {
-          "trial": 263,
-          "stage": "RS",
-          "seed": 2709466733
-        },
-        {
-          "trial": 264,
-          "stage": "CRC",
-          "seed": 2709466734
-        },
-        {
-          "trial": 265,
-          "stage": "RS",
-          "seed": 2709466735
-        },
-        {
-          "trial": 268,
-          "stage": "RS",
-          "seed": 2709466738
-        },
-        {
-          "trial": 269,
-          "stage": "CRC",
-          "seed": 2709466739
-        },
-        {
-          "trial": 270,
-          "stage": "CRC",
-          "seed": 2709466740
-        },
-        {
-          "trial": 272,
-          "stage": "RS",
-          "seed": 2709466742
-        },
-        {
-          "trial": 274,
-          "stage": "RS",
-          "seed": 2709466744
-        },
-        {
-          "trial": 276,
-          "stage": "CRC",
-          "seed": 2709466746
-        },
-        {
-          "trial": 277,
-          "stage": "CRC",
-          "seed": 2709466747
-        },
-        {
-          "trial": 278,
-          "stage": "CRC",
-          "seed": 2709466748
-        },
-        {
-          "trial": 280,
-          "stage": "CRC",
-          "seed": 2709466750
-        },
-        {
-          "trial": 284,
-          "stage": "RS",
-          "seed": 2709466754
-        },
-        {
-          "trial": 286,
-          "stage": "RS",
-          "seed": 2709466756
-        },
-        {
-          "trial": 287,
-          "stage": "CRC",
-          "seed": 2709466757
-        },
-        {
-          "trial": 288,
-          "stage": "RS",
-          "seed": 2709466758
-        },
-        {
-          "trial": 290,
-          "stage": "CRC",
-          "seed": 2709466760
-        },
-        {
-          "trial": 291,
-          "stage": "CRC",
-          "seed": 2709466761
-        },
-        {
-          "trial": 292,
-          "stage": "CRC",
-          "seed": 2709466762
-        },
-        {
-          "trial": 294,
-          "stage": "CRC",
-          "seed": 2709466764
-        },
-        {
-          "trial": 295,
-          "stage": "CRC",
-          "seed": 2709466765
-        },
-        {
-          "trial": 297,
-          "stage": "CRC",
-          "seed": 2709466767
-        },
-        {
-          "trial": 298,
-          "stage": "RS",
-          "seed": 2709466768
-        },
-        {
-          "trial": 300,
-          "stage": "CRC",
-          "seed": 2709466770
-        },
-        {
-          "trial": 301,
-          "stage": "RS",
-          "seed": 2709466771
-        },
-        {
-          "trial": 305,
-          "stage": "CRC",
-          "seed": 2709466775
-        },
-        {
-          "trial": 306,
-          "stage": "RS",
-          "seed": 2709466776
-        },
-        {
-          "trial": 307,
-          "stage": "RS",
-          "seed": 2709466777
-        },
-        {
-          "trial": 309,
-          "stage": "CRC",
-          "seed": 2709466779
-        },
-        {
-          "trial": 311,
-          "stage": "CRC",
-          "seed": 2709466781
-        },
-        {
-          "trial": 312,
-          "stage": "RS",
-          "seed": 2709466782
-        },
-        {
-          "trial": 314,
-          "stage": "CRC",
-          "seed": 2709466784
-        },
-        {
-          "trial": 318,
-          "stage": "CRC",
-          "seed": 2709466788
-        },
-        {
-          "trial": 320,
-          "stage": "CRC",
-          "seed": 2709466790
-        },
-        {
-          "trial": 321,
-          "stage": "RS",
-          "seed": 2709466791
-        },
-        {
-          "trial": 324,
-          "stage": "CRC",
-          "seed": 2709466794
-        },
-        {
-          "trial": 327,
-          "stage": "CRC",
-          "seed": 2709466797
-        },
-        {
-          "trial": 328,
-          "stage": "CRC",
-          "seed": 2709466798
-        },
-        {
-          "trial": 329,
-          "stage": "RS",
-          "seed": 2709466799
-        },
-        {
-          "trial": 330,
-          "stage": "RS",
-          "seed": 2709466800
-        },
-        {
-          "trial": 331,
-          "stage": "CRC",
-          "seed": 2709466801
-        },
-        {
-          "trial": 332,
-          "stage": "CRC",
-          "seed": 2709466802
-        },
-        {
-          "trial": 333,
-          "stage": "CRC",
-          "seed": 2709466803
-        },
-        {
-          "trial": 335,
-          "stage": "RS",
-          "seed": 2709466805
-        },
-        {
-          "trial": 336,
-          "stage": "CRC",
-          "seed": 2709466806
-        },
-        {
-          "trial": 337,
-          "stage": "CRC",
-          "seed": 2709466807
-        },
-        {
-          "trial": 339,
-          "stage": "CRC",
-          "seed": 2709466809
-        },
-        {
-          "trial": 340,
-          "stage": "CRC",
-          "seed": 2709466810
-        },
-        {
-          "trial": 341,
-          "stage": "CRC",
-          "seed": 2709466811
-        },
-        {
-          "trial": 345,
-          "stage": "RS",
-          "seed": 2709466815
-        },
-        {
-          "trial": 346,
-          "stage": "RS",
-          "seed": 2709466816
-        },
-        {
-          "trial": 350,
-          "stage": "RS",
-          "seed": 2709466820
-        },
-        {
-          "trial": 352,
-          "stage": "RS",
-          "seed": 2709466822
-        },
-        {
-          "trial": 353,
-          "stage": "CRC",
-          "seed": 2709466823
-        },
-        {
-          "trial": 354,
-          "stage": "RS",
-          "seed": 2709466824
-        },
-        {
-          "trial": 355,
-          "stage": "CRC",
-          "seed": 2709466825
-        },
-        {
-          "trial": 357,
-          "stage": "CRC",
-          "seed": 2709466827
-        },
-        {
-          "trial": 359,
-          "stage": "CRC",
-          "seed": 2709466829
-        },
-        {
-          "trial": 360,
-          "stage": "RS",
-          "seed": 2709466830
-        },
-        {
-          "trial": 361,
-          "stage": "CRC",
-          "seed": 2709466831
-        },
-        {
-          "trial": 365,
-          "stage": "RS",
-          "seed": 2709466835
-        },
-        {
-          "trial": 368,
-          "stage": "CRC",
-          "seed": 2709466838
-        },
-        {
-          "trial": 370,
-          "stage": "CRC",
-          "seed": 2709466840
-        },
-        {
-          "trial": 373,
-          "stage": "RS",
-          "seed": 2709466843
-        },
-        {
-          "trial": 374,
-          "stage": "RS",
-          "seed": 2709466844
-        },
-        {
-          "trial": 378,
-          "stage": "RS",
-          "seed": 2709466848
-        },
-        {
-          "trial": 381,
-          "stage": "CRC",
-          "seed": 2709466851
-        },
-        {
-          "trial": 382,
-          "stage": "RS",
-          "seed": 2709466852
-        },
-        {
-          "trial": 383,
-          "stage": "CRC",
-          "seed": 2709466853
-        },
-        {
-          "trial": 384,
-          "stage": "CRC",
-          "seed": 2709466854
-        },
-        {
-          "trial": 389,
-          "stage": "CRC",
-          "seed": 2709466859
-        },
-        {
-          "trial": 390,
-          "stage": "RS",
-          "seed": 2709466860
-        },
-        {
-          "trial": 391,
-          "stage": "CRC",
-          "seed": 2709466861
-        },
-        {
-          "trial": 392,
-          "stage": "CRC",
-          "seed": 2709466862
-        },
-        {
-          "trial": 395,
-          "stage": "RS",
-          "seed": 2709466865
-        },
-        {
-          "trial": 397,
-          "stage": "CRC",
-          "seed": 2709466867
-        },
-        {
-          "trial": 398,
-          "stage": "RS",
-          "seed": 2709466868
-        },
-        {
-          "trial": 402,
-          "stage": "CRC",
-          "seed": 2709466872
-        },
-        {
-          "trial": 408,
-          "stage": "CRC",
-          "seed": 2709466878
-        },
-        {
-          "trial": 412,
-          "stage": "RS",
-          "seed": 2709466882
-        },
-        {
-          "trial": 416,
-          "stage": "CRC",
-          "seed": 2709466886
-        },
-        {
-          "trial": 417,
-          "stage": "RS",
-          "seed": 2709466887
-        },
-        {
-          "trial": 419,
-          "stage": "RS",
-          "seed": 2709466889
-        },
-        {
-          "trial": 423,
-          "stage": "CRC",
-          "seed": 2709466893
-        },
-        {
-          "trial": 425,
-          "stage": "CRC",
-          "seed": 2709466895
-        },
-        {
-          "trial": 426,
-          "stage": "CRC",
-          "seed": 2709466896
-        },
-        {
-          "trial": 427,
-          "stage": "CRC",
-          "seed": 2709466897
-        },
-        {
-          "trial": 429,
-          "stage": "RS",
-          "seed": 2709466899
-        },
-        {
-          "trial": 432,
-          "stage": "CRC",
-          "seed": 2709466902
-        },
-        {
-          "trial": 434,
-          "stage": "RS",
-          "seed": 2709466904
-        },
-        {
-          "trial": 435,
-          "stage": "CRC",
-          "seed": 2709466905
-        },
-        {
-          "trial": 437,
-          "stage": "RS",
-          "seed": 2709466907
-        },
-        {
-          "trial": 438,
-          "stage": "CRC",
-          "seed": 2709466908
-        },
-        {
-          "trial": 439,
-          "stage": "RS",
-          "seed": 2709466909
-        },
-        {
-          "trial": 440,
-          "stage": "CRC",
-          "seed": 2709466910
-        },
-        {
-          "trial": 444,
-          "stage": "RS",
-          "seed": 2709466914
-        },
-        {
-          "trial": 445,
-          "stage": "CRC",
-          "seed": 2709466915
-        },
-        {
-          "trial": 446,
-          "stage": "CRC",
-          "seed": 2709466916
-        },
-        {
-          "trial": 449,
-          "stage": "RS",
-          "seed": 2709466919
-        },
-        {
-          "trial": 457,
-          "stage": "CRC",
-          "seed": 2709466927
-        },
-        {
-          "trial": 458,
-          "stage": "CRC",
-          "seed": 2709466928
-        },
-        {
-          "trial": 459,
-          "stage": "CRC",
-          "seed": 2709466929
-        },
-        {
-          "trial": 462,
-          "stage": "RS",
-          "seed": 2709466932
-        },
-        {
-          "trial": 463,
-          "stage": "CRC",
-          "seed": 2709466933
-        },
-        {
-          "trial": 464,
-          "stage": "CRC",
-          "seed": 2709466934
-        },
-        {
-          "trial": 466,
-          "stage": "RS",
-          "seed": 2709466936
-        },
-        {
-          "trial": 467,
-          "stage": "RS",
-          "seed": 2709466937
-        },
-        {
-          "trial": 468,
-          "stage": "CRC",
-          "seed": 2709466938
-        },
-        {
-          "trial": 471,
-          "stage": "CRC",
-          "seed": 2709466941
-        },
-        {
-          "trial": 473,
-          "stage": "RS",
-          "seed": 2709466943
-        },
-        {
-          "trial": 475,
-          "stage": "CRC",
-          "seed": 2709466945
-        },
-        {
-          "trial": 480,
-          "stage": "RS",
-          "seed": 2709466950
-        },
-        {
-          "trial": 482,
-          "stage": "CRC",
-          "seed": 2709466952
-        },
-        {
-          "trial": 486,
-          "stage": "CRC",
-          "seed": 2709466956
-        },
-        {
-          "trial": 488,
-          "stage": "header",
-          "seed": 2709466958
-        },
-        {
-          "trial": 490,
-          "stage": "RS",
-          "seed": 2709466960
-        },
-        {
-          "trial": 493,
-          "stage": "CRC",
-          "seed": 2709466963
-        },
-        {
-          "trial": 494,
-          "stage": "CRC",
-          "seed": 2709466964
-        },
-        {
-          "trial": 498,
-          "stage": "RS",
-          "seed": 2709466968
-        }
-      ],
       "ms": 70877.19999999995,
-      "rate": 0.486,
-      "targetMet": false
+      "failureSeedsByStage": {
+        "header": [
+          2709466958
+        ],
+        "RS": [
+          2709466473,
+          2709466475,
+          2709466484,
+          2709466489,
+          2709466493,
+          2709466498,
+          2709466499,
+          2709466502,
+          2709466506,
+          2709466512,
+          2709466517,
+          2709466519,
+          2709466522,
+          2709466525,
+          2709466526,
+          2709466532,
+          2709466534,
+          2709466535,
+          2709466537,
+          2709466540,
+          2709466542,
+          2709466546,
+          2709466548,
+          2709466549,
+          2709466554,
+          2709466561,
+          2709466564,
+          2709466575,
+          2709466578,
+          2709466579,
+          2709466583,
+          2709466585,
+          2709466586,
+          2709466591,
+          2709466596,
+          2709466598,
+          2709466610,
+          2709466614,
+          2709466620,
+          2709466623,
+          2709466631,
+          2709466632,
+          2709466634,
+          2709466635,
+          2709466640,
+          2709466644,
+          2709466646,
+          2709466654,
+          2709466655,
+          2709466666,
+          2709466668,
+          2709466673,
+          2709466675,
+          2709466677,
+          2709466680,
+          2709466684,
+          2709466688,
+          2709466691,
+          2709466696,
+          2709466698,
+          2709466703,
+          2709466710,
+          2709466717,
+          2709466733,
+          2709466735,
+          2709466738,
+          2709466742,
+          2709466744,
+          2709466754,
+          2709466756,
+          2709466758,
+          2709466768,
+          2709466771,
+          2709466776,
+          2709466777,
+          2709466782,
+          2709466791,
+          2709466799,
+          2709466800,
+          2709466805,
+          2709466815,
+          2709466816,
+          2709466820,
+          2709466822,
+          2709466824,
+          2709466830,
+          2709466835,
+          2709466843,
+          2709466844,
+          2709466848,
+          2709466852,
+          2709466860,
+          2709466865,
+          2709466868,
+          2709466882,
+          2709466887,
+          2709466889,
+          2709466899,
+          2709466904,
+          2709466907,
+          2709466909,
+          2709466914,
+          2709466919,
+          2709466932,
+          2709466936,
+          2709466937,
+          2709466943,
+          2709466950,
+          2709466960,
+          2709466968
+        ],
+        "CRC": [
+          2709466472,
+          2709466474,
+          2709466478,
+          2709466482,
+          2709466483,
+          2709466486,
+          2709466490,
+          2709466491,
+          2709466492,
+          2709466494,
+          2709466496,
+          2709466497,
+          2709466503,
+          2709466505,
+          2709466508,
+          2709466511,
+          2709466514,
+          2709466515,
+          2709466516,
+          2709466528,
+          2709466538,
+          2709466541,
+          2709466543,
+          2709466544,
+          2709466545,
+          2709466547,
+          2709466557,
+          2709466565,
+          2709466571,
+          2709466573,
+          2709466576,
+          2709466577,
+          2709466588,
+          2709466593,
+          2709466595,
+          2709466599,
+          2709466600,
+          2709466601,
+          2709466602,
+          2709466613,
+          2709466619,
+          2709466627,
+          2709466628,
+          2709466629,
+          2709466630,
+          2709466633,
+          2709466636,
+          2709466643,
+          2709466645,
+          2709466647,
+          2709466649,
+          2709466650,
+          2709466651,
+          2709466663,
+          2709466665,
+          2709466676,
+          2709466678,
+          2709466687,
+          2709466689,
+          2709466690,
+          2709466692,
+          2709466693,
+          2709466694,
+          2709466695,
+          2709466697,
+          2709466699,
+          2709466701,
+          2709466708,
+          2709466712,
+          2709466713,
+          2709466714,
+          2709466722,
+          2709466727,
+          2709466728,
+          2709466729,
+          2709466734,
+          2709466739,
+          2709466740,
+          2709466746,
+          2709466747,
+          2709466748,
+          2709466750,
+          2709466757,
+          2709466760,
+          2709466761,
+          2709466762,
+          2709466764,
+          2709466765,
+          2709466767,
+          2709466770,
+          2709466775,
+          2709466779,
+          2709466781,
+          2709466784,
+          2709466788,
+          2709466790,
+          2709466794,
+          2709466797,
+          2709466798,
+          2709466801,
+          2709466802,
+          2709466803,
+          2709466806,
+          2709466807,
+          2709466809,
+          2709466810,
+          2709466811,
+          2709466823,
+          2709466825,
+          2709466827,
+          2709466829,
+          2709466831,
+          2709466838,
+          2709466840,
+          2709466851,
+          2709466853,
+          2709466854,
+          2709466859,
+          2709466861,
+          2709466862,
+          2709466867,
+          2709466872,
+          2709466878,
+          2709466886,
+          2709466893,
+          2709466895,
+          2709466896,
+          2709466897,
+          2709466902,
+          2709466905,
+          2709466908,
+          2709466910,
+          2709466915,
+          2709466916,
+          2709466927,
+          2709466928,
+          2709466929,
+          2709466933,
+          2709466934,
+          2709466938,
+          2709466941,
+          2709466945,
+          2709466952,
+          2709466956,
+          2709466963,
+          2709466964
+        ]
+      }
     }
   ],
-  "clean": [
-    {
-      "size": 0,
-      "mode": 0,
-      "known": true,
-      "pass": true
-    },
-    {
-      "size": 0,
-      "mode": 0,
-      "known": false,
-      "pass": true
-    },
-    {
-      "size": 1,
-      "mode": 0,
-      "known": true,
-      "pass": true
-    },
-    {
-      "size": 1,
-      "mode": 0,
-      "known": false,
-      "pass": true
-    },
-    {
-      "size": 2,
-      "mode": 0,
-      "known": true,
-      "pass": true
-    },
-    {
-      "size": 2,
-      "mode": 0,
-      "known": false,
-      "pass": true
-    },
-    {
-      "size": 3,
-      "mode": 0,
-      "known": true,
-      "pass": true
-    },
-    {
-      "size": 3,
-      "mode": 0,
-      "known": false,
-      "pass": true
-    },
-    {
-      "size": 4,
-      "mode": 0,
-      "known": true,
-      "pass": true
-    },
-    {
-      "size": 4,
-      "mode": 0,
-      "known": false,
-      "pass": true
-    },
-    {
-      "size": 5,
-      "mode": 0,
-      "known": true,
-      "pass": true
-    },
-    {
-      "size": 5,
-      "mode": 0,
-      "known": false,
-      "pass": true
-    },
-    {
-      "size": 0,
-      "mode": 1,
-      "known": true,
-      "pass": true
-    },
-    {
-      "size": 0,
-      "mode": 1,
-      "known": false,
-      "pass": true
-    },
-    {
-      "size": 1,
-      "mode": 1,
-      "known": true,
-      "pass": true
-    },
-    {
-      "size": 1,
-      "mode": 1,
-      "known": false,
-      "pass": true
-    },
-    {
-      "size": 2,
-      "mode": 1,
-      "known": true,
+  "reproduction": "For level L, trial t uses seed = base seed + L*100000 + t. All failure seeds are listed by measured failure stage."
+}
