@@ -12,6 +12,12 @@ Random scenes default to an ideal-geometry readability check: actual rendered pi
 
 Open `index.html` for the browser app, or download `prism.html` and open it locally. Camera access requires HTTPS or localhost. Photo upload works without camera permission and is the primary tested path. A Prism Code is **not a QR code**, and ordinary QR readers cannot read it.
 
+## Experimental0.1.4 mixed-stress update
+
+A second fallback adds local illumination/color normalization and denser refinement using the original internal known cells. No new visible patterns or markers. It runs after0.1.3 fails, keeping earlier successes. Difficult failed scans can take longer because each extra search has its own bounded budget.
+
+On40 paired ideal-geometry-recoverable mixed scenes across two seeds, recovery increased from7/40 to15/40.150 scenes were sampled and110 excluded by the oracle before those40. Zero wrong bytes appeared in these paired tests;100 negative images were rejected by the combined candidate. Neither result is a guarantee. All12 clean size/palette combinations, the supplied green JPEG and the exported80° cylinder still pass. Severe mixed damage remains unreliable.
+
 ## Experimental 0.1.3 reader update
 
 The original marker-free encoder and notch are unchanged. A fallback now tries channel-normalized detection, alternate hull quadrilaterals, fitted nonlinear geometry and internal-cell mesh refinement after the legacy reader fails. The reader does not receive simulator geometry. Recovery hypotheses with an empty payload are not accepted by this fallback. It has a bounded processing budget.
