@@ -6,7 +6,15 @@ An experimental hexagonal optical-code format, implemented as **one offline HTML
 
 Open `index.html` for the browser app, or download `prism.html` and open it locally. Camera access requires HTTPS or localhost. Photo upload works without camera permission and is the primary tested path. A Prism Code is **not a QR code**, and ordinary QR readers cannot read it.
 
-## Build status, 19 November 2026
+## Build 0.1.2 update, 19 November 2026
+
+The exact green-tinted, blurred, curved supplied JPEG now reads automatically as `Hello from Prism!` (17 bytes, size 0, ECC 3, payload CRC pass). The reader detects the supplied generator's seeded bit-whitening variant, fits its row-wise curve/skew model from known cells, and checks the payload. The export fallback is for the full exported canvas only; cropped photos and arbitrary curved camera views are not covered.
+
+A 60-export generator matrix initially passed 15/15 clean, 15/15 light effects, 15/15 medium effects, and 12/15 strongest effects. Full updated 500-image reruns and independent 3D cylindrical/perspective stress tests are in progress. Early cylindrical tests fail heavily; no general curved-surface reliability claim is made.
+
+Empty-payload guesses now need a direct high-confidence header and strong pattern match; zero padding is not restored for empty payloads. Random-image tests reject all 20 checked negatives. A per-image processing bound limits expensive failed hypotheses.
+
+## Previous build 0.1.1 measured baseline, 19 November 2026
 
 **Experimental working build. The synthetic run is finished; the damage target is not met.** See `progress.html` for the latest published checkpoint. Do not treat synthetic results as real-print guarantees.
 
