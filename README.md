@@ -12,6 +12,16 @@ Random scenes default to an ideal-geometry readability check: actual rendered pi
 
 Open `index.html` for the browser app, or download `prism.html` and open it locally. Camera access requires HTTPS or localhost. Photo upload works without camera permission and is the primary tested path. A Prism Code is **not a QR code**, and ordinary QR readers cannot read it.
 
+## Experimental 0.1.7 step-by-step debug
+
+In Read, enable **Record step-by-step scan debug** before uploading. In the simulator, enable **Record step-by-step decoder debug**, then Test this image. A stage viewer below the result has Previous/Next, a stage selector and phone swipe support. Show candidate and ECC attempts to expand the detailed search. Save trace JSON keeps the captured pixels and events locally; nothing is uploaded.
+
+The trace records input and normalized pixels, actual segmentation masks, candidate boundaries, tested sizes/palettes/rotations and scores, fitted surface grids, inferred notch-side origin, calibrated sampled-cell colors, header candidates, RS erasure ladders and changed codeword positions, payload CRC outcomes and timings. Tap a sampled dot to inspect its raw/calibrated RGB and role. Failed scans retain their trace too.
+
+This is real instrumentation, not a replay using simulator geometry. It records stage/candidate events, not every pixel operation. Repeated ECC event families retain their first 120 events and count the rest; there is a 2,400-event cap, and large sampling views show at most 1,800 dots. These limits are stated in the viewer. Timings include debug capture overhead and report time since the previous event, not isolated profiler measurements. Orientation comes from the existing pattern/header/CRC agreement, not a separate guaranteed notch detector. Debug mode may take longer and can change the search reached within time limits. Physical-camera validation is still absent.
+
+Checks: 12 distinct clean size/palette images pass with debug enabled; supplied green JPEG, difficult curved PNG, simulator tilted image, failed white-image trace, JSON download and 320/390 px layouts pass in browser emulation. No new accuracy claim beyond 0.1.6.
+
 ## Experimental 0.1.6 geometry update
 
 Additional boundary candidates use a rotated minimum-area rectangle and one edge fit per coarse hull side. This avoids cutting across the original corner notch or mistaking two curved-edge fragments for two sides. The encoder appearance is unchanged, with no added finder markers. The legacy reader is unchanged.
