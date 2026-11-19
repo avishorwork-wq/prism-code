@@ -225,5 +225,18 @@
       "attempted": 1000,
       "pass": 1000
     }
+  },
+  "debugUpdate017": {
+    "version": "0.1.7",
+    "accuracyAlgorithm": "0.1.6 plus opt-in trace hooks",
+    "debugClean": {
+      "attempted": 12,
+      "pass": 12
+    },
+    "suppliedGreenPhoto": "Hello from Prism!, 72 recorded events, 3 pixel views, CRC pass",
+    "curvedRawPayload": "87 bytes, 498 events, 5 pixel views, CRC pass",
+    "failureTrace": "White negative rejected; trace preserved, repeated ECC events summarized",
+    "ui": "320/390 px no horizontal overflow; simulator trace and JSON download pass in emulated browser",
+    "limits": "120 per repeated ECC event family, 2400 total event cap, 1800 displayed sample dots; no physical-camera validation"
   }
   }
