@@ -12,6 +12,12 @@ Random scenes default to an ideal-geometry readability check: actual rendered pi
 
 Open `index.html` for the browser app, or download `prism.html` and open it locally. Camera access requires HTTPS or localhost. Photo upload works without camera permission and is the primary tested path. A Prism Code is **not a QR code**, and ordinary QR readers cannot read it.
 
+## Experimental 0.1.3 reader update
+
+The original marker-free encoder and notch are unchanged. A fallback now tries channel-normalized detection, alternate hull quadrilaterals, fitted nonlinear geometry and internal-cell mesh refinement after the legacy reader fails. The reader does not receive simulator geometry. Recovery hypotheses with an empty payload are not accepted by this fallback. It has a bounded processing budget.
+
+Paired two-seed samples,60 varied-text scenes per category: perspective + cast improved from40/60 to59/60; cylinder from6/60 to27/60. Earlier30-scene busy-background checks stayed30/30; mixed severe stress stayed0/30. These small research samples are not oracle-filtered and are not substitutes for500-case or real-camera validation.75 negative images were rejected; this is not proof of zero false positives. All12 distinct clean size/palette checks and the exact supplied green photo still pass. Further work is ongoing.
+
 ## Build 0.1.2 update, 19 November 2026
 
 The exact green-tinted, blurred, curved supplied JPEG now reads automatically as `Hello from Prism!` (17 bytes, size 0, ECC 3, payload CRC pass). The reader detects the supplied generator's seeded bit-whitening variant, fits its row-wise curve/skew model from known cells, and checks the payload. The export fallback is for the full exported canvas only; cropped photos and arbitrary curved camera views are not covered.
