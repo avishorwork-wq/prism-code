@@ -174,5 +174,16 @@
     "negativeTested": 100,
     "negativeRejected": 100,
     "note": "Small paired two-seed mixed-stress sample. Synthetic, not real-camera validation."
+  },
+  "interface015": {
+    "sameAlgorithmsAs": "0.1.4",
+    "environment": "Android Chrome emulation",
+    "maxUiTimerGapMs": {
+      "before": 1568.1,
+      "after": 15
+    },
+    "sameDecodedBytes": true,
+    "workerUnavailableFallbackPass": true,
+    "note": "Not a physical-phone measurement. No accuracy improvement claimed for this interface change."
   }
 }
