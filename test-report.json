@@ -158,5 +158,21 @@
     "negativeRejected": 75,
     "negativeTested": 75,
     "note": "Small paired varied-text scene samples. Not real-camera validation. Mixed severe stress remains0/30."
+  },
+  "candidate014": {
+    "oracleFiltered": true,
+    "seeds": [
+      12345,
+      96421
+    ],
+    "generated": 150,
+    "excluded": 110,
+    "retained": 40,
+    "previous013": 7,
+    "new014": 15,
+    "wrongBytes": 0,
+    "negativeTested": 100,
+    "negativeRejected": 100,
+    "note": "Small paired two-seed mixed-stress sample. Synthetic, not real-camera validation."
   }
 }
