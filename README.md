@@ -12,6 +12,12 @@ Random scenes default to an ideal-geometry readability check: actual rendered pi
 
 Open `index.html` for the browser app, or download `prism.html` and open it locally. Camera access requires HTTPS or localhost. Photo upload works without camera permission and is the primary tested path. A Prism Code is **not a QR code**, and ordinary QR readers cannot read it.
 
+## Experimental0.1.5 interface update
+
+Photo/camera reads and simulator read tests use a background worker where supported, so the interface can keep responding during heavier recovery searches. There is an automatic synchronous fallback if workers are unavailable. Accuracy algorithms are unchanged from0.1.4. A difficult mixed PNG recovered the same bytes with a measured longest interface-timer pause reduced from1,568ms to15ms in Android Chrome emulation. Total decoding time remains about1.5s. This is an emulated-browser measurement, not a physical-phone guarantee.
+
+Mobile widths320/390, Hebrew/emoji PNG export and upload, debug view, synthetic camera start/stop, forced worker-unavailable fallback and simulator reports/downloads pass. The repeated-scene runner uses the same worker reader as image uploads.
+
 ## Experimental0.1.4 mixed-stress update
 
 A second fallback adds local illumination/color normalization and denser refinement using the original internal known cells. No new visible patterns or markers. It runs after0.1.3 fails, keeping earlier successes. Difficult failed scans can take longer because each extra search has its own bounded budget.
