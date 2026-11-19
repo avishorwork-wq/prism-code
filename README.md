@@ -12,6 +12,18 @@ Random scenes default to an ideal-geometry readability check: actual rendered pi
 
 Open `index.html` for the browser app, or download `prism.html` and open it locally. Camera access requires HTTPS or localhost. Photo upload works without camera permission and is the primary tested path. A Prism Code is **not a QR code**, and ordinary QR readers cannot read it.
 
+## Experimental 0.1.6 geometry update
+
+Additional boundary candidates use a rotated minimum-area rectangle and one edge fit per coarse hull side. This avoids cutting across the original corner notch or mistaking two curved-edge fragments for two sides. The encoder appearance is unchanged, with no added finder markers. The legacy reader is unchanged.
+
+Paired synthetic measurements against 0.1.5:
+- Varied raw payloads, 40-100 bytes, size 1 and ECC 2: oracle-readable cylinders improved from 21/45 to 25/45 (53 scenes generated, 8 excluded). A fresh held-out 15 of those cases improved 5/15 to 7/15.
+- The previous 40 oracle-readable mixed scenes improved from 15/40 to 19/40 (150 generated, 110 excluded).
+- Varied-payload perspective stayed 30/30 (31 generated, 1 excluded); a sparse varied-payload mixed sample stayed 3/5 (100 generated, 95 excluded).
+- No earlier successes were lost in these paired sets and no wrong payloads were accepted. All 100 negative images were rejected. All 24 clean cases, 1,000 RS unit checks and the supplied green JPEG passed.
+
+These are small synthetic research samples, not real-camera guarantees. Severe curve plus glare, shadow or occlusion remains unreliable. The 500-case baseline below is from 0.1.2, not a new 0.1.6 rerun.
+
 ## Experimental0.1.5 interface update
 
 Photo/camera reads and simulator read tests use a background worker where supported, so the interface can keep responding during heavier recovery searches. There is an automatic synchronous fallback if workers are unavailable. Accuracy algorithms are unchanged from0.1.4. A difficult mixed PNG recovered the same bytes with a measured longest interface-timer pause reduced from1,568ms to15ms in Android Chrome emulation. Total decoding time remains about1.5s. This is an emulated-browser measurement, not a physical-phone guarantee.
