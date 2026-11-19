@@ -4,7 +4,7 @@
   "method": "10 independent seeded batches of 50 trials per level. No scene geometry passed to the reader. Standard and independent 3D cylinder tests use original hex-cell format, no added markers. Synthetic only, not physical-print validation.",
   "levels": [
     {
-      "name": "0",
+      "name": "geometry/noise",
       "attempted": 500,
       "pass": 500,
       "failures": {
@@ -19,7 +19,7 @@
       "rate": 1.0
     },
     {
-      "name": "1",
+      "name": "cast/lighting",
       "attempted": 500,
       "pass": 491,
       "failures": {
@@ -34,7 +34,7 @@
       "rate": 0.982
     },
     {
-      "name": "2",
+      "name": "10% occlusion/glare",
       "attempted": 500,
       "pass": 243,
       "failures": {
@@ -139,5 +139,24 @@
   },
   "simulator": "simulator.html",
   "oracleNote": "Simulator batches default to ideal-geometry-recoverable scenes and count exclusions. This older500-per-level baseline is not oracle-filtered.",
-  "limitations": "Cylinder and heavy occlusion/glare remain unreliable. No guarantee of zero failures or false positives."
+  "limitations": "Cylinder and heavy occlusion/glare remain unreliable. No guarantee of zero failures or false positives.",
+  "candidate013": {
+    "pairedSeeds": [
+      12345,
+      96421
+    ],
+    "trialsPerCategory": 60,
+    "perspective": {
+      "legacy": 40,
+      "newReader": 59
+    },
+    "cylinder": {
+      "legacy": 6,
+      "newReader": 27
+    },
+    "oracleFiltered": false,
+    "negativeRejected": 75,
+    "negativeTested": 75,
+    "note": "Small paired varied-text scene samples. Not real-camera validation. Mixed severe stress remains0/30."
+  }
 }
