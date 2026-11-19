@@ -2,6 +2,12 @@
 
 An experimental hexagonal optical-code format, implemented as **one offline HTML file** with a text/raw-byte encoder, PNG export, photo/camera reader, debug overlay, and seeded self-tests. No libraries, CDN, analytics, or runtime network calls.
 
+## Stress simulator
+
+Open [the simulator](simulator.html) for true cylindrical/bent-sheet 3D projection, yaw/pitch/rotation, backgrounds and foreground, glare, lighting/tint, blur/noise and lens distortion. Original hex-cell look and corner notch only, no added finder markers. All effects run locally. Download PNGs, settings and seeded batch reports.
+
+Random scenes default to an ideal-geometry readability check: actual rendered pixels are rectified with the true simulator mesh, then the ordinary ECC/CRC decoder must recover the original bytes. Excluded samples are counted. Hand-adjusted scenes can fail the check. A failed check means unverified, not proven unreadable; a pass is not physical-camera validation. The normal reader gets pixels only, not scene parameters.
+
 ## Open it
 
 Open `index.html` for the browser app, or download `prism.html` and open it locally. Camera access requires HTTPS or localhost. Photo upload works without camera permission and is the primary tested path. A Prism Code is **not a QR code**, and ordinary QR readers cannot read it.
@@ -10,7 +16,7 @@ Open `index.html` for the browser app, or download `prism.html` and open it loca
 
 The exact green-tinted, blurred, curved supplied JPEG now reads automatically as `Hello from Prism!` (17 bytes, size 0, ECC 3, payload CRC pass). The reader detects the supplied generator's seeded bit-whitening variant, fits its row-wise curve/skew model from known cells, and checks the payload. The export fallback is for the full exported canvas only; cropped photos and arbitrary curved camera views are not covered.
 
-A 60-export generator matrix initially passed 15/15 clean, 15/15 light effects, 15/15 medium effects, and 12/15 strongest effects. Full updated 500-image reruns and independent 3D cylindrical/perspective stress tests are in progress. Early cylindrical tests fail heavily; no general curved-surface reliability claim is made.
+A 60-export generator matrix initially passed 15/15 clean, 15/15 light effects, 15/15 medium effects, and 12/15 strongest effects. The updated 500-image-per-level rerun is complete: geometry/noise500/500; cast/lighting491/500;10% occlusion/glare243/500; independent hard-color/perspective194/500; independent cylinder14/500. These baseline numbers are not oracle-filtered. No general curved-surface reliability claim is made.
 
 Empty-payload guesses now need a direct high-confidence header and strong pattern match; zero padding is not restored for empty payloads. Random-image tests reject all 20 checked negatives. A per-image processing bound limits expensive failed hypotheses.
 
