@@ -185,5 +185,45 @@
     "sameDecodedBytes": true,
     "workerUnavailableFallbackPass": true,
     "note": "Not a physical-phone measurement. No accuracy improvement claimed for this interface change."
+  },
+  "geometryUpdate016": {
+    "version": "0.1.6",
+    "baselineVersion": "0.1.5",
+    "method": "Paired pixel-only decoding, renderer-mesh oracle filters readable scenes. Synthetic only.",
+    "variedCylinder": {
+      "sampled": 53,
+      "excluded": 8,
+      "attempted": 45,
+      "before": 21,
+      "after": 25,
+      "mismatch": 0
+    },
+    "mixed": {
+      "sampled": 150,
+      "excluded": 110,
+      "attempted": 40,
+      "before": 15,
+      "after": 19,
+      "mismatch": 0
+    },
+    "variedPerspective": {
+      "sampled": 31,
+      "excluded": 1,
+      "attempted": 30,
+      "before": 30,
+      "after": 30
+    },
+    "negative": {
+      "attempted": 100,
+      "rejected": 100
+    },
+    "clean": {
+      "attempted": 24,
+      "pass": 24
+    },
+    "rs": {
+      "attempted": 1000,
+      "pass": 1000
+    }
   }
-}
+  }
