@@ -24,9 +24,9 @@ __attribute__((export_name("analytic"))) void analytic(double*p,double*pts,float
  }
 }
 __attribute__((export_name("residual"))) void residual(double*p,double*pts,float*im0,float*im1,float*im2,int w,int h,int axis,int n,double*r){
- float*ims[3]={im0,im1,im2};
+ float*ims[3]={im0,im1,im2};double a=p[8],ca=js_cos(a),sa=js_sin(a);
  for(int i=0;i<n;i++){
-  double*c=pts+i*5,u=2*c[0]-1,v=2*c[1]-1,t=axis?v:u,a=p[8],z=js_cos(a*t)-js_cos(a),den=max(.3,1+p[10]*z),aa=(js_sin(a*t)/js_sin(a)+p[9]*z)/den,bb=((axis?u:v)+p[11]*z)/den,X=(1+(axis?bb:aa))/2,Y=(1+(axis?aa:bb))/2,d=p[6]*X+p[7]*Y+1,qx=(p[0]*X+p[1]*Y+p[2])/d,qy=(p[3]*X+p[4]*Y+p[5])/d,x=qx*w,y=qy*h;
+  double*c=pts+i*5,u=2*c[0]-1,v=2*c[1]-1,t=axis?v:u,z=js_cos(a*t)-ca,den=max(.3,1+p[10]*z),aa=(js_sin(a*t)/sa+p[9]*z)/den,bb=((axis?u:v)+p[11]*z)/den,X=(1+(axis?bb:aa))/2,Y=(1+(axis?aa:bb))/2,d=p[6]*X+p[7]*Y+1,qx=(p[0]*X+p[1]*Y+p[2])/d,qy=(p[3]*X+p[4]*Y+p[5])/d,x=qx*w,y=qy*h;
   for(int ch=0;ch<3;ch++){
    double value=1;if(x>=0&&y>=0&&x<w-1&&y<h-1){int ix=(int)x,iy=(int)y,k=iy*w+ix;double u=x-ix,t=y-iy;float*im=ims[ch];value=(im[k]*(1-u)+im[k+1]*u)*(1-t)+(im[k+w]*(1-u)+im[k+w+1]*u)*t;}r[i*3+ch]=value-c[ch+2];
   }
@@ -39,4 +39,14 @@ __attribute__((export_name("blur"))) void blur(float*restrict a,float*restrict t
  int count=2*r+1;
  for(int y=0;y<h;y++)for(int x=0;x<w;x++){double v=0;if(x>=r&&x<w-r){int at=y*w+x-r;for(int j=0;j<count;j++)v+=(double)a[at+j]*k[j];}else for(int d=-r;d<=r;d++){int xx=x+d;if(xx<0)xx=0;if(xx>=w)xx=w-1;v+=(double)a[y*w+xx]*k[d+r];}tmp[y*w+x]=(float)v;}
  for(int y=0;y<h;y++)for(int x=0;x<w;x++){double v=0;if(y>=r&&y<h-r){int at=(y-r)*w+x;for(int j=0;j<count;j++,at+=w)v+=(double)tmp[at]*k[j];}else for(int d=-r;d<=r;d++){int yy=y+d;if(yy<0)yy=0;if(yy>=h)yy=h-1;v+=(double)tmp[yy*w+x]*k[d+r];}out[y*w+x]=(float)v;}
+}
+static double absd(double x){return x<0?-x:x;}
+static double loss_value(double*r,int n){double s=0;for(int i=0;i<n;i++)s+=r[i]*r[i];return s/n;}
+static int solve12(double*A,double*b,double*out){double m[12][13];for(int i=0;i<12;i++){for(int j=0;j<12;j++)m[i][j]=A[i*12+j];m[i][12]=b[i];}for(int j=0;j<12;j++){int p=j;for(int k=j+1;k<12;k++)if(absd(m[k][j])>absd(m[p][j]))p=k;if(absd(m[p][j])<1e-18)return 0;if(p!=j)for(int k=0;k<13;k++){double v=m[j][k];m[j][k]=m[p][k];m[p][k]=v;}double v=m[j][j];for(int k=j;k<=12;k++)m[j][k]/=v;for(int i=0;i<12;i++)if(i!=j){v=m[i][j];for(int k=j;k<=12;k++)m[i][k]-=v*m[j][k];}}for(int i=0;i<12;i++)out[i]=m[i][12];return 1;}
+__attribute__((export_name("optimize"))) void optimize(double*p,double*pts,float*im0,float*im1,float*im2,int w,int h,int axis,int n,int maxiter,double*r,double*jac,double*out){
+ residual(p,pts,im0,im1,im2,w,h,axis,n,r);double cost=loss_value(r,n*3),lambda=.01;int reject=0;out[1]=-1;
+ for(int iter=0;iter<maxiter;iter++){double A[156];analytic(p,pts,im0,im1,im2,w,h,axis,n,r,jac);normal(jac,r,n*3,A);int accepted=0;
+  for(int attempt=0;attempt<8;attempt++){double AA[144],step[12],pp[12];for(int i=0;i<12;i++)for(int j=0;j<12;j++)AA[i*12+j]=A[i*12+j]+(i==j?lambda*max(1e-6,A[i*12+i]):0);if(!solve12(AA,A+144,step))break;for(int i=0;i<12;i++)pp[i]=p[i]+step[i];if(pp[8]==pp[8])pp[8]=max(.02,pp[8]<1.4?pp[8]:1.4);for(int j=9;j<12;j++)if(pp[j]==pp[j])pp[j]=max(-2,pp[j]<2?pp[j]:2);residual(pp,pts,im0,im1,im2,w,h,axis,n,r);double cc=loss_value(r,n*3);if(cc<cost){double gain=cost-cc;for(int i=0;i<12;i++)p[i]=pp[i];cost=cc;lambda=max(1e-7,lambda*.4);accepted=1;if(gain<1e-10){out[0]=cost;out[1]=iter;return;}break;}lambda=lambda*5<1e8?lambda*5:1e8;}
+  if(!accepted){if(++reject>2)break;}else reject=0;
+ }out[0]=cost;
 }
