@@ -1,15 +1,11 @@
-# Prism scalar geometry kernel
+# Prism scalar geometry and optimizer kernel
 
-The offline SLOW reader embeds this kernel as WebAssembly, with the existing JavaScript implementation retained as fallback. It contains arithmetic only, not header, RS, CRC, UTF-8 or payload acceptance logic. It contains no input photos, reference payloads or lookup answers.
-
-## Build
-
-The release was compiled with the free Zig C compiler, no C standard library or runtime dependency:
+SLOW 0.1.9 embeds this arithmetic-only C kernel as WebAssembly, with the previous JavaScript geometry and optimizer kept as fallback. It includes residuals, analytic derivatives, normal-equation sums, Gaussian blur, the existing damped optimizer loop and its 12-by-12 Gaussian elimination solver. It contains no payload acceptance, RS or CRC logic, input photograph, expected payload or answer lookup.
 
 ```sh
 python -m ziglang cc -target wasm32-freestanding -O3 -ffp-contract=off -fno-fast-math -nostdlib -Wl,--no-entry -Wl,--export=__heap_base -Wl,--export-memory -Wl,--strip-all -o geometry.wasm prism-geometry.c
 ```
 
-The JavaScript wrapper supplies `Math.sin` and `Math.cos` as imports, copies float image channels and double geometry data into the module's own memory, and calls `blur`, `analytic`, `residual` and `normal`. Kernel operations preserve addition order and do not use fast-math approximations, parallel reductions or SIMD. The exported heap base supports scratch-buffer allocation; each new fit resets its cache. The binary is base64-embedded in the reader's worker source, so offline operation does not fetch a separate .wasm file. The unminified wrapper is retained in the build backup; the shipped HTML includes the complete embedded worker and JavaScript fallback.
+The wrapper imports Math.sin and Math.cos, preserves scalar arithmetic and reduction order, and resets its image/point caches for each fit. Residual trigonometric constants are cached within a call. The optimizer runs the same candidate counts, iteration limits, damping changes and stopping conditions without repeated JavaScript copies of internal arrays. The binary is base64-embedded in the offline worker; no runtime fetch or paid dependency is required. If compilation/initialization is unavailable, JavaScript does the work.
 
-256,368 sampled scalar comparisons against the prior JavaScript residuals, derivatives and blur pixels matched bit for bit. That test is not a proof for every possible floating-point input. Full clean, supplied-photo, corrupted-data, fresh-payload swap, no-WebAssembly fallback and mobile-layout checks are recorded on the progress page.
+Two hundred sampled randomized optimizer fits matched 2,600 parameter/cost values and early-stop iteration results bit for bit. Separate geometry tests matched 256,368 sampled residual/derivative/blur values. This is not a proof for every floating-point input. The build backup includes the wrapper, reproducible builder and paired regression tests. SLOW 0.1.8 distance-scoring source and its build notes remain available separately.
