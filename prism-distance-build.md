@@ -1,13 +1,9 @@
-# Prism scalar distance-scoring kernel
+# Prism scalar geometry scoring kernel
 
-SLOW 0.1.8 embeds this arithmetic-only kernel in its worker. It has no payload input, photo, expected answer, header acceptance, RS or CRC code. It evaluates the same geometric warp and distance-field score as the JavaScript fallback. Compiled scoring is optional: if WebAssembly is unavailable, the existing JavaScript score runs.
-
-## Build
+FAST 0.2.5 embeds this C kernel alongside the 0.2.4 distance-field transforms. The original JavaScript scoring remains as fallback. The kernel scores the same known cells and header groups, with the original reduction order, interpolation, clipping, trimmed score and double arithmetic. No expected payload, photograph or lookup is embedded. No search attempt, deadline or acceptance threshold changes.
 
 ```sh
-python -m ziglang cc -target wasm32-freestanding -O3 -ffp-contract=off -fno-fast-math -nostdlib -Wl,--no-entry -Wl,--export=__heap_base -Wl,--export-memory -Wl,--strip-all -o distance.wasm prism-distance.c
+python -m ziglang cc -target wasm32-freestanding -O3 -ffp-contract=off -fno-fast-math -nostdlib -Wl,--no-entry -Wl,--export=__heap_base -Wl,--export-memory -Wl,--strip-all -o score.wasm prism-distance.c
 ```
 
-The wrapper imports Math.sin and Math.cos, copies the existing float distance maps and double point/geometry values into module memory, and preserves operation order. It resets its caches for each new distance map. The binary is base64-embedded in the worker; there is no runtime network fetch or paid dependency. The original JavaScript is retained. The complete build backup includes the wrapper, reproducible source-injection script, scalar unit tests, paired reader tests and page packer.
-
-3,000 sampled rank/cost values matched the JavaScript implementation bit for bit. Those sampled tests are not a proof for every floating-point input. The search scheduler separately chooses which existing fallback runs first using the existing image-frequency estimate. A long quick fit can extend the first dense-search allowance from 15 to 30 seconds. Candidate counts, later recovery searches, RS and CRC checks remain.
+The module imports Math.sin and Math.cos, copies maps and point lists into reusable scratch storage, and is embedded as base64 without runtime network access. The JavaScript wrapper retains one budget operation per known/header cell before calling the scalar score. The final whole-read deadline still rejects late successes. There is no fast math or parallel reduction. 6,000 sampled rank/trimmed scores were bit-exact across 3,000 geometry cases; this is sampled evidence, not a proof for all inputs. Whole-reader results and limits are on progress.html. The source backup contains the builder, wrappers and regression scripts.
