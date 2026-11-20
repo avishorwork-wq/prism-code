@@ -1,0 +1,1 @@
+__attribute__((export_name("corr"))) void corr(double *v,double *out,int n,int lags,double variance){for(int lag=0;lag<lags;lag++){double c=0;for(int i=0;i<n-lag;i++)c+=v[i]*v[i+lag];double denom=variance*(n-lag);out[lag]=c/(denom>1e-8?denom:1e-8);}}
