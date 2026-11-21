@@ -2,13 +2,13 @@ typedef unsigned char u8;
 static u8 ex[512],lg[256],products[65536];static int ready;
 static u8 mul(u8 a,u8 b){return products[((int)a<<8)|b];}
 static u8 dv(u8 a,u8 b){return a?ex[(lg[a]+255-lg[b])%255]:0;}
-static u8 val(u8*p,int n,u8 x){u8 y=0;for(int i=n-1;i>=0;i--)y=mul(y,x)^p[i];return y;}
+static u8 val(u8*p,int n,u8 x){u8 y=0,*row=products+((int)x<<8);for(int i=n-1;i>=0;i--)y=row[y]^p[i];return y;}
 static void product(u8*a,int na,u8*b,int nb,u8*out){for(int i=0;i<na+nb-1;i++)out[i]=0;for(int i=0;i<na;i++)for(int j=0;j<nb;j++)out[i+j]^=mul(a[i],b[j]);}
-static void syndrome(u8*r,int n,int ns,u8*s){for(int j=0;j<ns;j++){u8 y=0;for(int i=0;i<n;i++)y=mul(y,ex[j])^r[i];s[j]=y;}}
+static void syndrome(u8*r,int n,int ns,u8*s){for(int j=0;j<ns;j++){u8 y=0,*row=products+((int)ex[j]<<8);for(int i=0;i<n;i++)y=row[y]^r[i];s[j]=y;}}
 __attribute__((export_name("decode"))) int decode(u8*input,int n,int ns,int*erasures,int ne,u8*out,u8*cached){
  if(!ready){int z=1;for(int i=0;i<255;i++){ex[i]=z;lg[z]=i;z<<=1;if(z&256)z^=0x11d;}for(int i=255;i<512;i++)ex[i]=ex[i-255];for(int a=1;a<256;a++)for(int b=1;b<256;b++)products[(a<<8)|b]=ex[lg[a]+lg[b]];ready=1;}
  if(n<1||n>255||ns<0||ns>254||ns>n||ne<0||ne>ns)return -1;
- u8 r[256],s[256],G[512]={1},T[256],tmp[1024],c[512]={1},b[512]={1},old[512],loc[1024],omega[1024],der[1024]={0};int ng=1,nt=ns;
+ u8 r[256],s[256],G[256]={1},T[256],tmp[256],c[256]={1},b[256]={1},old[256],loc[256],omega[512],der[256]={0};int ng=1,nt=ns;
  for(int i=0;i<n;i++)r[i]=input[i];if(cached){for(int i=0;i<ns;i++)s[i]=cached[i];}else syndrome(r,n,ns,s);int nonzero=0;for(int i=0;i<ns;i++)nonzero|=s[i];if(!nonzero){for(int i=0;i<n;i++)out[i]=r[i];return 0;}
  for(int i=0;i<ns;i++)T[i]=s[i];for(int j=0;j<ne;j++){int p=erasures[j];if(p<0||p>=n)return -1;u8 X=ex[n-1-p],pair[2]={1,X};product(G,ng,pair,2,tmp);ng++;for(int i=0;i<ng;i++)G[i]=tmp[i];for(int i=0;i<nt-1;i++)T[i]=mul(T[i],X)^T[i+1];nt--;}
  int L=0,m=1;u8 bb=1;for(int j=0;j<nt;j++){u8 d=T[j];for(int i=1;i<=L;i++)d^=mul(c[i],T[j-i]);if(!d){m++;continue;}for(int i=0;i<=nt;i++)old[i]=c[i];u8 v=dv(d,bb);for(int i=0;i+m<=nt;i++)c[i+m]^=mul(v,b[i]);if(2*L<=j){L=j+1-L;for(int i=0;i<=nt;i++)b[i]=old[i];bb=d;m=1;}else m++;}
