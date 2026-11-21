@@ -1,0 +1,4 @@
+typedef struct{double x,y;int id,axis,left,right;} Node;
+static Node* nodes;static double qx,qy;static int k,excluded,count;static int ids[4096];static double ds[4096];
+static void visit(int index){if(index<0)return;Node*n=nodes+index;double dx=n->x-qx,dy=n->y-qy,d=dx*dx+dy*dy;if(n->id!=excluded){int at=0;while(at<count&&(ds[at]<d||(ds[at]==d&&ids[at]<n->id)))at++;if(at<k){int end=count<k?count:k-1;for(int j=end;j>at;j--){ids[j]=ids[j-1];ds[j]=ds[j-1];}ids[at]=n->id;ds[at]=d;if(count<k)count++;}}double diff=n->axis?qy-n->y:qx-n->x;int first=diff<0?n->left:n->right,second=diff<0?n->right:n->left;visit(first);if(count<k||diff*diff<=ds[count-1])visit(second);}
+__attribute__((export_name("query"))) int query(Node* ptr,int root,double x,double y,int num,int ex,int*out,double*dist){nodes=ptr;qx=x;qy=y;k=num;excluded=ex;count=0;visit(root);for(int i=0;i<count;i++){out[i]=ids[i];dist[i]=ds[i];}return count;}
