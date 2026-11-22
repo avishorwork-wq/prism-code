@@ -381,10 +381,10 @@ function prismTrack(seed,rgba,w,h){if(seed.levels[0].w!==w||seed.levels[0].h!==h
 }
 
 let readerEpoch=0,worker=null,pendingJob=null,readerBusy=false,requestId=0,lastReaderAt=-10,measured=null,readerPhase='idle',verifiedCapture=null,resultSent=false,cameraTicket=0;
-let lastReaderError=null,lastTrackedGeometry=null;
+let lastReaderError=null,lastTrackedGeometry=null,bracketTrackAt=null;
 const prismListeners=new Set();
 function stopReader(){readerEpoch++;readerBusy=false;worker?.terminate();worker=null;if(pendingJob){clearTimeout(pendingJob.timer);pendingJob.reject(Error('Canceled'));pendingJob=null;}}
-function resetPrismRead(){stopReader();lastReaderError=null;lastTrackedGeometry=null;lastReaderAt=st.clock;measured=null;readerPhase='idle';verifiedCapture=null;resultSent=false;}
+function resetPrismRead(){bracketTrackAt=null;stopReader();lastReaderError=null;lastTrackedGeometry=null;lastReaderAt=st.clock;measured=null;readerPhase='idle';verifiedCapture=null;resultSent=false;}
 function decodePixels(image){
  if(!worker){const url=URL.createObjectURL(new Blob([PRISM_READER_SOURCE],{type:'application/javascript'}));try{worker=new Worker(url);}finally{URL.revokeObjectURL(url);}const active=worker;
  worker.onmessage=e=>{if(worker!==active||!pendingJob||e.data.id!==pendingJob.id)return;const j=pendingJob;if(!e.data.result&&!e.data.error)return;clearTimeout(j.timer);pendingJob=null;e.data.result?j.resolve(e.data.result):j.reject(Error(e.data.error));};
@@ -432,7 +432,7 @@ async function readFrozenCapture(){
 }
 function emitPrismCapture(){if(resultSent||readerPhase!=='verified'||!verifiedCapture)return;resultSent=true;const r=verifiedCapture.result,detail={bytes:Array.from(r.bytes),text:r.text,header:{...r.header},corrected:r.corrected||0,source:verifiedCapture.source,crcVerified:true,captureVerified:true,freshCameraMatched:false,capturedAt:verifiedCapture.capturedAt};window.dispatchEvent(new CustomEvent('prismdecoded',{detail}));for(const fn of prismListeners){try{fn(detail)}catch(e){}}}
 function stopPrism(){cameraTicket++;stopReader();stopStream();src=null;resetSearch();st.msg='Camera stopped';}
-window.PrismLocator={version:'original-motion-phone-regression-private4',stop:stopPrism,resize:()=>{layout();if(st.mode==='locked'||st.mode==='done')drawBG();},startCamera:()=>startCamera(),scanAgain:()=>src?resetSearch():startCamera(),onResult:fn=>{prismListeners.add(fn);return()=>prismListeners.delete(fn);},state:()=>({readerPhase,lastReaderError,verified:!!verifiedCapture,resultSent,mode:st.mode,tl:st.tl,reading:readerBusy,candidateSource:st.cand?(st.cand.raw?.source||'visual'):null,trackingResidual:measured?.lastTrackingResidual,measurementAge:measured?st.clock-measured.at:null,measured:measured?.q,card:st.cap,followed:cor.p,viewport:{W,H,S,cx,cy}})};
+window.PrismLocator={version:'original-motion-phone-regression-private5',stop:stopPrism,resize:()=>{layout();if(st.mode==='locked'||st.mode==='done')drawBG();},startCamera:()=>startCamera(),scanAgain:()=>src?resetSearch():startCamera(),onResult:fn=>{prismListeners.add(fn);return()=>prismListeners.delete(fn);},state:()=>({readerPhase,lastReaderError,verified:!!verifiedCapture,resultSent,mode:st.mode,tl:st.tl,reading:readerBusy,candidateSource:st.cand?(st.cand.raw?.source||'visual'):null,trackingResidual:measured?.lastTrackingResidual,measurementAge:measured?st.clock-measured.at:null,measured:measured?.q,card:st.cap,followed:cor.p,viewport:{W,H,S,cx,cy}})};
 addEventListener('pagehide',stopPrism);document.addEventListener('visibilitychange',()=>{if(document.hidden)stopPrism();});
 
 /* =====================================================================
@@ -698,11 +698,13 @@ function hud(reachMixPill, reachMixCtrl, ok, ring, pctVal, pctVis, visIn) {
    ===================================================================== */
 function updatePre(dt) {
   const target = (st.mode === 'track' && st.cand) ? cardQuadSrc(st.cand.q).map(toScr) : idleQuad();
+  const precise=st.mode==='track'&&st.cand?.raw?.source==='verified-reader';
+  if(precise){if(bracketTrackAt===null)bracketTrackAt=st.clock;}else bracketTrackAt=null;
   const kk = 170, cc = 2 * Math.sqrt(kk) * .86, n = Math.max(1, Math.ceil(dt / (1 / 120))), h = dt / n;
-  if(st.mode==='track'&&st.cand?.raw?.source==='verified-reader'){cor.p=target.map(p=>p.slice());cor.v=[[0,0],[0,0],[0,0],[0,0]];}
-  else for (let s = 0; s < n; s++) for (let i = 0; i < 4; i++) for (let a = 0; a < 2; a++) {
+  for (let s = 0; s < n; s++) for (let i = 0; i < 4; i++) for (let a = 0; a < 2; a++) {
     const acc = kk * (target[i][a] - cor.p[i][a]) - cc * cor.v[i][a]; cor.v[i][a] += acc * h; cor.p[i][a] += cor.v[i][a] * h;
   }
+  if(precise){const blend=smooth(.15,.60,st.clock-bracketTrackAt);for(let i=0;i<4;i++)for(let a=0;a<2;a++){cor.p[i][a]=lerp(cor.p[i][a],target[i][a],blend);cor.v[i][a]*=1-blend;}}
   st.found += ((st.mode === 'track' ? 1 : 0) - st.found) * Math.min(1, dt * 6);
   if (st.mode === 'track') setLabel('Hold steady…'); else setLabel(st.msg || 'Point at a Prism code');
   const tgtLen = st.mode === 'track' ? Math.max(.06, st.hold) : .28;
@@ -835,4 +837,4 @@ for(const id of ['replay','photo'])document.getElementById(id)?.addEventListener
 </script>
 
 </body>
-</html>
+    </html>
