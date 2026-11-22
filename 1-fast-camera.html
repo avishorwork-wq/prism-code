@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#1b1922">
-<title>Prism code locator</title>
+<title>Phone test · Prism code locator</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;background:#1b1922}
@@ -392,22 +392,31 @@ function decodePixels(image){
  return new Promise((resolve,reject)=>{const id=++requestId,timer=setTimeout(()=>{pendingJob=null;worker?.terminate();worker=null;reject(Error('Read timed out'));},980);pendingJob={id,timer,resolve,reject};worker.postMessage({id,image});});
 }
 function sourcePixels(){const w=src.kind==='camera'?vid.videoWidth:src.w,h=src.kind==='camera'?vid.videoHeight:src.h,scale=Math.min(1,1920/w,1080/h),canvas=document.createElement('canvas');canvas.width=Math.max(2,Math.round(w*scale));canvas.height=Math.max(2,Math.round(h*scale));const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(src.el,0,0,canvas.width,canvas.height);return {canvas,image:ctx.getImageData(0,0,canvas.width,canvas.height),source:src.kind};}
+function validPrismQuad(q){
+ if(!q||q.length!==4||q.some(p=>p.length!==2||p.some(v=>!Number.isFinite(v)||v<-.08||v>1.08)))return false;
+ const area=polyArea(q);if(area<.001||area>.95)return false;
+ let sign=0;const lengths=[];for(let i=0;i<4;i++){const a=q[i],b=q[(i+1)%4],c=q[(i+2)%4],u=[(b[0]-a[0])*dW,(b[1]-a[1])*dH],v=[(c[0]-b[0])*dW,(c[1]-b[1])*dH],cross=u[0]*v[1]-u[1]*v[0],norm=Math.hypot(...u)*Math.hypot(...v);if(!norm||Math.abs(cross)/norm<.4)return false;if(sign&&Math.sign(cross)!==sign)return false;sign=Math.sign(cross);lengths.push(Math.hypot(...u));}
+ return Math.min(...lengths)/Math.max(...lengths)>.35;
+}
+function prismSeedPixels(rgba,w,h,q){const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;canvas.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(rgba),w,h),0,0);return prismSeed(canvas,q);}
 async function probeReader(){
  if(!src||readerBusy||!['search','track'].includes(st.mode)||st.clock-lastReaderAt<.07)return;
  const epoch=readerEpoch,sampledAt=st.clock;readerBusy=true;lastReaderAt=st.clock;
- try{const cap=sourcePixels(),result=await decodePixels(cap.image);if(epoch!==readerEpoch||st.clock-sampledAt>.3)return;const q=result.quad.map(p=>[p[0]/cap.image.width,p[1]/cap.image.height]),previous=measured,aligned=previous?alignQuad(q,previous.q):q;
-  measured={q:aligned,at:sampledAt,result,tracker:prismSeed(cap.canvas,aligned)};}catch(e){}finally{if(epoch===readerEpoch)readerBusy=false;}
+ try{const cap=sourcePixels(),result=await decodePixels(cap.image);if(epoch!==readerEpoch||st.clock-sampledAt>1.2)return;const q=result.quad.map(p=>[p[0]/cap.image.width,p[1]/cap.image.height]),previous=measured,aligned=previous?alignQuad(q,previous.q):q;
+  if(validPrismQuad(aligned))measured={q:aligned,at:sampledAt,result,tracker:prismSeed(cap.canvas,aligned)};}catch(e){}finally{if(epoch===readerEpoch)readerBusy=false;}
 }
 function verifiedReaderCandidate(){
- if(!measured||st.clock-measured.at>.3)return null;
- const q=prismTrack(measured.tracker,dData,dW,dH);if(!q)return null;if(q.length!==4||q.some(p=>p.length!==2||p.some(v=>!Number.isFinite(v)||v<-.05||v>1.05)))return null;
- const area=polyArea(q);if(!(area>.001&&area<.95))return null;
+ if(!measured||st.clock-measured.at>8)return null;
+ const q=prismTrack(measured.tracker,dData,dW,dH);if(!q||!validPrismQuad(q))return null;
+ const area=polyArea(q);
  const elapsed=lastTrackedGeometry?st.clock-lastTrackedGeometry.at:0,diag=Math.hypot(dW,dH)*Math.sqrt(area),speed=lastTrackedGeometry&&elapsed>0&&elapsed<.3?q.reduce((n,p,i)=>n+Math.hypot((p[0]-lastTrackedGeometry.q[i][0])*dW,(p[1]-lastTrackedGeometry.q[i][1])*dH),0)/4/Math.max(1,diag)/elapsed:Infinity;
  const motionSpeed=Number.isFinite(speed)?Number.isFinite(lastTrackedGeometry?.speed)?lerp(lastTrackedGeometry.speed,speed,1-Math.exp(-elapsed/.08)):speed:Infinity;
  lastTrackedGeometry={q:q.map(p=>p.slice()),at:st.clock,speed:motionSpeed};
+ measured.lastTrackingResidual=measured.tracker.lastError;measured.tracker=prismSeedPixels(dData,dW,dH,q);
  return {q:q.map(p=>p.slice()),area,div:0,source:'verified-reader',motionSpeed};
 }
 function preciseVisualQuad(fallback){
+ if(lastTrackedGeometry&&st.clock-lastTrackedGeometry.at<.11&&validPrismQuad(lastTrackedGeometry.q))return alignQuad(lastTrackedGeometry.q,fallback);
  if(!measured||st.clock-measured.at>.3)return fallback;
  const aligned=alignQuad(measured.q,fallback),error=aligned.reduce((n,p,i)=>n+dist(p,fallback[i]),0)/4;
  return error<.12?aligned:fallback;
@@ -423,7 +432,7 @@ async function readFrozenCapture(){
 }
 function emitPrismCapture(){if(resultSent||readerPhase!=='verified'||!verifiedCapture)return;resultSent=true;const r=verifiedCapture.result,detail={bytes:Array.from(r.bytes),text:r.text,header:{...r.header},corrected:r.corrected||0,source:verifiedCapture.source,crcVerified:true,captureVerified:true,freshCameraMatched:false,capturedAt:verifiedCapture.capturedAt};window.dispatchEvent(new CustomEvent('prismdecoded',{detail}));for(const fn of prismListeners){try{fn(detail)}catch(e){}}}
 function stopPrism(){cameraTicket++;stopReader();stopStream();src=null;resetSearch();st.msg='Camera stopped';}
-window.PrismLocator={version:'original-motion-precise-tracking-private3',stop:stopPrism,resize:()=>{layout();if(st.mode==='locked'||st.mode==='done')drawBG();},startCamera:()=>startCamera(),scanAgain:()=>src?resetSearch():startCamera(),onResult:fn=>{prismListeners.add(fn);return()=>prismListeners.delete(fn);},state:()=>({readerPhase,lastReaderError,verified:!!verifiedCapture,resultSent,mode:st.mode,tl:st.tl,reading:readerBusy,candidateSource:st.cand?(st.cand.raw?.source||'visual'):null,trackingResidual:measured?.tracker?.lastError,measurementAge:measured?st.clock-measured.at:null,measured:measured?.q,card:st.cap,followed:cor.p,viewport:{W,H,S,cx,cy}})};
+window.PrismLocator={version:'original-motion-phone-regression-private4',stop:stopPrism,resize:()=>{layout();if(st.mode==='locked'||st.mode==='done')drawBG();},startCamera:()=>startCamera(),scanAgain:()=>src?resetSearch():startCamera(),onResult:fn=>{prismListeners.add(fn);return()=>prismListeners.delete(fn);},state:()=>({readerPhase,lastReaderError,verified:!!verifiedCapture,resultSent,mode:st.mode,tl:st.tl,reading:readerBusy,candidateSource:st.cand?(st.cand.raw?.source||'visual'):null,trackingResidual:measured?.lastTrackingResidual,measurementAge:measured?st.clock-measured.at:null,measured:measured?.q,card:st.cap,followed:cor.p,viewport:{W,H,S,cx,cy}})};
 addEventListener('pagehide',stopPrism);document.addEventListener('visibilitychange',()=>{if(document.hidden)stopPrism();});
 
 /* =====================================================================
@@ -759,7 +768,7 @@ function step(dt) {
   st.clock += dt;
   probeReader();
   if (src && (st.mode === 'search' || st.mode === 'track') && st.clock - st.lastDet >= .05 - 1e-6 && (src.kind !== 'camera' || vid.readyState >= 2)) {
-    try { grabDet(src.el, src.w, src.h); onDetect(verifiedReaderCandidate() || detect()); } catch (e) { onDetect(null); }
+    try { grabDet(src.el, src.w, src.h); onDetect(verifiedReaderCandidate() || (measured ? null : (()=>{const v=detect();return v&&validPrismQuad(v.q)?v:null;})())); } catch (e) { onDetect(null); }
   }
   if (st.mode === 'search' && st.cand && st.seen >= 3) st.mode = 'track';
   if (st.mode === 'track') {
@@ -824,5 +833,6 @@ for(const id of ['replay','photo'])document.getElementById(id)?.addEventListener
 })();
 
 </script>
+
 </body>
 </html>
