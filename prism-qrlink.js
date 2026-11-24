@@ -1,3 +1,4 @@
+/* Prism Code, Copyright (c) 2026 Avi Shor. Use requires a visible credit "Prism Code by Avi Shor" linking to https://avishorwork-wq.github.io/prism-code/ . See LICENSE.md. No warranty. */
 /* Tiny QR encoder (byte mode, level L, versions 1-5, mask 0). Used only to draw a link QR so a phone's normal camera can open the Prism scanner. Not part of the Prism format. */
 (function(g){
 var EXP=new Array(512),LOG=new Array(256),x=1;for(var i=0;i<255;i++){EXP[i]=x;LOG[x]=i;x<<=1;if(x&256)x^=0x11d}for(i=255;i<512;i++)EXP[i]=EXP[i-255];

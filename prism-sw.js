@@ -1,11 +1,12 @@
+/* Prism Code, Copyright (c) 2026 Avi Shor. Use requires a visible credit "Prism Code by Avi Shor" linking to https://avishorwork-wq.github.io/prism-code/ . See LICENSE.md. No warranty. */
 // Prism Code offline cache. Same-origin GET only. Bump VERSION to refresh.
-const VERSION='prism-shell-7';
+const VERSION='prism-shell-8';
 const SHELL=[
   './','index.html','landing.html','use.html','prism.html','docs.html','print.html','progress.html','install.html','prism-secure.html',
   'fast-camera.html','fast-reader.html','slow-reader.html','simulator.html','offline.html',
   'site.css','use.css','common.css','site-reader.css','site-camera.css','site-install.css','site-secure.css','lab.html','a11y.css','reader-flow.css','reader-flow.js','first-run.css','first-run.js','prism-qrlink.js','camera-ux-overrides.css','prism-creator.css','prism-creator.js','prism-share.js','prism-pwa.js','manifest.webmanifest',
   'brand/favicon.ico','brand/icon-32.png','brand/icon-180.png','brand/icon-192.png','brand/icon-512.png','brand/icon-maskable-512.png',
-  'brand/prism-mark.svg','brand/logo-horizontal.png','brand/sample-prism-code.png',
+  'brand/prism-mark.svg','brand/prism-mark-color-on-dark.svg','brand/logo-horizontal.png','brand/sample-prism-code.png',
   'brand/fonts/Poppins-Regular.ttf','brand/fonts/Poppins-SemiBold.ttf','brand/fonts/Poppins-Bold.ttf'
 ];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(VERSION).then(c=>Promise.all(SHELL.map(u=>c.add(u).catch(()=>{})))).then(()=>self.skipWaiting()))});

@@ -1,3 +1,4 @@
+/* Prism Code, Copyright (c) 2026 Avi Shor. Use requires a visible credit "Prism Code by Avi Shor" linking to https://avishorwork-wq.github.io/prism-code/ . See LICENSE.md. No warranty. */
 /* Prism reader flow: additive. Uses only the page's own UI.readFile and tab buttons. Nothing is uploaded. */
 (()=>{
 'use strict';

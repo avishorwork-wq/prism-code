@@ -1,3 +1,4 @@
+/* Prism Code, Copyright (c) 2026 Avi Shor. Use requires a visible credit "Prism Code by Avi Shor" linking to https://avishorwork-wq.github.io/prism-code/ . See LICENSE.md. No warranty. */
 /* Prism creator piece (index.html + prism.html Create tab).
    Additive enhancement: plain-English guidance, sharper live preview,
    descriptive PNG filenames, and a "now scan it" handoff after download.

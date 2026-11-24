@@ -1,3 +1,4 @@
+/* Prism Code, Copyright (c) 2026 Avi Shor. Use requires a visible credit "Prism Code by Avi Shor" linking to https://avishorwork-wq.github.io/prism-code/ . See LICENSE.md. No warranty. */
 /* First-run guide for use.html. Additive: only uses the page's existing element ids; touches nothing else.
    Make a sample, get the scanner onto a phone, scan it, in about ten seconds. */
 (function(){
