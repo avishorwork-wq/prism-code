@@ -1,0 +1,7 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Prism 3D</title>
+<body style="margin:0;background:#fff;display:grid;place-items:center;height:100vh"><canvas id="c" width="1000" height="1000" style="width:min(90vmin,640px);height:auto"></canvas>
+<script src="hex3d.js"></script><script>
+var c=document.getElementById('c'),t0=performance.now(),rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function f(t){var a=rm?0:(t-t0)/1000;Hex3D.render(c,{ry:-28+Math.sin(a*.9)*32,rx:-20+Math.sin(a*.6)*5});requestAnimationFrame(f)}
+rm?Hex3D.render(c,{ry:-28,rx:-20}):requestAnimationFrame(f);
+</script></body>
