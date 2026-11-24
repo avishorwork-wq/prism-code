@@ -4,21 +4,25 @@
 nav{display:flex;justify-content:space-between;align-items:center;padding:18px 0}nav img{height:46px}nav a.l{text-decoration:none;margin-left:22px;font-weight:600;font-size:15px}
 .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:30px;align-items:center;padding:50px 0 60px}.hero h1{font-size:54px;margin:0 0 14px}.hero p{font-size:19px;color:var(--muted);margin:0 0 26px}
 .hero img{width:100%;max-width:380px;justify-self:center}
-.feat{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;padding:20px 0 50px}.feat div{background:var(--ground);border-radius:20px;padding:22px}.feat b{font-size:34px;display:block;letter-spacing:-.03em}.feat h3{margin:6px 0 4px;font-size:18px}.feat p{margin:0;color:var(--muted);font-size:15px}
+.feat{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;padding:20px 0 50px}.tag{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;border-radius:20px;padding:3px 10px;margin-bottom:8px}.tag.now{background:#d9efe4;color:#1f5c42}.tag.soon{background:#fde9c8;color:#7a4a00}.tag.plan{background:#e4e2e3;color:#444}.feat div{background:var(--ground);border-radius:20px;padding:22px}.feat b{font-size:34px;display:block;letter-spacing:-.03em}.feat h3{margin:6px 0 4px;font-size:18px}.feat p{margin:0;color:var(--muted);font-size:15px}
 .how{padding:10px 0 50px}.how h2{font-size:32px}.how ol{padding-left:22px;font-size:18px}
 .cta{text-align:center;background:var(--ink);color:#fff;border-radius:28px;padding:44px 20px;margin-bottom:50px}.cta h2{margin:0 0 18px;font-size:32px}.cta .btn{background:#fff;color:var(--ink)}
 footer{padding:0 0 40px;color:var(--muted);font-size:14px;text-align:center}
 @media(max-width:720px){.hero{grid-template-columns:1fr;text-align:center}.hero h1{font-size:40px}.feat{grid-template-columns:1fr}nav a.l{display:none}}
 </style></head><body><div class="strip"><i style="background:#D7263D"></i><i style="background:#F77F00"></i><i style="background:#F5C518"></i><i style="background:#2DB35A"></i><i style="background:#00B8D9"></i><i style="background:#2E5BFF"></i><i style="background:#B5179E"></i></div><div class="wrap">
 <nav><img src="brand/logo-horizontal.png" alt="Prism Code"><div><a class="l" href="docs.html">Docs</a><a class="l" href="print.html">Print</a><a class="l" href="https://github.com/avishorwork-wq/prism-code">GitHub</a></div></nav>
-<section class="hero"><div><h1>A color code that holds more.</h1><p>Prism packs up to 4,561 bytes into one color code, with no corner squares to clutter it. Free, runs offline, nothing leaves your device.</p>
+<section class="hero"><div><h1>A color code that holds more.</h1><p>A new color code with room for more data, no corner squares, and everything on your device. Free and offline. Signing and encryption are in development.</p>
 <a class="btn" href="install.html">Install the app</a> <a class="btn alt" href="fast-camera.html">Scan a code</a></div>
 <img src="brand/icon-1024.png" alt="Prism mark"></section>
 <section class="feat">
-<div><b>4,561</b><h3>bytes in color</h3><p>Standard QR tops out at 2,953. Black and white Prism holds 1,523.</p></div>
-<div><b>0</b><h3>finder squares</h3><p>A small notch in the corner gives rotation. The reader finds the code on its own.</p></div>
-<div><b>100%</b><h3>on your device</h3><p>No account, no upload, no tracking. Works with no signal.</p></div></section>
+<div><span class="tag now">Available now</span><b>4,561</b><h3>bytes in one code</h3><p>In 8-color mode. A standard QR holds up to 2,953 bytes, in black and white. Prism black and white holds 1,523, so the gain comes from color.</p></div>
+<div><span class="tag now">Available now</span><b>100%</b><h3>on your device</h3><p>No account, no upload, no tracking. The reader works with no signal.</p></div>
+<div><span class="tag now">Available now</span><b>Own look</b><h3>hexagon cells, no corner squares</h3><p>A distinctive shape you can recognize as yours. Damage repair and a checksum catch a bad read: it is designed to give a result or "try again", not a wrong one (0 wrong in our tests so far).</p></div>
+<div><span class="tag soon">In development</span><b>Signed</b><h3>codes you can verify</h3><p>QR phishing is a growing problem. A signed Prism Code will show who issued it before you open anything.</p></div>
+<div><span class="tag soon">In development</span><b>Locked</b><h3>private codes</h3><p>Encrypt the content so only people with the key can read it.</p></div>
+<div><span class="tag plan">Planned</span><b>Big</b><h3>files in parts</h3><p>Split a larger file across several codes and scan them in turn. Also planned: expiring codes, tickets, business cards and Wi-Fi.</p></div>
+</section>
 <section class="how"><h2>How it works</h2><ol><li>Type text or a link in Create, download the PNG.</li><li>Print it or show it on a screen. Keep the white margin.</li><li>Open Scan, point the camera. The value appears under the code.</li></ol></section>
 <div class="cta"><h2>Try it in 10 seconds</h2><a class="btn" href="index.html">Create your first code</a></div>
-<footer>Prism Code is not a QR code, so standard QR apps cannot read it. Reader speed and accuracy figures are from desktop and synthetic tests, not real phone cameras yet.</footer>
+<footer>Prism Code is not a QR code, so standard QR apps cannot read it. Reading is still being tuned: tested on desktop and synthetic images, not yet validated on real phone cameras.</footer>
 </div></body></html>
