@@ -1,0 +1,16 @@
+/* Phone fit pass — additive only, load last on the page.
+   1) Removes the duplicate Scan banner: the nav already carries the Scan pill on every page.
+      (.scanban is hidden here, so no markup changes and the banner can return by dropping this file.)
+   2) Keeps the camera page inside the phone width: the options row wrapped instead of scrolling
+      off-screen, so Torch / saved-photo / diagnostics are all visible without sideways scrolling.
+   3) Containment guard so no page ever renders wider than the phone. */
+.scanban{display:none}
+
+@media(max-width:600px){
+  main .options{flex-wrap:wrap !important;overflow-x:visible !important;padding-bottom:0}
+  main .options>*{flex:1 1 auto !important}
+  main .meta{flex-wrap:wrap}
+}
+
+img,canvas,svg{max-width:100%}
+html,body{overflow-x:clip}
