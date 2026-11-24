@@ -112,46 +112,62 @@ window.PrismSecureLogo = (function () {
       sec.removeChild(ref);
     }
 
-    // ---- Battery Park scramble transitions: dots <-> "Secured" ----
+    // ---- Battery Park scramble transitions, two distinct phases ----
+    // Reverse (unsecure): "Secured" scrambles as a whole word (phase 1),
+    // then each scrambling character collapses into a dot (phase 2).
+    // Forward (secure): dots expand into scrambling characters (phase 1),
+    // then the characters settle into "Secured" (phase 2).
     var SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&*+=";
     var textMode = "dots"; // resting state: "dots" (unsecured) or "letters" (secured)
-    var trans = null;      // {t0, dir, cfg:[{delay,cyc,last}]}
+    var trans = null;      // {t0, dir, cfg:[{delay,settle,last}], ch:[current chars]}
+    var SCRAMBLE_ALL = 650, MORPH = 260, SETTLE_HOLD = 450, STAG = 60;
 
-    function setLetter(i, mode) {
+    function drawLetter(i, ch, charScale, dotScale) {
       var L = letters[i], D = dots[i];
-      if (mode === "dot") {
-        L.el.setAttribute("visibility", "hidden");
-        D.el.setAttribute("transform", "translate(" + D.cx + " " + (BASE - 22) + ") scale(1)");
+      if (dotScale > 0.01) {
         D.el.setAttribute("visibility", "visible");
-      } else {
-        D.el.setAttribute("visibility", "hidden");
-        L.el.setAttribute("opacity", 1);
+        D.el.setAttribute("transform", "translate(" + D.cx + " " + (BASE - 22) + ") scale(" + dotScale + ")");
+      } else D.el.setAttribute("visibility", "hidden");
+      if (charScale > 0.01) {
         L.el.setAttribute("visibility", "visible");
-        L.el.setAttribute("transform", "translate(" + L.cx + " " + MID + ") scale(1) translate(" + (-L.cx) + " " + (-MID) + ")");
-        L.el.textContent = mode === "rand" ? SCRAMBLE_CHARS[(Math.random() * SCRAMBLE_CHARS.length) | 0] : WORD[i];
-      }
+        L.el.setAttribute("opacity", 1);
+        L.el.setAttribute("transform", "translate(" + L.cx + " " + MID + ") scale(" + charScale + ") translate(" + (-L.cx) + " " + (-MID) + ")");
+        L.el.textContent = ch;
+      } else L.el.setAttribute("visibility", "hidden");
     }
 
     function restText(mode) {
-      for (var i = 0; i < letters.length; i++) setLetter(i, mode === "dots" ? "dot" : "char");
+      for (var i = 0; i < letters.length; i++) drawLetter(i, WORD[i], mode === "dots" ? 0 : 1, mode === "dots" ? 1 : 0);
       textMode = mode;
     }
 
     function startTransition(now, dir) {
-      trans = { t0: now, dir: dir, cfg: letters.map(function (l, i) {
-        return { delay: i * 70, cyc: 320 + Math.random() * 280, last: 0 };
-      }) };
+      trans = { t0: now, dir: dir, ch: letters.map(function () { return WORD[0]; }),
+        last: 0, cfg: letters.map(function (l, i) { return { delay: i * STAG, settle: i * 50 }; }) };
     }
 
     function drawTransition(now) {
-      var done = true;
-      for (var i = 0; i < letters.length; i++) {
-        var c = trans.cfg[i], e = now - trans.t0 - c.delay;
-        if (e < 0) { setLetter(i, trans.dir === 1 ? "dot" : "char"); done = false; }
-        else if (e < c.cyc) {
-          if (now - c.last >= 55) { c.last = now; setLetter(i, "rand"); }
-          done = false;
-        } else setLetter(i, trans.dir === 1 ? "char" : "dot");
+      var done = true, i, c, e, m;
+      var cycle = now - trans.last >= 55;
+      if (cycle) trans.last = now;
+      for (i = 0; i < letters.length; i++) {
+        c = trans.cfg[i]; e = now - trans.t0;
+        if (cycle) trans.ch[i] = SCRAMBLE_CHARS[(Math.random() * SCRAMBLE_CHARS.length) | 0];
+        if (trans.dir === -1) {
+          // phase 1: whole word scrambles; phase 2: chars collapse into dots, staggered
+          m = (e - SCRAMBLE_ALL - c.delay) / MORPH;
+          if (m < 0) { drawLetter(i, trans.ch[i], 1, 0); done = false; }
+          else if (m < 1) { drawLetter(i, trans.ch[i], 1 - m, m); done = false; }
+          else drawLetter(i, WORD[i], 0, 1);
+        } else {
+          // phase 1: dots expand into scrambling chars, staggered; phase 2: settle into Secured
+          m = (e - c.delay) / MORPH;
+          var settleAt = letters.length * STAG + MORPH + SETTLE_HOLD + c.settle;
+          if (e >= settleAt) drawLetter(i, WORD[i], 1, 0);
+          else if (m < 0) { drawLetter(i, WORD[i], 0, 1); done = false; }
+          else if (m < 1) { drawLetter(i, trans.ch[i], m, 1 - m); done = false; }
+          else { drawLetter(i, trans.ch[i], 1, 0); done = false; }
+        }
       }
       if (done) { textMode = trans.dir === 1 ? "letters" : "dots"; trans = null; }
     }
