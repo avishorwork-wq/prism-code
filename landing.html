@@ -20,11 +20,27 @@ footer{padding:0 0 40px;color:var(--muted);font-size:14px;text-align:center}
 @keyframes up{to{opacity:1;transform:none}}
 .btn{transition:transform .2s ease,box-shadow .2s ease}.btn:hover{transform:translateY(-2px);box-shadow:0 6px 18px #0002}
 .strip i{transform-origin:left;}.js .strip i{transform:scaleX(0);animation:sx .6s ease forwards;animation-delay:calc(var(--s)*.07s)}@keyframes sx{to{transform:none}}
+
+.ctas{display:flex;flex-wrap:wrap;gap:12px}
+@media(max-width:720px){
+ .wrap{padding:0 20px}
+ nav{justify-content:center;padding:16px 0 4px}nav div{display:none}nav img{height:48px}
+ .hero{grid-template-columns:1fr;gap:20px;padding:10px 0 32px;text-align:center}
+ .hero h1{font-size:clamp(32px,9.4vw,40px);margin:0 0 12px}
+ .hero p{font-size:16px;margin:0 auto 22px;max-width:34ch}
+ .ctas{flex-direction:column;align-items:stretch;gap:12px;max-width:340px;margin:0 auto}
+ .ctas .btn{display:block;width:100%;text-align:center;padding:15px 18px;min-height:52px}
+ .markcard{order:-1;width:min(50vw,190px);max-width:none;border-radius:24%}
+ .secure{padding:26px 20px 30px;border-radius:22px}.secure h2{font-size:28px}.secure p{font-size:15.5px}.secure .btn{display:block;text-align:center;width:100%}
+ .feat{gap:14px}.how h2{font-size:26px}.how ol{font-size:16px;padding-left:20px}
+ .cta{padding:34px 20px;border-radius:22px}.cta h2{font-size:26px}.cta .btn{display:block;width:100%;max-width:340px;margin:0 auto;text-align:center}
+ footer{padding:0 0 30px}
+}
 @media (prefers-reduced-motion:reduce){.js .cell,.js .rv,.js .hero .htxt>*,.js .strip i{opacity:1!important;transform:none!important;animation:none!important;transition:none!important}.btn{transition:none}.markcard{transform:none!important}}
 </style></head><body><div class="strip"><i style="--s:0;background:#D7263D"></i><i style="--s:1;background:#F77F00"></i><i style="--s:2;background:#F5C518"></i><i style="--s:3;background:#2DB35A"></i><i style="--s:4;background:#00B8D9"></i><i style="--s:5;background:#2E5BFF"></i><i style="--s:6;background:#B5179E"></i></div><div class="wrap">
 <nav><img src="brand/logo-horizontal.png" alt="Prism Code"><div><a class="l" href="docs.html">Docs</a><a class="l" href="print.html">Print</a><a class="l" href="https://github.com/avishorwork-wq/prism-code">GitHub</a></div></nav>
 <section class="hero"><div class="htxt"><h1 style="--k:0">A color code you can lock and sign.</h1><p style="--k:1">Prism Secure locks a code with a password and signs it, all on your device. Free and offline. It also holds more data than a QR.</p>
-<div style="--k:2"><a class="btn" href="install.html">Install the app</a> <a class="btn alt" href="prism-secure.html">Try Prism Secure</a> <a class="btn alt" href="fast-camera.html">Scan a code</a></div></div>
+<div class="ctas" style="--k:2"><a class="btn" href="install.html">Install the app</a> <a class="btn alt" href="prism-secure.html">Try Prism Secure</a> <a class="btn alt" href="fast-camera.html">Scan a code</a></div></div>
 <div class="markcard" id="markcard"><svg class="hexmark" viewBox="0 0 520 520" role="img" aria-label="Prism mark: seven hexagon cells, one left out"><polygon class="cell" style="--dx:0px;--dy:-40px;--i:0" points="337.94,215.00 337.94,305.00 260.00,350.00 182.06,305.00 182.06,215.00 260.00,170.00" fill="#1B1B1B" stroke="#1B1B1B" stroke-width="12.00" stroke-linejoin="round"/><polygon class="cell" style="--dx:45px;--dy:-78px;--i:1" points="424.54,65.00 424.54,155.00 346.60,200.00 268.66,155.00 268.66,65.00 346.60,20.00" fill="#F77F00" stroke="#F77F00" stroke-width="12.00" stroke-linejoin="round"/><polygon class="cell" style="--dx:90px;--dy:0px;--i:2" points="511.15,215.00 511.15,305.00 433.21,350.00 355.26,305.00 355.26,215.00 433.21,170.00" fill="#F5C518" stroke="#F5C518" stroke-width="12.00" stroke-linejoin="round"/><polygon class="cell" style="--dx:45px;--dy:78px;--i:3" points="424.54,365.00 424.54,455.00 346.60,500.00 268.66,455.00 268.66,365.00 346.60,320.00" fill="#2DB35A" stroke="#2DB35A" stroke-width="12.00" stroke-linejoin="round"/><polygon class="cell" style="--dx:-45px;--dy:78px;--i:4" points="251.34,365.00 251.34,455.00 173.40,500.00 95.46,455.00 95.46,365.00 173.40,320.00" fill="#00B8D9" stroke="#00B8D9" stroke-width="12.00" stroke-linejoin="round"/><polygon class="cell" style="--dx:-90px;--dy:0px;--i:5" points="164.74,215.00 164.74,305.00 86.79,350.00 8.85,305.00 8.85,215.00 86.79,170.00" fill="#2E5BFF" stroke="#2E5BFF" stroke-width="12.00" stroke-linejoin="round"/></svg></div></section>
 <section class="secure rv"><div><span class="tag now">Available now</span><h2>Prism Secure</h2><p><b>Lock it.</b> Password-protect a code with AES-256-GCM. The password goes through Argon2id (128 MiB, 3 passes) to make guessing expensive. Anyone who photographs a locked code sees random data, and any change to it is detected.</p>
 <p><b>Sign it.</b> Add an ECDSA P-256 signature so people can tell the code is unchanged and made by one key.</p>
