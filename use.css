@@ -1,0 +1,38 @@
+/* Simple "Use" page: reuses the Prism encoder and reader from prism.html, shows only create and scan. */
+body{font:400 16px/1.6 Poppins,system-ui,sans-serif;color:#1b1b1b}
+main{max-width:760px!important;padding:6px 20px 10px!important}
+main>header{display:none!important}
+.usehead{max-width:760px;margin:0 auto;padding:34px 20px 6px;text-align:center}
+.usehead h1{font:700 40px/1.12 Poppins,system-ui,sans-serif;letter-spacing:-.02em;margin:0 0 10px}
+.usehead p{font-size:17px;color:#585254;margin:0 auto;max-width:34em}
+h2{font:700 26px/1.2 Poppins,system-ui,sans-serif!important;letter-spacing:-.02em}
+/* hide everything the simple page does not need. The script still finds these elements. */
+.expertSwitch,#expertOnly,#expertInfo,#tab-test,#test,footer,#scanMetrics,#generate .notice,#scan .notice,label:has(#debug),#scan details:has(#scanDebug),#scanStatus+#scanMetrics,#readPreview{display:none!important}
+/* big segmented switch */
+nav[role=tablist]{display:grid!important;grid-template-columns:1fr 1fr;gap:6px;background:#f4efec;border-radius:18px;padding:6px;margin:22px 0 26px!important}
+nav[role=tablist] button{min-height:54px;border-radius:14px;border:0!important;font:600 17px Poppins,system-ui,sans-serif;color:#585254;background:transparent}
+nav[role=tablist] button[aria-selected=true]{background:#1b1b1b;color:#fff}
+.columns{display:grid!important;grid-template-columns:1fr!important;gap:22px!important}
+textarea,input[type=file]{font:400 16px Poppins,system-ui,sans-serif}
+textarea{width:100%;min-height:130px;border:2px solid #eae9ea;border-radius:16px;padding:14px;resize:vertical}
+textarea:focus{border-color:#367464;outline:0}
+label{font-weight:600;font-size:15px}
+.bigActions,.actions{display:flex;gap:10px;flex-wrap:wrap}
+button.primary,button.big{min-height:54px;border-radius:14px;font:600 17px Poppins,system-ui,sans-serif;flex:1 1 200px}
+button.primary{background:#1b1b1b;color:#fff;border-color:#1b1b1b}
+button.big:not(.primary){background:#f4efec;border-color:#f4efec}
+.preview{background:#f4efec;border-radius:22px;min-height:260px}
+.preview canvas{max-width:100%;height:auto;border-radius:10px}
+.viewer{border-radius:22px;background:#f4efec;min-height:240px}
+video,#scanCanvas{max-width:100%;border-radius:14px}
+input[type=file]{width:100%;background:#f4efec;border-radius:14px;padding:12px;border:2px dashed #cfc8c4}
+#scan .actions button{min-height:54px;border-radius:14px;font:600 17px Poppins,system-ui,sans-serif;flex:1 1 150px}
+#scan details{margin:12px 0;background:#f4efec;border-radius:14px;padding:4px 16px}#scan details summary{min-height:44px;display:flex;align-items:center;font-weight:600;cursor:pointer}
+.result{border-radius:16px!important;font:16px/1.6 Poppins,system-ui,sans-serif!important;min-height:120px;background:#fff;border:2px solid #eae9ea!important}
+.status{font-size:14px}
+.usetips{max-width:760px;margin:10px auto 0;padding:20px 22px;background:#f4efec;border-radius:20px;font-size:15px;width:calc(100% - 40px)}
+.usetips ul{margin:6px 0 10px;padding-left:20px}.usetips p{margin:0;color:#585254}.usetips a{color:#1b1b1b;font-weight:600}
+@media(max-width:560px){.usehead{padding:24px 18px 0}.usehead h1{font-size:30px}.usehead p{font-size:15.5px}main{padding:4px 16px 6px!important}}
+.usehead h1,.usehead p{text-wrap:balance}
+.viewer .empty,#scanEmpty{width:100%;text-align:center;padding:24px;color:#585254}
+.bigActions{margin:14px 0 6px}.preview{margin-top:6px}
