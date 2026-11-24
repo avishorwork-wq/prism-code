@@ -1,0 +1,58 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="brand/icon-32.png"><link rel="apple-touch-icon" href="brand/icon-180.png"><link rel="stylesheet" href="common.css"><title>Prism Code print kit</title>
+<style>
+@page{size:A4;margin:0}body{background:#fff}
+.page{width:210mm;height:297mm;padding:14mm;page-break-after:always;position:relative;overflow:hidden}
+.grid{display:grid;gap:6mm}.s40{grid-template-columns:repeat(4,40mm);gap:6mm 5mm}.s25{grid-template-columns:repeat(6,25mm);gap:5mm 4mm;margin-top:8mm}
+.st{border:.2mm dashed #bbb;display:flex;align-items:center;justify-content:center;background:#fff}
+.c40{width:40mm;height:40mm;border-radius:50%}.c25{width:25mm;height:25mm;border-radius:50%}.r40{width:40mm;height:40mm;border-radius:6mm}.r25{width:25mm;height:25mm;border-radius:4mm}
+.st img{width:78%}.dk{background:#1b1b1b}
+h1{margin:0 0 3mm;font-size:22pt}small{color:var(--muted);font-size:9pt}
+.g li{margin:2mm 0}.g{font-size:11pt}
+.poster{display:flex;flex-direction:column;align-items:center;text-align:center;justify-content:center;background:var(--ground)}
+.poster h1{font-size:44pt;margin:10mm 0 4mm}.poster p{font-size:17pt;color:var(--muted);margin:0 14mm}.poster .box{width:120mm;height:120mm;background:#fff;border:.4mm dashed #aaa;display:flex;align-items:center;justify-content:center;color:#999;font-size:13pt;margin-top:12mm;padding:10mm}
+.cut{position:absolute;left:14mm;bottom:10mm;font-size:8pt;color:#888}
+</style></head><body>
+<section class="page"><h1>Stickers</h1><small>A4, print at 100%. Dashed lines are cut guides, remove for final print. Use matte or gloss sticker paper.</small>
+<div class="grid s40" style="margin-top:8mm">
+<div class="st c40"><img src="brand/prism-mark.svg"></div>
+<div class="st c40"><img src="brand/prism-mark.svg"></div>
+<div class="st c40"><img src="brand/prism-mark.svg"></div>
+<div class="st c40"><img src="brand/prism-mark.svg"></div>
+<div class="st c40 dk"><img src="brand/prism-mark-on-dark.svg"></div>
+<div class="st c40 dk"><img src="brand/prism-mark-on-dark.svg"></div>
+<div class="st c40 dk"><img src="brand/prism-mark-on-dark.svg"></div>
+<div class="st c40 dk"><img src="brand/prism-mark-on-dark.svg"></div>
+<div class="st r40"><img src="brand/prism-mark.svg"></div>
+<div class="st r40"><img src="brand/prism-mark.svg"></div>
+<div class="st r40"><img src="brand/prism-mark.svg"></div>
+<div class="st r40"><img src="brand/prism-mark.svg"></div>
+</div>
+<div class="grid s25"><div class="st c25"><img src="brand/prism-mark.svg"></div>
+<div class="st c25"><img src="brand/prism-mark.svg"></div>
+<div class="st c25"><img src="brand/prism-mark.svg"></div>
+<div class="st c25"><img src="brand/prism-mark.svg"></div>
+<div class="st c25"><img src="brand/prism-mark.svg"></div>
+<div class="st c25"><img src="brand/prism-mark.svg"></div>
+<div class="st c25"><img src="brand/prism-mark.svg"></div>
+<div class="st c25"><img src="brand/prism-mark.svg"></div>
+<div class="st c25"><img src="brand/prism-mark.svg"></div>
+<div class="st c25"><img src="brand/prism-mark.svg"></div>
+<div class="st c25"><img src="brand/prism-mark.svg"></div>
+<div class="st c25"><img src="brand/prism-mark.svg"></div><div class="st r25 dk"><img src="brand/prism-mark-on-dark.svg"></div>
+<div class="st r25 dk"><img src="brand/prism-mark-on-dark.svg"></div>
+<div class="st r25 dk"><img src="brand/prism-mark-on-dark.svg"></div>
+<div class="st r25 dk"><img src="brand/prism-mark-on-dark.svg"></div>
+<div class="st r25 dk"><img src="brand/prism-mark-on-dark.svg"></div>
+<div class="st r25 dk"><img src="brand/prism-mark-on-dark.svg"></div></div></section>
+<section class="page poster"><img src="brand/logo-stacked.png" style="height:70mm"><h1>Scan to open</h1><p>Point your camera. Prism Code, free, no app store.</p><div class="box" style="border:none;background:none"><img src="brand/sample-prism-code.png" style="width:110mm"></div><div class="cut">Poster A4. Print at 100%, no scaling.</div></section>
+<section class="page"><h1>Print guidelines</h1><ol class="g">
+<li><b>Size.</b> Set cell radius to at least 0.9 mm (about 1.8 mm cell width). A 29-column code is then about 52 mm wide. Bigger for posters, and bigger when scanned from far away: distance of about 10 times the code width is a safe limit.</li>
+<li><b>Scaling.</b> Turn off "fit to page" and "shrink". Print at 100%.</li>
+<li><b>Margin.</b> Keep the white margin the file has, never crop it. Nothing within one cell of the edge.</li>
+<li><b>Colors.</b> Print in color for the 8-color mode. Use Black and white mode when you only have a mono printer or laser on dark stock. Do not use a CMYK conversion that dulls blue and cyan. Check a test print under normal light.</li>
+<li><b>Paper.</b> Matte white. Glossy surfaces cause glare, so use matte laminate. Curved bottles and cans work, but test first.</li>
+<li><b>Screens.</b> Set brightness to medium or higher. Turn off night mode and color filters.</li>
+<li><b>Test.</b> Scan the printed code with the reader before printing a batch. Print one, scan it, then print the rest.</li>
+<li><b>Logo use.</b> Keep one cell of clear space. Do not recolor or fill the gap in the mark. Colors are in brand/README.md.</li></ol>
+<p style="margin-top:12mm"><small>These sizes come from the project notes. Real-printer and real-phone testing is still outstanding, so treat the numbers as starting points.</small></p></section>
+</body></html>
