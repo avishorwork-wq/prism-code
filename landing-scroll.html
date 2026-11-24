@@ -16,7 +16,7 @@ footer{padding:0 0 40px;color:var(--muted);font-size:14px;text-align:center}
 @keyframes asm{to{opacity:1;transform:none}}
 .js .rv{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.8,.2,1);transition-delay:var(--d,0s)}
 .js .rv.in{opacity:1;transform:none}
-.js .heroX .htxt>*{opacity:0;transform:translateY(18px);animation:up .7s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(.05s + var(--k,0)*.1s)}
+.js .hero .htxt>*{opacity:0;transform:translateY(18px);animation:up .7s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(.05s + var(--k,0)*.1s)}
 @keyframes up{to{opacity:1;transform:none}}
 .btn{transition:transform .2s ease,box-shadow .2s ease}.btn:hover{transform:translateY(-2px);box-shadow:0 6px 18px #0002}
 .strip i{transform-origin:left;}.js .strip i{transform:scaleX(0);animation:sx .6s ease forwards;animation-delay:calc(var(--s)*.07s)}@keyframes sx{to{transform:none}}
@@ -36,50 +36,12 @@ footer{padding:0 0 40px;color:var(--muted);font-size:14px;text-align:center}
  .cta{padding:34px 20px;border-radius:22px}.cta h2{font-size:26px}.cta .btn{display:block;width:100%;max-width:340px;margin:0 auto;text-align:center}
  footer{padding:0 0 30px}
 }
-
-.story{height:440vh;position:relative}
-.pin{position:sticky;top:0;height:100vh;height:100svh;display:flex;align-items:center}
-.stage{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:center;width:100%}
-.copy{position:relative;min-height:340px}
-.step{position:absolute;left:0;right:0;top:50%;transform:translateY(calc(-50% + 22px));opacity:0;pointer-events:none;transition:opacity .45s ease,transform .45s cubic-bezier(.2,.8,.2,1)}
-.step.on{opacity:1;transform:translateY(-50%);pointer-events:auto}
-.step h1{font-size:46px;margin:0 0 14px}.step h2{font-size:48px;margin:6px 0 12px;letter-spacing:-.03em}.step p{font-size:19px;color:var(--muted);margin:0 0 24px;max-width:30em}
-.step .ctas{display:flex;flex-wrap:wrap;gap:12px}
-.visual{position:relative;display:flex;justify-content:center}.visual canvas{width:100%;max-width:520px;height:auto;touch-action:pan-y}
-.dots{position:absolute;right:0;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px}.dots i{width:8px;height:8px;border-radius:50%;background:#d9d5d6;transition:all .3s}.dots i.on{background:#1b1b1b;height:22px;border-radius:8px}
-.hint{display:none}
-@media(max-width:720px){
- .story{height:420vh}
- .stage{grid-template-columns:1fr;gap:0;align-content:center;text-align:center;padding-top:6px}
- .visual{order:-1}.visual canvas{max-width:min(70vw,31svh,300px)}
- .dots{right:6px}
- .copy{min-height:300px}
- .step{top:0;transform:translateY(22px)}.step.on{transform:none}
- .step h1{font-size:clamp(30px,8.6vw,38px)}.step h2{font-size:34px}.step p{font-size:16px;margin:0 auto 18px;max-width:34ch}
- .step .ctas{flex-direction:column;max-width:340px;margin:0 auto;gap:8px}.step .ctas .btn{display:block;width:100%;text-align:center;min-height:46px;padding:12px 18px}.step p{font-size:15px!important;margin-bottom:14px!important}.step h1{font-size:clamp(28px,8vw,36px)!important;margin-bottom:10px}
-}
-@media(max-width:720px) and (max-height:700px){.visual canvas{max-width:min(50vw,24svh)}.copy{min-height:250px}.step .ctas{flex-direction:row;max-width:none;justify-content:center}.step .ctas .btn{width:auto;flex:1;padding:10px 8px;font-size:14px}.step p{margin-bottom:10px!important}}
-/* no-JS and reduced motion: plain stacked layout, static pose */
-html:not(.js) .story,.rmode .story{height:auto}
-html:not(.js) .pin,.rmode .pin{position:static;height:auto;padding:30px 0}
-html:not(.js) .stage,.rmode .stage{align-items:start}
-html:not(.js) .copy,.rmode .copy{min-height:0;display:flex;flex-direction:column;gap:30px}
-html:not(.js) .step,.rmode .step{position:static;opacity:1;transform:none;pointer-events:auto}
-html:not(.js) .dots,.rmode .dots{display:none}
 @media (prefers-reduced-motion:reduce){.js .cell,.js .rv,.js .hero .htxt>*,.js .strip i{opacity:1!important;transform:none!important;animation:none!important;transition:none!important}.btn{transition:none}.markcard{transform:none!important}}
-</style></head><body><div class="strip"><i style="--s:0;background:#D7263D"></i><i style="--s:1;background:#F77F00"></i><i style="--s:2;background:#F5C518"></i><i style="--s:3;background:#2DB35A"></i><i style="--s:4;background:#00B8D9"></i><i style="--s:5;background:#2E5BFF"></i><i style="--s:6;background:#B5179E"></i></div><div class="wrap">
+.markcard{background:none!important;border:0!important}#m3d{position:fixed;left:0;top:0;z-index:20;pointer-events:none;will-change:transform}</style></head><body><div class="strip"><i style="--s:0;background:#D7263D"></i><i style="--s:1;background:#F77F00"></i><i style="--s:2;background:#F5C518"></i><i style="--s:3;background:#2DB35A"></i><i style="--s:4;background:#00B8D9"></i><i style="--s:5;background:#2E5BFF"></i><i style="--s:6;background:#B5179E"></i></div><div class="wrap">
 <nav><img src="brand/logo-horizontal.png" alt="Prism Code"><div><a class="l" href="docs.html">Docs</a><a class="l" href="print.html">Print</a><a class="l" href="https://github.com/avishorwork-wq/prism-code">GitHub</a></div></nav>
-<section class="story" id="story"><div class="pin"><div class="stage">
-<div class="copy">
-<div class="step on" data-i="0"><h1>A color code you can lock and sign.</h1><p>Prism Secure locks a code with a password and signs it, all on your device. Free and offline. It also holds more data than a QR.</p>
-<div class="ctas"><a class="btn" href="install.html">Install the app</a><a class="btn alt" href="prism-secure.html">Try Prism Secure</a><a class="btn alt" href="fast-camera.html">Scan a code</a></div></div>
-<div class="step" data-i="1"><span class="tag now">Available now</span><h2>Lock it.</h2><p>Password-protect a code with AES-256-GCM. The password goes through Argon2id to make guessing expensive. Anyone who photographs a locked code sees random data.</p></div>
-<div class="step" data-i="2"><span class="tag now">Available now</span><h2>Sign it.</h2><p>Add an ECDSA P-256 signature so people can tell the code is unchanged and made by one key. It proves who only if the reader already trusts that key.</p></div>
-<div class="step" data-i="3"><span class="tag now">Available now</span><h2>Hold more.</h2><p>4,561 bytes in one 8-color code. A standard QR holds up to 2,953 bytes in black and white. Prism black and white holds 1,523, so the gain comes from color.</p></div>
-</div>
-<div class="visual"><canvas id="hex3d" width="900" height="900" role="img" aria-label="Prism mark in 3D, turning as you scroll"></canvas>
-<div class="dots" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i></div></div>
-</div></div></section>
+<section class="hero"><div class="htxt"><h1 style="--k:0">A color code you can lock and sign.</h1><p style="--k:1">Prism Secure locks a code with a password and signs it, all on your device. Free and offline. It also holds more data than a QR.</p>
+<div class="ctas" style="--k:2"><a class="btn" href="install.html">Install the app</a> <a class="btn alt" href="prism-secure.html">Try Prism Secure</a> <a class="btn alt" href="fast-camera.html">Scan a code</a></div></div>
+<div class="markcard" id="markcard" aria-hidden="true"></div></section>
 <section class="secure rv"><div><span class="tag now">Available now</span><h2>Prism Secure</h2><p><b>Lock it.</b> Password-protect a code with AES-256-GCM. The password goes through Argon2id (128 MiB, 3 passes) to make guessing expensive. Anyone who photographs a locked code sees random data, and any change to it is detected.</p>
 <p><b>Sign it.</b> Add an ECDSA P-256 signature so people can tell the code is unchanged and made by one key.</p>
 <p class="fine">QR codes can be encrypted too, but only if each app adds its own scheme: a QR has no built-in lock. Prism Secure is not independently audited. A weak password can be guessed offline from a photo. A signature proves who made the code only if the reader already trusts that key. No password recovery.</p>
@@ -102,23 +64,19 @@ var els=document.querySelectorAll('.rv');
 if(rm||!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('in')});return}
 var io=new IntersectionObserver(function(en){en.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target)}})},{threshold:.12,rootMargin:'0px 0px -6% 0px'});
 els.forEach(function(e){io.observe(e)});
-
+var mc=document.getElementById('markcard'),ht=document.querySelector('.htxt'),tick=false;
+function upd(){tick=false;var y=Math.min(scrollY,700);mc.style.transform='translateY('+(y*-.09).toFixed(1)+'px)';}
+addEventListener('scroll',function(){if(!tick){tick=true;requestAnimationFrame(upd)}},{passive:true});
 })();
-</script><script src="hex3d.js"></script><script>
-(function(){var st=document.getElementById('story'),c=document.getElementById('hex3d'),steps=[].slice.call(st.querySelectorAll('.step')),dots=[].slice.call(st.querySelectorAll('.dots i'));
-var rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
-function pose(p,t){ // p 0..1 -> rotation: one full turn, eased, ending back on the front-3/4 pose
- var e=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2; var mix=.55*p+.45*e;
- return {ry:-28+mix*360,rx:-20+Math.sin(p*Math.PI)*8,fit:780}}
-if(rm){document.documentElement.classList.add('rmode');Hex3D.render(c,{ry:-28,rx:-20,fit:780});return}
-var cur=0,target=0,step=-1,raf=0,inView=true;
-function prog(){var r=st.getBoundingClientRect(),h=r.height-innerHeight;return h<=0?0:Math.max(0,Math.min(1,-r.top/h))}
-function setStep(p){var i=p<.2?0:p<.47?1:p<.74?2:3;if(i===step)return;step=i;steps.forEach(function(e,k){e.classList.toggle('on',k===i)});dots.forEach(function(e,k){e.classList.toggle('on',k===i)})}
-function frame(){raf=0;target=prog();cur+=(target-cur)*.14;if(Math.abs(target-cur)<.0004)cur=target;
- Hex3D.render(c,pose(cur));setStep(target);if(cur!==target&&inView)raf=requestAnimationFrame(frame)}
-function kick(){if(!raf)raf=requestAnimationFrame(frame)}
-addEventListener('scroll',kick,{passive:true});addEventListener('resize',kick);
-if('IntersectionObserver' in window)new IntersectionObserver(function(e){inView=e[0].isIntersecting;if(inView)kick()}).observe(st);
-kick();
-})();
-</script></html>
+</script><canvas id="m3d" width="720" height="720" role="img" aria-label="Prism mark in 3D, turning as you scroll"></canvas><script src="hex3d.js"></script><script>(function(){var c=document.getElementById("m3d"),mc=document.getElementById("markcard"),rm=matchMedia("(prefers-reduced-motion: reduce)").matches;
+var t0=performance.now(),intro=rm?1:0;
+function P(){var sp=Math.min(1,scrollY/Math.max(500,(document.documentElement.scrollHeight-innerHeight)*.55));return Math.max(rm?1:intro*.45,sp)}
+function ry(){return -28+scrollY*.2}
+function lay(){var r=mc.getBoundingClientRect(),small=innerWidth<720?84:130,pad=innerWidth<720?6:18,t=rm?0:Math.min(1,Math.max(0,scrollY/(r.height+120)));t=t*t*(3-2*t);
+var size=r.width+(small-r.width)*t,sx=r.left+(r.width-size)/2,sy=r.top;
+var tx=innerWidth-small-pad,ty=innerHeight-small-pad;
+var x=sx+(tx-sx)*t,y=sy+(ty-sy)*t;
+c.style.width=c.style.height=size+"px";c.style.transform="translate("+x.toFixed(1)+"px,"+y.toFixed(1)+"px)"}
+var tick=0;function frame(){tick=0;if(!rm&&intro<1){intro=Math.min(1,(performance.now()-t0)/1500);tick=requestAnimationFrame(frame)}lay();Hex3D.render(c,{ry:rm?-28:ry(),rx:-28,p:P(),fit:700})}
+function kick(){if(!tick)tick=requestAnimationFrame(frame)}
+addEventListener("scroll",kick,{passive:true});addEventListener("resize",kick);kick();})();</script></body></html>
