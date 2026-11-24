@@ -1,38 +1,101 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Prism Secure</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f4efec"><link rel="icon" href="brand/icon-32.png"><link rel="apple-touch-icon" href="brand/icon-180.png"><title>Prism Secure</title>
 <style>
-body{font:16px system-ui,sans-serif;margin:0;background:#0f1115;color:#eee}main{max-width:760px;margin:auto;padding:20px}
-h1{margin:0 0 4px}p.sub{color:#9aa;margin:0 0 18px}
-.card{background:#181b22;border-radius:14px;padding:16px;margin:14px 0}
-label{display:block;margin:10px 0 4px;color:#bcd}input[type=text],textarea,select{width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid #333;background:#0f1115;color:#eee;font:inherit}
-textarea{min-height:70px}button{padding:10px 16px;border:0;border-radius:8px;background:#6c5ce7;color:#fff;font:inherit;margin:8px 8px 0 0;cursor:pointer}button.alt{background:#2d3340}
-.row{display:flex;gap:8px;align-items:center}.row input{flex:1}
-canvas{max-width:100%;background:#fff;border-radius:8px;display:block;margin:8px 0}
-.badge{display:inline-block;padding:4px 10px;border-radius:99px;font-size:14px;margin:4px 6px 0 0}
-.ok{background:#14532d}.warn{background:#7c4a03}.bad{background:#7f1d1d}.info{background:#1e3a5f}
-#log{white-space:pre-wrap;font:13px monospace;color:#9fb}
-</style></head><body><main>
-<h1>Prism Secure</h1><p class="sub">Lock a Prism code with a password, and sign it so people can tell it is really yours. Works offline, nothing leaves this device.</p>
-<div class="card"><b>1. Make a secure code</b>
-<label>Message or link</label><textarea id="msg">https://example.com/ticket/8812?token=abc</textarea>
-<label>Password (locks the code)</label><div class="row"><input type="text" id="pw" autocomplete="off" spellcheck="false"><button class="alt" id="genpw">Random</button></div>
-<div id="meter" style="margin-top:6px"></div>
-<label><input type="checkbox" id="dosign"> Sign it with my key (proves it is from me and unchanged)</label>
-<div>Key fingerprint: <b id="fp">none yet</b></div>
-<div><button class="alt" id="expkey">Export key (backup file)</button><button class="alt" id="impkey">Import key</button><input type="file" id="impfile" accept=".json" hidden></div><div style="color:#9aa;font-size:14px">The backup file holds your private key. Keep it somewhere safe and private.</div>
-<button id="make">Create code</button>
-<div id="info"></div><canvas id="code" hidden></canvas></div>
-<div class="card"><b>2. Read it back</b>
-<label>Password to open</label><input type="text" id="pw2">
-<button id="scan">Scan the code above</button><div id="out"></div></div>
-<div class="card" id="secnote"><b>What this protects, and what it does not</b>
-<ul style="color:#bcd;padding-left:20px;line-height:1.5">
-<li><b>Protects:</b> anyone who scans or photographs a locked code sees only random data. Without the password they cannot read it. Any change to the code is detected.</li>
-<li><b>Lock:</b> AES-256-GCM. The password goes through Argon2id (128 MiB, 3 passes), a memory-hard function that makes guessing expensive. Every code gets its own random salt and nonce.</li>
-<li><b>Sign:</b> ECDSA P-256. Shows the code is unchanged and made by one key. It proves who only if the reader already trusts that key's fingerprint.</li>
-<li><b>Does not protect:</b> a weak password (a photo of the code lets someone guess offline, forever; use Random), a phone or computer with malware, someone watching you type, the fact that a code exists or roughly how long it is, or a code whose password you shared with the wrong person.</li>
-<li><b>Lost password or key:</b> no recovery. Keep the backup file private: it holds your signing key.</li>
-<li>Not independently audited. It uses the browser's built-in crypto plus the MIT-licensed hash-wasm Argon2id.</li></ul></div>
-<pre id="log"></pre><script>window.onerror=(m,s,l,c)=>{document.getElementById("log").textContent+="ERR "+m+" line "+l+"\n"}</script>
+@font-face{font-family:Poppins;font-weight:400;src:url(brand/fonts/Poppins-Regular.ttf)}
+@font-face{font-family:Poppins;font-weight:600;src:url(brand/fonts/Poppins-SemiBold.ttf)}
+@font-face{font-family:Poppins;font-weight:700;src:url(brand/fonts/Poppins-Bold.ttf)}
+:root{--ink:#1b1b1b;--muted:#585254;--ground:#f4efec;--green:#367464;--line:#e2dad5;--red:#D7263D;--orange:#F77F00;--yellow:#F5C518;--ok:#2DB35A;--blue:#2E5BFF}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;font:400 16px/1.55 Poppins,system-ui,sans-serif;color:var(--ink);background:#fff}
+.strip{display:flex;height:8px}.strip i{flex:1}
+.wrap{max-width:720px;margin:auto;padding:0 18px 60px}
+nav{display:flex;align-items:center;justify-content:space-between;padding:16px 0 6px}nav img{height:40px}
+.pill{font-size:13px;font-weight:600;background:var(--ground);border-radius:99px;padding:5px 12px;color:var(--green)}
+h1{font-size:34px;line-height:1.1;letter-spacing:-.02em;margin:14px 0 6px}
+.lead{color:var(--muted);margin:0 0 18px}
+.tabs{display:flex;background:var(--ground);border-radius:16px;padding:4px;margin:0 0 18px}
+.tabs button{flex:1;border:0;background:transparent;font:600 15px Poppins,system-ui;padding:11px;border-radius:12px;color:var(--muted);cursor:pointer}
+.tabs button.on{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.step{border:1px solid var(--line);border-radius:20px;padding:18px;margin:0 0 14px;background:#fff}
+.step h2{font-size:17px;margin:0 0 12px;display:flex;align-items:center;gap:10px;letter-spacing:-.01em}
+.num{width:28px;height:28px;border-radius:50%;background:var(--ink);color:#fff;font-size:14px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+textarea,input[type=text]{width:100%;font:400 16px Poppins,system-ui;color:var(--ink);padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:#fff;outline:0}
+textarea{min-height:84px;resize:vertical}textarea:focus,input[type=text]:focus{border-color:var(--green)}
+.hint{font-size:13px;color:var(--muted);margin:6px 2px 0}
+.opt{display:flex;gap:12px;align-items:flex-start;border:1.5px solid var(--line);border-radius:14px;padding:13px;margin:0 0 10px;cursor:pointer}
+.opt.on{border-color:var(--green);background:#f1f7f5}
+.opt input{margin-top:5px;width:18px;height:18px;accent-color:var(--green);flex:none}
+.opt b{display:block;font-size:15px}.opt span{font-size:13px;color:var(--muted);display:block}
+.row{display:flex;gap:8px}.row input{flex:1;min-width:0}
+.btn{font:600 15px Poppins,system-ui;border:0;border-radius:14px;padding:13px 20px;background:var(--ink);color:#fff;cursor:pointer}
+.btn.alt{background:var(--ground);color:var(--ink)}.btn.small{padding:10px 14px;font-size:14px;border-radius:12px}
+.btn.big{width:100%;padding:16px;font-size:17px}.btn[disabled]{opacity:.55}
+.meter{display:flex;gap:5px;margin:10px 0 4px}.meter i{flex:1;height:6px;border-radius:3px;background:var(--line)}
+.mtext{font-size:13px;font-weight:600}.mw{font-size:13px;color:var(--muted)}
+.result{text-align:center}
+canvas#code{width:100%;max-width:420px;height:auto;border:1px solid var(--line);border-radius:16px;margin:6px auto 12px;display:block}
+.chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:6px 0}
+.chip{font-size:13px;font-weight:600;border-radius:99px;padding:5px 12px;background:var(--ground)}
+.chip.ok{background:#dff3e6;color:#17663a}.chip.warn{background:#fdecc8;color:#8a5200}.chip.bad{background:#fbd9de;color:#9b1226}.chip.info{background:var(--ground);color:var(--muted)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+.verdict{border-radius:16px;padding:14px 16px;margin:10px 0;display:flex;gap:12px;align-items:flex-start}
+.verdict.ok{background:#e9f6ee}.verdict.warn{background:#fff4d9}.verdict.bad{background:#fde8eb}
+.verdict .ic{font-size:22px;line-height:1.2}.verdict b{display:block}.verdict span{font-size:14px;color:var(--muted)}
+.secret{font-family:ui-monospace,Menlo,monospace;background:var(--ground);border-radius:10px;padding:10px 12px;word-break:break-all;margin:8px 0;font-size:15px}
+.msgbox{background:var(--ground);border-radius:12px;padding:12px 14px;word-break:break-word;white-space:pre-wrap;text-align:left}
+details{border:1px solid var(--line);border-radius:16px;padding:4px 16px;margin:0 0 12px}
+summary{cursor:pointer;font-weight:600;padding:12px 0;font-size:15px}details[open] summary{border-bottom:1px solid var(--line);margin-bottom:8px}
+details ul{padding-left:20px;color:var(--muted);font-size:14px;margin:6px 0 12px}details li{margin:5px 0}
+.fp{font-family:ui-monospace,Menlo,monospace;font-weight:700}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid #fff6;border-top-color:#fff;border-radius:50%;animation:s .7s linear infinite;vertical-align:-2px;margin-right:8px}@keyframes s{to{transform:rotate(360deg)}}
+#log{white-space:pre-wrap;font:12px monospace;color:#999}
+@media(max-width:480px){h1{font-size:28px}.step{padding:14px;border-radius:18px}}
+</style></head><body>
+<div class="strip"><i style="background:#D7263D"></i><i style="background:#F77F00"></i><i style="background:#F5C518"></i><i style="background:#2DB35A"></i><i style="background:#00B8D9"></i><i style="background:#2E5BFF"></i><i style="background:#B5179E"></i></div>
+<div class="wrap">
+<nav><img src="brand/logo-horizontal.png" alt="Prism Code"><span class="pill">AES-256 encryption</span></nav>
+<h1>Prism Secure</h1>
+<p class="lead">Lock a Prism code with a password so only people who have it can read it. Everything happens on this device, offline.</p>
+<div class="tabs"><button id="tabMake" class="on">Create</button><button id="tabOpen">Open</button></div>
+
+<section id="paneMake">
+<div class="step"><h2><span class="num">1</span>What goes in the code?</h2>
+<textarea id="msg" placeholder="A link or a message">https://example.com/ticket/8812?token=abc</textarea>
+<div class="hint"><span id="count">0</span> characters. A locked code adds about 56 bytes.</div></div>
+
+<div class="step"><h2><span class="num">2</span>How should it be protected?</h2>
+<label class="opt on" id="optLock"><input type="checkbox" id="dolock" checked><div><b>Lock with a password</b><span>Nobody can read it without the password.</span></div></label>
+<div id="pwbox">
+<div class="row"><input type="text" id="pw" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Password"><button class="btn alt small" id="genpw" type="button">Random</button></div>
+<div class="meter" id="bars"><i></i><i></i><i></i><i></i></div><div id="meter"><span class="mtext"></span></div>
+<div class="hint">Random makes a 140-bit password. Anyone with a photo of the code can try to guess the password, so a weak one is easy to break.</div></div>
+<label class="opt" id="optSign" style="margin-top:12px"><input type="checkbox" id="dosign"><div><b>Sign it as me</b><span>Proves the code is unchanged and made with your key. Optional.</span></div></label>
+<div id="keybox" hidden class="hint" style="margin:-2px 2px 4px">Your key: <span class="fp" id="fp">none yet</span> <button class="btn alt small" id="expkey" type="button">Back up key</button> <button class="btn alt small" id="impkey" type="button">Import</button><input type="file" id="impfile" accept=".json" hidden><div>The backup file holds your private key. Keep it private.</div></div></div>
+
+<div class="step"><h2><span class="num">3</span>Create</h2>
+<button class="btn big" id="make" type="button">Create secure code</button>
+<div id="info" class="chips"></div>
+<div class="result" id="resultbox" hidden><canvas id="code" hidden></canvas>
+<div class="actions"><button class="btn small" id="dlpng" type="button">Download PNG</button><button class="btn alt small" id="cpw" type="button">Copy password</button><button class="btn alt small" id="goopen" type="button">Test opening it</button></div>
+<div class="hint" id="savewarn">Save the password somewhere safe. There is no way to recover it.</div></div></div>
+</section>
+
+<section id="paneOpen" hidden>
+<div class="step"><h2><span class="num">1</span>Which code?</h2>
+<div class="actions" style="justify-content:flex-start;margin:0"><button class="btn small" id="pick" type="button">Choose an image</button><button class="btn alt small" id="scan" type="button">Use the code I just made</button></div>
+<input type="file" id="codefile" accept="image/*" hidden><div class="hint" id="picked">Pick a photo or screenshot of a Prism code. For live camera scanning, the Prism scanner comes next.</div></div>
+<div class="step"><h2><span class="num">2</span>Password</h2>
+<input type="text" id="pw2" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Password (if the code is locked)"></div>
+<div class="step"><h2><span class="num">3</span>Result</h2><div id="out"><div class="hint">Pick a code above.</div></div></div>
+</section>
+
+<details><summary>What this protects, and what it does not</summary><ul>
+<li><b>Protects:</b> anyone who scans or photographs a locked code sees only random data. Any change to the code is detected.</li>
+<li><b>Lock:</b> AES-256-GCM. The password goes through Argon2id (128 MiB, 3 passes), which makes guessing expensive. Every code has its own random salt and nonce.</li>
+<li><b>Sign:</b> ECDSA P-256. Shows the code is unchanged and made by one key. It proves who only if you already trust that key's fingerprint.</li>
+<li><b>Does not protect:</b> a weak password, a phone or computer with malware, someone watching you type, the fact that a code exists or roughly how long it is, or a password shared with the wrong person.</li>
+<li>No recovery for a lost password or key. Not independently audited: it uses the browser's built-in crypto plus the MIT-licensed hash-wasm Argon2id.</li></ul></details>
+<pre id="log"></pre>
+<script>window.onerror=(m,s,l,c)=>{document.getElementById("log").textContent+="ERR "+m+" line "+l+"\n"}</script>
 <script>
 /* Trace captures the real decoder path only when requested. */
 globalThis.PrismTrace={active:false,events:[],images:[],start:0,last:0,counts:{},dropped:0,suppressed:{},
@@ -289,67 +352,80 @@ return {beginDecode:ms=>decodeDeadline=performance.now()+ms,CFG,SIZES,HEX,PAL,LA
   root.PrismSecure = api; if (typeof module !== 'undefined') module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 </script><script>
-const $=id=>document.getElementById(id);let key=null,lastCode=null;
-const badge=(t,c)=>`<span class="badge ${c}">${t}</span>`;
+const $=id=>document.getElementById(id);let key=null,lastCode=null,lastPw='';
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const badge=(t,c)=>`<span class="chip ${c}">${esc(t)}</span>`;
+const trustedList=()=>{try{return JSON.parse(localStorage.getItem('prismSecureTrusted')||'[]')}catch(e){return[]}};
 async function getKey(){if(key)return key;const saved=localStorage.getItem('prismSecureKey');if(saved){const o=JSON.parse(saved);key={publicKey:Uint8Array.from(o.pub),privateJwk:o.jwk};}else{key=await PrismSecure.generateSigningKey();localStorage.setItem('prismSecureKey',JSON.stringify({pub:[...key.publicKey],jwk:key.privateJwk}));}
  $('fp').textContent=await PrismSecure.fingerprint(key.publicKey);return key;}
-function meter(){const s=PrismSecure.strength($('pw').value);const col=['bad','bad','warn','ok','ok'][s.level];$('meter').innerHTML=$('pw').value?badge('Password strength: '+s.label+' (about '+s.bits+' bits)',col)+s.warnings.map(w=>badge(w,'warn')).join(''):'';}
+async function myTrusted(){return key?[await PrismSecure.fingerprint(key.publicKey),...trustedList()]:trustedList();}
+function tab(m){$('paneMake').hidden=!m;$('paneOpen').hidden=m;$('tabMake').classList.toggle('on',m);$('tabOpen').classList.toggle('on',!m);}
+$('tabMake').onclick=()=>tab(true);$('tabOpen').onclick=()=>tab(false);$('goopen').onclick=()=>{$('pw2').value=lastPw;tab(false);window.scrollTo(0,0)};
+$('msg').addEventListener('input',()=>$('count').textContent=$('msg').value.length);$('count').textContent=$('msg').value.length;
+function syncOpts(){$('optLock').classList.toggle('on',$('dolock').checked);$('optSign').classList.toggle('on',$('dosign').checked);$('pwbox').hidden=!$('dolock').checked;$('keybox').hidden=!$('dosign').checked;}
+$('dolock').onchange=syncOpts;$('dosign').onchange=()=>{syncOpts();if($('dosign').checked)getKey()};syncOpts();
+const COLS=['#D7263D','#F77F00','#F5C518','#2DB35A','#2DB35A'];
+function meter(){const v=$('pw').value,s=PrismSecure.strength(v),bars=$('bars').children;
+ for(let i=0;i<4;i++)bars[i].style.background=v&&i<Math.max(1,s.level)?COLS[s.level]:'';
+ $('meter').innerHTML=v?`<span class="mtext" style="color:${s.level<2?'#9b1226':s.level==2?'#8a5200':'#17663a'}">Password strength: ${s.label} (about ${s.bits} bits)</span>`+s.warnings.slice(0,2).map(w=>`<div class="mw">${esc(w)}</div>`).join(''):'';}
 $('pw').addEventListener('input',meter);
 $('genpw').onclick=()=>{$('pw').value=PrismSecure.generatePassphrase();$('pw2').value=$('pw').value;meter()};
-$('dosign').onchange=()=>{if($('dosign').checked)getKey()};
-$('make').onclick=async()=>{try{
- const bytes=new TextEncoder().encode($('msg').value),pw=$('pw').value||undefined,sign=$('dosign').checked?await getKey():undefined;
- $('info').innerHTML=badge('Working...','info');await new Promise(r=>setTimeout(r,30));const env=await PrismSecure.seal(bytes,{password:pw,signWith:sign});
- const code=Prism.encode(env,{ecc:1,mode:0,type:1});lastCode=code;
- const c=$('code');Prism.render(code,8,c);c.hidden=false;
+$('cpw').onclick=async()=>{try{await navigator.clipboard.writeText(lastPw);$('cpw').textContent='Copied'}catch(e){$('cpw').textContent='Copy failed'}setTimeout(()=>$('cpw').textContent='Copy password',1500)};
+$('make').onclick=async()=>{const btn=$('make');try{
+ const bytes=new TextEncoder().encode($('msg').value);if(!bytes.length)throw Error('Type something to put in the code');
+ const lock=$('dolock').checked,pw=lock?$('pw').value:'';if(lock&&!pw)throw Error('Enter a password, or tap Random. Or untick the lock.');
+ if(!lock&&!$('dosign').checked)throw Error('Turn on the lock, the signature, or both.');
+ btn.disabled=true;btn.innerHTML='<span class="spin"></span>'+(lock?'Locking (a few seconds)':'Signing');await new Promise(r=>setTimeout(r,40));
+ const sign=$('dosign').checked?await getKey():undefined;
+ const env=await PrismSecure.seal(bytes,{password:pw||undefined,signWith:sign});
+ const code=Prism.encode(env,{ecc:1,mode:0,type:1});lastCode=code;lastPw=pw;
+ const c=$('code');Prism.render(code,8,c);c.hidden=false;$('resultbox').hidden=false;$('cpw').hidden=!pw;$('savewarn').hidden=!pw;
  const mode=pw&&sign?'Locked and signed':pw?'Locked with password':'Signed';
- $('info').innerHTML=badge(mode+(pw?(PrismSecure.hasArgon2()?' (Argon2id)':' (PBKDF2)'):''),'ok')+badge(env.length+' bytes in code (of '+code.capacity.payload+')','info')+badge('size '+code.size,'info');
-}catch(e){$('info').innerHTML=badge(e.message,'bad')}};
-async function scanCanvas(c,pw,trusted){
- const id=c.getContext('2d').getImageData(0,0,c.width,c.height);
- const res=Prism.readImage(id);return show(res.bytes,pw,trusted);}
+ $('info').innerHTML=badge(mode+(pw?(PrismSecure.hasArgon2()?' (AES-256, Argon2id)':' (AES-256, PBKDF2)'):''),'ok')+badge(env.length+' of '+code.capacity.payload+' bytes','info');
+ PrismSecure.wipe(bytes);
+}catch(e){$('info').innerHTML=badge(e.message,'bad')}finally{btn.disabled=false;btn.textContent='Create secure code'}};
+$('dlpng').onclick=()=>{const a=document.createElement('a');a.href=$('code').toDataURL('image/png');a.download='prism-secure-code.png';a.click()};
+function verdict(c,ic,t,s){return `<div class="verdict ${c}"><div class="ic">${ic}</div><div><b>${esc(t)}</b><span>${s||''}</span></div></div>`}
+async function scanCanvas(c,pw,trusted){const id=c.getContext('2d').getImageData(0,0,c.width,c.height);const res=Prism.readImage(id);return show(res.bytes,pw,trusted);}
 async function show(bytes,pw,trusted){const o=await PrismSecure.open(bytes,{password:pw,trustedFingerprints:trusted||[]});let h='';
- if(!o.secure)h=badge('Plain code, not secured','warn')+'<div>'+new TextDecoder().decode(o.bytes)+'</div>';
+ if(!o.secure)h=verdict('warn','!','Plain code, not secured','Anyone can read this one.')+'<div class="msgbox">'+esc(new TextDecoder().decode(o.bytes))+'</div>';
  else{
-  if(o.signed)h+=o.signatureValid?(o.trusted?badge('Signature valid, signer trusted','ok'):badge('Signature valid, signer '+o.signerFingerprint+' not yet trusted','warn')):badge('SIGNATURE INVALID: changed or forged','bad');
-  if(o.encrypted)h+=o.bytes?badge('Unlocked','ok'):(o.needsPassword?badge('Locked: password needed','warn'):badge(o.error,'bad'));
-  if(o.bytes){h+='<div style="margin-top:8px">'+new TextDecoder().decode(o.bytes).replace(/</g,'&lt;')+'</div>';}}
- $('out').innerHTML=h;return o;}
-$('scan').onclick=async()=>{try{await scanCanvas($('code'),$('pw2').value||undefined,key?[await PrismSecure.fingerprint(key.publicKey)]:[])}catch(e){$('out').innerHTML=badge('Could not read: '+e.message,'bad')}};
+  if(o.signed){if(!o.signatureValid)h+=verdict('bad','✕','Signature invalid','This code was changed or forged. Do not trust it.');
+   else if(o.trusted)h+=verdict('ok','✓','Signature valid, signer trusted','Made by <span class="fp">'+o.signerFingerprint+'</span>, a key you trust.');
+   else h+=verdict('warn','?','Signature valid, signer not trusted yet','Unchanged, made by key <span class="fp">'+o.signerFingerprint+'</span>. Only trust it if you know this is their key.<div class="actions" style="justify-content:flex-start"><button class="btn small" id="trustbtn" data-fp="'+o.signerFingerprint+'">Trust this signer</button></div>');}
+  if(o.encrypted){if(o.bytes)h+=verdict('ok','🔓','Unlocked','');else if(o.needsPassword)h+=verdict('warn','🔒','Locked','Enter the password above.');else if(o.signatureValid!==false)h+=verdict('bad','✕','Could not unlock',esc(o.error||'Wrong password, or the code was changed.'));}
+  if(o.bytes)h+='<div class="msgbox">'+esc(new TextDecoder().decode(o.bytes))+'</div>';}
+ $('out').innerHTML=h;const tb=$('trustbtn');if(tb)tb.onclick=()=>{const l=trustedList();l.push(tb.dataset.fp);localStorage.setItem('prismSecureTrusted',JSON.stringify(l));tb.textContent='Trusted';tb.disabled=true};return o;}
+$('scan').onclick=async()=>{try{if(!lastCode)throw Error('Create a code first');$('picked').textContent='Using the code you just made.';await scanCanvas($('code'),$('pw2').value||undefined,await myTrusted())}catch(e){$('out').innerHTML=verdict('bad','✕','Could not read',esc(e.message))}};
+$('pick').onclick=()=>$('codefile').click();
+$('codefile').onchange=async e=>{const f=e.target.files[0];if(!f)return;$('picked').textContent=f.name;try{const bm=await createImageBitmap(f),c=document.createElement('canvas');c.width=bm.width;c.height=bm.height;c.getContext('2d').drawImage(bm,0,0);await scanCanvas(c,$('pw2').value||undefined,await myTrusted())}catch(x){$('out').innerHTML=verdict('bad','✕','Could not read this image',esc(x.message))}};
+$('pw2').addEventListener('change',()=>{if(lastCode&&$('picked').textContent.startsWith('Using'))$('scan').onclick()});
 window.exportKeyText=async()=>{const k=await getKey();return JSON.stringify({type:'prism-secure-key',v:1,pub:[...k.publicKey],jwk:k.privateJwk,fingerprint:await PrismSecure.fingerprint(k.publicKey)})};
 window.importKeyText=async t=>{const o=JSON.parse(t);if(o.type!=='prism-secure-key'||!o.jwk||!o.pub)throw Error('Not a Prism key file');const pub=Uint8Array.from(o.pub);
- /* check the private key really matches the public key by signing and verifying */
  const probe=await PrismSecure.seal(new Uint8Array([1,2,3]),{signWith:{publicKey:pub,privateJwk:o.jwk}});const r=await PrismSecure.open(probe,{});if(!r.signatureValid||r.signerFingerprint!==await PrismSecure.fingerprint(pub))throw Error('Key file is damaged or does not match');
  key={publicKey:pub,privateJwk:o.jwk};localStorage.setItem('prismSecureKey',JSON.stringify({pub:[...pub],jwk:o.jwk}));$('fp').textContent=await PrismSecure.fingerprint(pub);return $('fp').textContent};
 $('expkey').onclick=async()=>{const b=new Blob([await exportKeyText()],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='prism-secure-key.json';a.click();};
 $('impkey').onclick=()=>$('impfile').click();
-$('impfile').onchange=async e=>{try{const f=await PrismSecure.fingerprint?0:0;const fp=await importKeyText(await e.target.files[0].text());$('info').innerHTML=badge('Key imported: '+fp,'ok')}catch(x){$('info').innerHTML=badge(x.message,'bad')}};
+$('impfile').onchange=async e=>{try{const fp=await importKeyText(await e.target.files[0].text());$('info').innerHTML=badge('Key imported: '+fp,'ok')}catch(x){$('info').innerHTML=badge(x.message,'bad')}};
 /* self test used by headless runs */
 window.selfTest=async function(){const L=[];const ok=(n,v)=>L.push((v?'PASS ':'FAIL ')+n);
  try{
  const msg='https://example.com/ticket/8812?token=abc';$('msg').value=msg;$('pw').value='W3F2-R2G5-HAV3';$('pw2').value='W3F2-R2G5-HAV3';
- const cases=[['locked',false],['locked+signed',true]];
- for(const [n,sg] of cases){$('dosign').checked=sg;if(sg)await getKey();await $('make').onclick();
-  const c=$('code'),o=await scanCanvas(c,'W3F2-R2G5-HAV3',key?[await PrismSecure.fingerprint(key.publicKey)]:[]);
+ for(const [n,sg] of [['locked',false],['locked+signed',true]]){$('dolock').checked=true;$('dosign').checked=sg;if(sg)await getKey();await $('make').onclick();
+  const c=$('code'),o=await scanCanvas(c,'W3F2-R2G5-HAV3',await myTrusted());
   ok(n+' round trip through Prism render+read',o.bytes&&new TextDecoder().decode(o.bytes)===msg&&(!sg||o.trusted));
   const o2=await scanCanvas(c,undefined,[]);ok(n+' no password gives no text',!o2.bytes&&o2.needsPassword);
-  const o3=await scanCanvas(c,'wrong',[]);ok(n+' wrong password gives no text',!o3.bytes);
-  if(sg===false){$('dosign').checked=false;}
- }
- // signed only + plain
- $('pw').value='';$('dosign').checked=true;await $('make').onclick();const o4=await scanCanvas($('code'),undefined,[await PrismSecure.fingerprint(key.publicKey)]);ok('signed only',o4.trusted&&new TextDecoder().decode(o4.bytes)===msg);
- // tamper: forge a different message under the same code layout by re-encoding modified envelope
+  const o3=await scanCanvas(c,'wrong',[]);ok(n+' wrong password gives no text',!o3.bytes);}
+ $('dolock').checked=false;$('dosign').checked=true;await $('make').onclick();const o4=await scanCanvas($('code'),undefined,await myTrusted());ok('signed only',o4.trusted&&new TextDecoder().decode(o4.bytes)===msg);
+ const o4b=await scanCanvas($('code'),undefined,[]);ok('untrusted signer offers trust button',!o4b.trusted&&!!$('trustbtn'));
+ $('dolock').checked=false;$('dosign').checked=false;await $('make').onclick();ok('nothing selected is refused',$('info').innerText.includes('Turn on'));
  const env=await PrismSecure.seal(new TextEncoder().encode(msg),{signWith:key});env[10]^=1;const fc=Prism.encode(env,{ecc:1,mode:0,type:1});const cv=document.createElement('canvas');Prism.render(fc,8,cv);
- const o5=await scanCanvas(cv,undefined,[]);ok('tampered signed code rejected',o5.signatureValid===false&&!o5.bytes);
- // capacity
- const max=Prism.capacity(5,1,0).payload;L.push('INFO max payload size5 ecc1 color='+max+' bytes; overhead encrypted='+PrismSecure.overhead.encrypted+' signed='+PrismSecure.overhead.signed);
+ const o5=await scanCanvas(cv,undefined,[]);ok('tampered signed code rejected',o5.signatureValid===false&&!o5.bytes&&$('out').innerText.includes('invalid'));
  ok('meter flags weak password',PrismSecure.strength('password').level===0&&PrismSecure.strength(PrismSecure.generatePassphrase()).level===4);$('pw').value='password';meter();ok('meter shows warning in page',$('meter').innerText.includes('weak'));
  ok('argon2id active in page',PrismSecure.hasArgon2());
- // key export/import
  const fp0=await PrismSecure.fingerprint(key.publicKey),txt=await exportKeyText();localStorage.clear();key=null;$('fp').textContent='none yet';const fp1=await importKeyText(txt);ok('key export then import restores same key',fp0===fp1);
- await $('make').onclick();const o6=await scanCanvas($('code'),undefined,[fp0]);ok('imported key signs trusted code',o6.trusted);
+ $('dolock').checked=false;$('dosign').checked=true;await $('make').onclick();const o6=await scanCanvas($('code'),undefined,[fp0]);ok('imported key signs trusted code',o6.trusted);
  let bad=false;try{const j=JSON.parse(txt);j.jwk.d=j.jwk.d.slice(0,-2)+'AA';await importKeyText(JSON.stringify(j))}catch(e){bad=true}ok('mismatched key file rejected',bad);
  }catch(e){L.push('FAIL exception '+e.message)}
- $('log').textContent=L.join('\n');document.title='DONE';return L;};
-if(location.hash==='#selftest')selfTest();
+ $('log').textContent=L.join('\n');return L;};
 </script></body></html>
