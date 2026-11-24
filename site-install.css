@@ -1,0 +1,12 @@
+/* Apple-style polish overrides for install.html - additive only, load after the page's own styles. */
+:root{--ink:#1d1d1f;--muted:#6e6e73;--ground:#f5f5f7;--line:#d2d2d7}
+body{font-family:Poppins,system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+h1{font-family:Poppins,system-ui,sans-serif;font-weight:700;letter-spacing:-.028em}
+.sub{color:var(--muted)}
+button,.btn{font-family:inherit;font-weight:500;border-radius:980px;background:#2E5BFF;color:#fff;transition:background .18s ease}
+button:hover,.btn:hover{background:#2250ec;text-decoration:none}
+.btn.alt{background:var(--ground);color:var(--ink)}
+.btn.alt:hover{background:#e8e8ed}
+.card{background:var(--ground);border-radius:20px}
+.card h2{letter-spacing:-.01em}
+small,#msg{color:#86868b}

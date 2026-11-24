@@ -1,6 +1,6 @@
 // Prism Code offline cache. Same-origin GET only. Bump VERSION to refresh.
 const VERSION='prism-shell-4';
-const SHELL=['./','index.html','landing.html','use.html','prism.html','docs.html','site.css','use.css','common.css','fast-camera.html','fast-reader.html','slow-reader.html','simulator.html','install.html','manifest.webmanifest','brand/icon-192.png','brand/icon-512.png','brand/prism-mark.svg'];
+const SHELL=['./','index.html','landing.html','use.html','prism.html','docs.html','site.css','use.css','site-reader.css','site-camera.css','common.css','fast-camera.html','fast-reader.html','slow-reader.html','simulator.html','install.html','manifest.webmanifest','brand/icon-192.png','brand/icon-512.png','brand/prism-mark.svg'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(VERSION).then(c=>Promise.all(SHELL.map(u=>c.add(u).catch(()=>{})))).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(n=>n!==VERSION&&n.startsWith('prism-shell')).map(n=>caches.delete(n)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{

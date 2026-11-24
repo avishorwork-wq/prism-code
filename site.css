@@ -1,14 +1,22 @@
 @font-face{font-family:Poppins;font-weight:400;src:url(brand/fonts/Poppins-Regular.ttf)}
 @font-face{font-family:Poppins;font-weight:600;src:url(brand/fonts/Poppins-SemiBold.ttf)}
 @font-face{font-family:Poppins;font-weight:700;src:url(brand/fonts/Poppins-Bold.ttf)}
-.strip{display:flex;height:8px}.strip i{flex:1}
-.sitebar{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px max(20px,calc((100% - 980px)/2));background:rgba(255,255,255,.94);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid #eae9ea;font-family:Poppins,system-ui,sans-serif}
-.sitebar .brand{display:flex;align-items:center;text-decoration:none}.sitebar .brand img{height:40px;display:block}.sitebar .brand .ic{display:none;height:36px;width:36px}
-.sitebar .sl{display:flex;gap:4px}
-.sitebar .sl a{padding:8px 15px;border-radius:999px;font:600 14.5px/1.2 Poppins,system-ui,sans-serif;text-decoration:none;color:#1b1b1b;min-height:38px;display:inline-flex;align-items:center}
-.sitebar .sl a:hover{background:#f4efec}.sitebar .sl a[aria-current=page]{background:#1b1b1b;color:#fff}
+.sbstrip{display:flex;height:4px}.sbstrip i{flex:1}
+.sitebar{position:sticky;top:0;z-index:1000;background:rgba(255,255,255,.82);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid rgba(0,0,0,.07);font-family:Poppins,system-ui,sans-serif}
+.sb-in{max-width:1024px;margin:0 auto;height:56px;display:flex;align-items:center;gap:14px;padding:0 22px}
+.sitebar .brand{display:flex;align-items:center;text-decoration:none;flex:0 0 auto}.sitebar .brand img{height:34px;display:block}.sitebar .brand .ic{display:none;height:32px;width:32px}
+.sitebar .sl{display:flex;gap:2px;margin-left:auto}
+.sitebar .sl a{padding:7px 14px;border-radius:999px;font:500 13.5px/1.2 Poppins,system-ui,sans-serif;text-decoration:none;color:#1b1b1b;opacity:.85}
+.sitebar .sl a:hover{opacity:1;background:rgba(0,0,0,.05)}.sitebar .sl a[aria-current=page]{opacity:1;font-weight:700}
+.sitebar .scanpill{flex:0 0 auto;background:#2E5BFF;color:#fff;border-radius:999px;padding:8px 18px;font:600 13.5px/1.2 Poppins,system-ui,sans-serif;text-decoration:none;display:inline-flex;align-items:center;min-height:36px;transition:background .18s}
+.sitebar .scanpill:hover{background:#2250ec}.scanpill .s{display:none}
 .sitebar a:focus-visible{outline:3px solid #9ac8bb;outline-offset:2px}
-.sitefoot{border-top:1px solid #eae9ea;margin-top:30px;padding:26px 20px 36px;text-align:center;font:400 14px/1.7 Poppins,system-ui,sans-serif;color:#585254}
+.sitebar.sb-dark{background:rgba(16,22,21,.8);border-bottom-color:rgba(255,255,255,.12)}.sb-dark .sl a{color:#f5f5f7}.sb-dark .sl a:hover{background:rgba(255,255,255,.1)}
+.scanban{display:block;max-width:1024px;margin:14px auto 0;padding:0 22px;text-decoration:none}
+.sbi{display:flex;align-items:center;justify-content:space-between;gap:14px;background:#1b1b1b;color:#fff;border-radius:20px;padding:16px 20px;font-family:Poppins,system-ui,sans-serif}
+.sbi b{font-size:16px;font-weight:600;display:block}.sbi span span{font-size:13px;color:#b5b0b2;display:block;margin-top:2px;font-weight:400}
+.sbi i{font-style:normal;font-size:14px;font-weight:600;background:#2E5BFF;border-radius:999px;padding:9px 18px;white-space:nowrap}
+.sitefoot{border-top:1px solid #eae9ea;margin-top:30px;padding:26px 20px 36px;text-align:center;font:400 14px/1.9 Poppins,system-ui,sans-serif;color:#585254;background:#fff}
 .sitefoot a{color:#1b1b1b;font-weight:600;text-decoration:none;margin:0 8px;white-space:nowrap}
-@media(max-width:560px){.sitebar{padding:8px 12px}.sitebar .brand img.full{display:none}.sitebar .brand .ic{display:block}.sitebar .sl{gap:0}.sitebar .sl a{padding:8px 11px;font-size:13.5px}}
-@media(max-width:350px){.sitebar .sl a{padding:8px 8px;font-size:13px}}
+@media(max-width:600px){.sb-in{padding:0 10px;gap:4px;height:52px}.sitebar .brand img.full{display:none}.sitebar .brand .ic{display:block}.sitebar .sl{gap:0;margin-left:2px}.sitebar .sl a{padding:7px 8px;font-size:12.5px}.scanpill .l{display:none}.scanpill .s{display:inline}.sitebar .scanpill{padding:8px 13px;margin-left:auto}.scanban{padding:0 12px;margin-top:10px}.sbi{padding:14px 16px;border-radius:18px}.sbi b{font-size:15px}}
+@media(max-width:350px){.sitebar .sl a{padding:7px 5px;font-size:12px}.sitebar .scanpill{padding:8px 10px}}

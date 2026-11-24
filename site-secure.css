@@ -1,0 +1,20 @@
+/* Apple-style polish overrides for prism-secure.html - additive only, load after the page's own styles. */
+:root{--ink:#1d1d1f;--muted:#6e6e73;--ground:#f5f5f7;--green:#2E5BFF;--line:#d2d2d7}
+body{font-family:Poppins,system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+h1{font-family:Poppins,system-ui,sans-serif;font-weight:700;letter-spacing:-.025em}
+.pill{color:#2E5BFF}
+.tabs{border-radius:980px}
+.tabs button{font-family:inherit;border-radius:980px;font-weight:500}
+textarea,input[type=text]{font-family:inherit}
+textarea:focus,input[type=text]:focus{border-color:#2E5BFF;box-shadow:0 0 0 3px rgba(46,91,255,.18)}
+.opt.on{background:#eef2ff}
+.btn{font-family:inherit;font-weight:500;border-radius:980px;background:#2E5BFF;color:#fff;transition:background .18s ease}
+.btn:hover:not([disabled]){background:#2250ec}
+.btn.alt{background:var(--ground);color:var(--ink)}
+.btn.alt:hover:not([disabled]){background:#e8e8ed}
+.btn.small{border-radius:980px}
+.step{box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.step h2{font-family:Poppins,system-ui,sans-serif;letter-spacing:-.015em}
+.num{background:#1d1d1f}
+.chip,.verdict{border-radius:14px}
+summary{font-family:inherit}
