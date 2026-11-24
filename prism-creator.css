@@ -1,0 +1,25 @@
+/* Prism creator piece: additive overrides for index.html + prism.html Create tab.
+   Scoped to #generate; uses the page's own variables so brand kits can restyle. */
+
+/* sharper live preview: the page upscales a small canvas; smooth it and lift the frame */
+#generate .preview canvas{image-rendering:auto}
+#generate .preview{border-radius:16px}
+
+/* plain-English helper text under Size / Damage repair */
+#generate .pcx-hint{font-size:12px;font-weight:400;color:var(--muted,#585254);margin-top:4px;line-height:1.4}
+
+/* live byte counter under the text box */
+#generate .pcx-count{font-size:12px;color:var(--muted,#585254);margin-top:4px;text-align:right}
+
+/* "now scan it" handoff card after download */
+#generate .pcx-handoff{margin-top:14px;border:1px solid var(--line,#eae9ea);background:var(--ground,#f4efec);border-radius:14px;padding:14px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px}
+#generate .pcx-handoff[hidden]{display:none}
+#generate .pcx-handoff-main{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 200px}
+#generate .pcx-handoff-title{font-size:14px;overflow-wrap:anywhere}
+#generate .pcx-handoff-sub{font-size:13px;color:var(--muted,#585254)}
+#generate .pcx-handoff-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#generate .pcx-handoff-actions .pcx-open-reader{min-height:40px;padding:8px 16px}
+#generate .pcx-handoff-actions .pcx-print{font-size:13px;font-weight:600;color:var(--teal,#367464);text-decoration:none;padding:8px 4px}
+#generate .pcx-handoff-actions .pcx-print:hover{text-decoration:underline}
+#generate .pcx-handoff-actions .pcx-dismiss{min-height:40px;min-width:40px;padding:4px 10px;font-size:16px;line-height:1}
+#generate .pcx-handoff-phone{flex-basis:100%;font-size:12px;color:var(--muted,#585254)}

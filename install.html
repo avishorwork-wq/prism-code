@@ -14,15 +14,18 @@ button,.btn{font:700 16px system-ui;border:0;border-radius:14px;padding:15px 26p
 .btn.alt{background:var(--ground);color:var(--ink)}
 .row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 .card{background:var(--ground);border-radius:20px;padding:20px 22px;margin:18px 0}.card h2{margin:0 0 8px;font-size:19px}
+.card.you{outline:2px solid var(--ink)}
+.badge{display:inline-block;background:var(--ink);color:#fff;font-size:12px;font-weight:700;border-radius:999px;padding:2px 10px;margin-left:8px;vertical-align:middle}
 ol{margin:8px 0 0 20px;padding:0}li{margin:5px 0}
 .strip{display:flex;height:8px;border-radius:8px;overflow:hidden;margin:26px 0}.strip i{flex:1}
 small{color:var(--muted)}#msg{min-height:22px;margin-top:12px;color:var(--muted)}
-</style><link rel="stylesheet" href="site.css"><link rel="stylesheet" href="site-install.css"></head><body><div class="sbstrip"><i style="background:#D7263D"></i><i style="background:#F77F00"></i><i style="background:#F5C518"></i><i style="background:#2DB35A"></i><i style="background:#00B8D9"></i><i style="background:#2E5BFF"></i><i style="background:#B5179E"></i></div><div class="sitebar"><div class="sb-in"><a class="brand" href="index.html" aria-label="Prism Code home"><img class="full" src="brand/logo-horizontal.png" alt="Prism Code"><img class="ic" src="brand/icon-192.png" alt=""></a><div class="sl"><a href="index.html">Home</a><a href="use.html">Use</a><a href="prism.html">Advanced</a><a href="docs.html">Docs</a></div><a class="scanpill" href="fast-camera.html"><span class="l">Scan a code</span><span class="s">Scan</span></a></div></div><main>
+</style><link rel="stylesheet" href="site.css"><link rel="stylesheet" href="site-install.css"><link rel="stylesheet" href="a11y.css"></head><body><div class="sbstrip"><i style="background:#D7263D"></i><i style="background:#F77F00"></i><i style="background:#F5C518"></i><i style="background:#2DB35A"></i><i style="background:#00B8D9"></i><i style="background:#2E5BFF"></i><i style="background:#B5179E"></i></div><div class="sitebar"><div class="sb-in"><a class="brand" href="index.html" aria-label="Prism Code home"><img class="full" src="brand/logo-horizontal.png" alt="Prism Code"><img class="ic" src="brand/icon-192.png" alt=""></a><div class="sl"><a href="index.html">Home</a><a href="use.html">Use</a><a href="prism.html">Advanced</a><a href="docs.html">Docs</a></div><a class="scanpill" href="fast-camera.html"><span class="l">Scan a code</span><span class="s">Scan</span></a></div></div><main>
 <div class="hero"><img src="brand/icon-512.png" alt="Prism Code icon"><h1>Prism Code</h1>
 <p class="sub">Scan and create color codes. Free. Works offline.</p>
-<div class="row"><button id="install" hidden>Install app</button><a class="btn alt" href="fast-camera.html">Scan a code</a><a class="btn alt" href="index.html">Create a code</a></div>
+<div class="row"><button id="install" hidden>Install app</button><a class="btn alt" href="fast-camera.html">Scan a code</a><a class="btn alt" href="use.html">Create a code</a></div>
 <div id="msg" role="status"></div></div>
 <div class="strip"><i style="background:#D7263D"></i><i style="background:#F77F00"></i><i style="background:#F5C518"></i><i style="background:#2DB35A"></i><i style="background:#00B8D9"></i><i style="background:#2E5BFF"></i><i style="background:#B5179E"></i></div>
+<div class="card" id="done" hidden><h2>Prism is installed</h2><p>You are running the app. Everything works offline.</p><div class="row"><a class="btn" href="use.html">Open Prism</a><a class="btn alt" href="fast-camera.html">Scan a code</a></div></div>
 <div class="card" id="ios"><h2>iPhone or iPad (Safari)</h2><ol><li>Tap the Share button.</li><li>Tap Add to Home Screen.</li><li>Tap Add.</li></ol></div>
 <div class="card" id="android"><h2>Android (Chrome)</h2><ol><li>Tap Install app above, or the menu (three dots).</li><li>Tap Install app or Add to Home screen.</li></ol></div>
 <div class="card" id="desktop"><h2>Computer (Chrome or Edge)</h2><ol><li>Click Install app above, or the install icon at the right of the address bar.</li></ol></div>
@@ -30,11 +33,28 @@ small{color:var(--muted)}#msg{min-height:22px;margin-top:12px;color:var(--muted)
 <pre style="white-space:pre-wrap;word-break:break-all;background:#fff;border-radius:12px;padding:12px;font-size:13px">&lt;a href="https://avishorwork-wq.github.io/prism-code/fast-camera.html"&gt;Scan with Prism&lt;/a&gt;</pre></div>
 <p><small>A Prism Code is not a QR code. Standard QR apps cannot read it. Everything runs on your device, nothing is uploaded.</small></p>
 </main>
+<script src="prism-pwa.js"></script>
 <script>
 let dp;const b=document.getElementById('install'),m=document.getElementById('msg');
-addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;b.hidden=false});
+const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();if(standalone)return;dp=e;b.hidden=false});
 b.onclick=async()=>{if(!dp)return;dp.prompt();const r=await dp.userChoice;m.textContent=r.outcome==='accepted'?'Installed.':'Not installed.';dp=null;b.hidden=true};
-addEventListener('appinstalled',()=>{m.textContent='Installed. Open Prism from your home screen.'});
-if(matchMedia('(display-mode: standalone)').matches)m.textContent='You are running the installed app.';
-if('serviceWorker'in navigator)navigator.serviceWorker.register('prism-sw.js').catch(()=>{});
+addEventListener('appinstalled',()=>{m.textContent='Installed. Open Prism from your home screen.';installed()});
+// Standalone = already installed (Android/desktop PWA or iOS home-screen app): swap instructions for a done state.
+function installed(){
+  document.getElementById('done').hidden=false;
+  for(const id of['ios','android','desktop']){const c=document.getElementById(id);if(c)c.hidden=true}
+  b.hidden=true;
+}
+if(standalone)installed();
+// Highlight the instructions for the visitor's own device.
+(function(){
+  const ua=navigator.userAgent||'';
+  const id=/iPhone|iPad|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)?'ios'
+    :/Android/.test(ua)?'android':'desktop';
+  const card=document.getElementById(id);if(!card)return;
+  card.classList.add('you');
+  const tag=document.createElement('span');tag.className='badge';tag.textContent='This device';
+  const h=card.querySelector('h2');if(h)h.appendChild(tag);
+})();
 </script></body></html>

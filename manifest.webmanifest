@@ -1,4 +1,5 @@
 {
+  "id": "./",
   "name": "Prism Code",
   "short_name": "Prism",
   "description": "Create and read Prism Codes, a color code that holds more. Free, offline.",
@@ -8,6 +9,7 @@
   "orientation": "any",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
+  "categories": ["utilities"],
   "icons": [
     {
       "src": "brand/icon-192.png",
@@ -44,7 +46,7 @@
     },
     {
       "name": "Create a code",
-      "url": "./index.html#generate",
+      "url": "./use.html",
       "icons": [
         {
           "src": "brand/icon-192.png",

@@ -1,0 +1,16 @@
+/* Prism Code accessibility layer. Additive only: no layout rules except tap-target minimums. */
+:where(a,button,input,select,textarea,summary,[tabindex]):focus-visible{outline:3px solid #367464;outline-offset:3px;border-radius:4px}
+.sitebar .sl a{min-height:44px}
+.sitefoot a,footer a{display:inline-flex;align-items:center;min-height:44px;padding:0 4px}
+.sidenav a,.toc a,aside a{min-height:44px;display:flex;align-items:center}
+input[type=checkbox],input[type=radio]{min-width:24px;min-height:24px}
+label:has(input[type=checkbox]),label:has(input[type=radio]){min-height:44px}
+summary{min-height:44px;display:flex;align-items:center}
+.flow i{color:#6b6466}
+.cut{color:#555!important}
+.skip{position:absolute;left:-9999px;top:8px;background:#1b1b1b;color:#fff;padding:12px 16px;border-radius:8px;z-index:100}.skip:focus{left:8px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+@media print{.skip{display:none}}
+.sitebar .brand{min-width:44px;min-height:44px;justify-content:center}
+.sitebar .sl a{min-width:44px;justify-content:center}
+td a,th a{display:inline-flex;align-items:center;min-height:44px}

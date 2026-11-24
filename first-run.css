@@ -1,0 +1,25 @@
+#firstRun{margin:0 0 22px;padding:20px;border-radius:22px;background:#f5f5f7;color:#1d1d1f;font:15px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif}
+#firstRun[hidden]{display:none}
+#firstRun .frHead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+#firstRun h2{margin:0;font:600 21px/1.2 -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",system-ui,sans-serif;letter-spacing:-.01em}
+#firstRun .frSkip{background:none;border:0;color:#0066cc;font:inherit;min-height:44px;padding:0 6px;cursor:pointer}
+#firstRun ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+#firstRun li{background:#fff;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0;opacity:.55;transition:opacity .35s,transform .35s;transform:translateY(4px)}
+#firstRun li.on{opacity:1;transform:none}
+#firstRun .frNum{font-size:12px;font-weight:600;color:#6e6e73;text-transform:uppercase;letter-spacing:.06em}
+#firstRun h3{margin:0;font:600 17px/1.25 inherit}
+#firstRun p{margin:0;color:#515154}
+#firstRun canvas{max-width:100%;height:auto;border-radius:10px;align-self:center;background:#fff;border:1px solid #e5e5ea}
+#firstRun .frCode{width:100%;max-width:210px}
+#firstRun .frQR{width:100%;max-width:150px}
+#firstRun button.frBtn,#firstRun a.frBtn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 20px;border-radius:980px;border:0;background:#0071e3;color:#fff;font:inherit;font-weight:500;text-decoration:none;cursor:pointer}
+#firstRun button.frBtn.alt{background:#e8e8ed;color:#1d1d1f}
+#firstRun button.frBtn:hover:not(:disabled){background:#0077ed}#firstRun button.frBtn.alt:hover{background:#dcdce1}
+#firstRun .frRow{display:flex;gap:8px;flex-wrap:wrap}
+#firstRun .frOut{font-weight:600;color:#1d1d1f;overflow-wrap:anywhere}
+#firstRun .frOk{color:#1d7a3a}
+#firstRun .frNote{font-size:12.5px;color:#6e6e73}
+#firstRun button:focus-visible,#firstRun a:focus-visible{outline:3px solid rgba(0,113,227,.5);outline-offset:2px}
+@media(max-width:720px){#firstRun{padding:16px;border-radius:18px}#firstRun ol{grid-template-columns:1fr}#firstRun .frDesktop{display:none}}
+@media(min-width:721px){#firstRun .frPhoneOnly{display:none}}
+@media(prefers-reduced-motion:reduce){#firstRun li{transition:none;transform:none}}

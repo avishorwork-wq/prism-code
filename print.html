@@ -1,58 +1,106 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="brand/icon-32.png"><link rel="apple-touch-icon" href="brand/icon-180.png"><link rel="stylesheet" href="common.css"><title>Prism Code print kit</title>
 <style>
-@page{size:A4;margin:0}body{background:#fff}
-.page{width:210mm;height:297mm;padding:14mm;page-break-after:always;position:relative;overflow:hidden}
-.grid{display:grid;gap:6mm}.s40{grid-template-columns:repeat(4,40mm);gap:6mm 5mm}.s25{grid-template-columns:repeat(6,25mm);gap:5mm 4mm;margin-top:8mm}
-.st{border:.2mm dashed #bbb;display:flex;align-items:center;justify-content:center;background:#fff}
+:root{--pw:210mm;--ph:297mm}
+body{background:#fff}
+/* screen UI */
+.ui{max-width:980px;margin:0 auto;padding:28px 22px 8px}
+.ui h1{font-size:clamp(28px,6vw,44px);margin:0 0 8px}.ui .lead{color:var(--muted);margin:0 0 22px;max-width:56ch}
+.ctl{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:center;margin-bottom:14px}
+.seg{display:inline-flex;background:var(--ground);border-radius:14px;padding:4px}
+.seg button{font:600 14px Poppins,system-ui;border:0;background:none;color:var(--muted);padding:10px 16px;border-radius:11px;cursor:pointer;min-height:44px}
+.seg button[aria-pressed=true]{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.seg button:focus-visible,.btn:focus-visible{outline:3px solid var(--green);outline-offset:2px}
+.lab{font-size:13px;color:var(--muted);font-weight:600;margin-right:8px}
+.act{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 20px}.act .btn{border:0;cursor:pointer;min-height:48px}
+.note{font-size:14px;color:var(--muted);margin:0 0 18px;max-width:68ch}
+.stage{background:var(--ground);padding:18px 0;overflow:hidden}
+.fit{margin:0 auto;transform-origin:top left}
+.stage .page{box-shadow:0 6px 28px rgba(0,0,0,.14);margin:0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.steps li{counter-increment:s;background:var(--ground);border-radius:18px;padding:18px 18px 16px;font-size:15px}
+.steps li:before{content:counter(s);display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--ink);color:#fff;font-weight:700;font-size:14px;margin-bottom:10px}
+.steps b{display:block;margin-bottom:2px}
+.sec{max-width:980px;margin:0 auto;padding:30px 22px}.sec h2{font-size:26px;margin:0 0 14px}
+.tips{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;padding:0;list-style:none;margin:0}
+.tips li{border:1px solid #e3dcd8;border-radius:16px;padding:16px;font-size:15px}.tips b{display:block}
+table.sz{border-collapse:collapse;width:100%;font-size:15px;margin-top:6px}.sz th,.sz td{text-align:left;padding:10px 12px;border-bottom:1px solid #e3dcd8}.sz th{font-size:13px;color:var(--muted)}
+.tw{overflow-x:auto}
+.honest{margin-top:16px;background:#fff7e6;border-radius:14px;padding:14px 16px;font-size:14px}
+/* sheets */
+.page{width:var(--pw);height:var(--ph);padding:12mm 14mm;position:relative;overflow:hidden;background:#fff;color:var(--ink);page-break-after:always;break-after:page}
+.page h2{margin:0 0 3mm;font-size:22pt}.page small{color:var(--muted);font-size:9pt;display:block}
+.grid{display:grid}.s40{grid-template-columns:repeat(4,40mm);gap:6mm 5mm;margin-top:7mm}.s25{grid-template-columns:repeat(6,25mm);gap:5mm 4mm;margin-top:7mm}
+.st{overflow:hidden;border:.2mm dashed #bbb;display:flex;align-items:center;justify-content:center;background:#fff}
 .c40{width:40mm;height:40mm;border-radius:50%}.c25{width:25mm;height:25mm;border-radius:50%}.r40{width:40mm;height:40mm;border-radius:6mm}.r25{width:25mm;height:25mm;border-radius:4mm}
 .st img{width:78%}.dk{background:#1b1b1b}
-h1{margin:0 0 3mm;font-size:22pt}small{color:var(--muted);font-size:9pt}
-.g li{margin:2mm 0}.g{font-size:11pt}
 .poster{display:flex;flex-direction:column;align-items:center;text-align:center;justify-content:center;background:var(--ground)}
-.poster h1{font-size:44pt;margin:10mm 0 4mm}.poster p{font-size:17pt;color:var(--muted);margin:0 14mm}.poster .box{width:120mm;height:120mm;background:#fff;border:.4mm dashed #aaa;display:flex;align-items:center;justify-content:center;color:#999;font-size:13pt;margin-top:12mm;padding:10mm}
-.cut{position:absolute;left:14mm;bottom:10mm;font-size:8pt;color:#888}
-</style><link rel="stylesheet" href="site.css"></head><body><div class="sbstrip"><i style="background:#D7263D"></i><i style="background:#F77F00"></i><i style="background:#F5C518"></i><i style="background:#2DB35A"></i><i style="background:#00B8D9"></i><i style="background:#2E5BFF"></i><i style="background:#B5179E"></i></div><div class="sitebar"><div class="sb-in"><a class="brand" href="index.html" aria-label="Prism Code home"><img class="full" src="brand/logo-horizontal.png" alt="Prism Code"><img class="ic" src="brand/icon-192.png" alt=""></a><div class="sl"><a href="index.html">Home</a><a href="use.html">Use</a><a href="prism.html">Advanced</a><a href="docs.html">Docs</a></div><a class="scanpill" href="fast-camera.html"><span class="l">Scan a code</span><span class="s">Scan</span></a></div></div>
-<section class="page"><h1>Stickers</h1><small>A4, print at 100%. Dashed lines are cut guides, remove for final print. Use matte or gloss sticker paper.</small>
-<div class="grid s40" style="margin-top:8mm">
-<div class="st c40"><img src="brand/prism-mark.svg"></div>
-<div class="st c40"><img src="brand/prism-mark.svg"></div>
-<div class="st c40"><img src="brand/prism-mark.svg"></div>
-<div class="st c40"><img src="brand/prism-mark.svg"></div>
-<div class="st c40 dk"><img src="brand/prism-mark-on-dark.svg"></div>
-<div class="st c40 dk"><img src="brand/prism-mark-on-dark.svg"></div>
-<div class="st c40 dk"><img src="brand/prism-mark-on-dark.svg"></div>
-<div class="st c40 dk"><img src="brand/prism-mark-on-dark.svg"></div>
-<div class="st r40"><img src="brand/prism-mark.svg"></div>
-<div class="st r40"><img src="brand/prism-mark.svg"></div>
-<div class="st r40"><img src="brand/prism-mark.svg"></div>
-<div class="st r40"><img src="brand/prism-mark.svg"></div>
-</div>
-<div class="grid s25"><div class="st c25"><img src="brand/prism-mark.svg"></div>
-<div class="st c25"><img src="brand/prism-mark.svg"></div>
-<div class="st c25"><img src="brand/prism-mark.svg"></div>
-<div class="st c25"><img src="brand/prism-mark.svg"></div>
-<div class="st c25"><img src="brand/prism-mark.svg"></div>
-<div class="st c25"><img src="brand/prism-mark.svg"></div>
-<div class="st c25"><img src="brand/prism-mark.svg"></div>
-<div class="st c25"><img src="brand/prism-mark.svg"></div>
-<div class="st c25"><img src="brand/prism-mark.svg"></div>
-<div class="st c25"><img src="brand/prism-mark.svg"></div>
-<div class="st c25"><img src="brand/prism-mark.svg"></div>
-<div class="st c25"><img src="brand/prism-mark.svg"></div><div class="st r25 dk"><img src="brand/prism-mark-on-dark.svg"></div>
-<div class="st r25 dk"><img src="brand/prism-mark-on-dark.svg"></div>
-<div class="st r25 dk"><img src="brand/prism-mark-on-dark.svg"></div>
-<div class="st r25 dk"><img src="brand/prism-mark-on-dark.svg"></div>
-<div class="st r25 dk"><img src="brand/prism-mark-on-dark.svg"></div>
-<div class="st r25 dk"><img src="brand/prism-mark-on-dark.svg"></div></div></section>
-<section class="page poster"><img src="brand/logo-stacked.png" style="height:70mm"><h1>Scan to open</h1><p>Point your camera. Prism Code, free, no app store.</p><div class="box" style="border:none;background:none"><img src="brand/sample-prism-code.png" style="width:110mm"></div><div class="cut">Poster A4. Print at 100%, no scaling.</div></section>
-<section class="page"><h1>Print guidelines</h1><ol class="g">
-<li><b>Size.</b> Set cell radius to at least 0.9 mm (about 1.8 mm cell width). A 29-column code is then about 52 mm wide. Bigger for posters, and bigger when scanned from far away: distance of about 10 times the code width is a safe limit.</li>
-<li><b>Scaling.</b> Turn off "fit to page" and "shrink". Print at 100%.</li>
-<li><b>Margin.</b> Keep the white margin the file has, never crop it. Nothing within one cell of the edge.</li>
-<li><b>Colors.</b> Print in color for the 8-color mode. Use Black and white mode when you only have a mono printer or laser on dark stock. Do not use a CMYK conversion that dulls blue and cyan. Check a test print under normal light.</li>
-<li><b>Paper.</b> Matte white. Glossy surfaces cause glare, so use matte laminate. Curved bottles and cans work, but test first.</li>
-<li><b>Screens.</b> Set brightness to medium or higher. Turn off night mode and color filters.</li>
-<li><b>Test.</b> Scan the printed code with the reader before printing a batch. Print one, scan it, then print the rest.</li>
-<li><b>Logo use.</b> Keep one cell of clear space. Do not recolor or fill the gap in the mark. Colors are in brand/README.md.</li></ol>
-<p style="margin-top:12mm"><small>These sizes come from the project notes. Real-printer and real-phone testing is still outstanding, so treat the numbers as starting points.</small></p></section>
-</body></html>
+.poster h2{font-size:42pt;margin:8mm 0 3mm}.poster p{font-size:16pt;color:var(--muted);margin:0 14mm}.cut{position:absolute;left:14mm;bottom:9mm;font-size:8pt;color:#888}
+.tests{display:flex;align-items:flex-end;gap:12mm;margin-top:12mm;flex-wrap:wrap}
+.tt{text-align:center;font-size:10pt}.tt img{display:block;border:.2mm solid #ddd;margin-bottom:2mm}
+.rule{margin-top:10mm;border:.3mm solid #222;height:0;width:100mm;position:relative}.rule+small{margin-top:2mm}
+@media print{
+ @page{size:A4;margin:0}
+ .ui,.sec,.stage-pad{display:none!important}
+ .stage{background:none;padding:0;overflow:visible}.fit{transform:none!important;width:auto!important;height:auto!important}
+ .stage .page{box-shadow:none;margin:0}
+ .page:not(.on){display:none!important}
+ body.all .page{display:block!important}
+ .st{border-color:transparent}.nocut .st{border-color:transparent}
+}
+.page:not(.on){display:none}body.all .page{display:block!important}
+@media screen{ body.cuts .st{border-color:#bbb} }
+@media print{ body.cuts .st{border-color:#bbb} }
+@media (prefers-reduced-motion:no-preference){.seg button{transition:background .15s,color .15s}}
+</style><link rel="stylesheet" href="site.css"><link rel="stylesheet" href="a11y.css"></head><body><div class="sbstrip"><i style="background:#D7263D"></i><i style="background:#F77F00"></i><i style="background:#F5C518"></i><i style="background:#2DB35A"></i><i style="background:#00B8D9"></i><i style="background:#2E5BFF"></i><i style="background:#B5179E"></i></div><div class="sitebar"><div class="sb-in"><a class="brand" href="index.html" aria-label="Prism Code home"><img class="full" src="brand/logo-horizontal.png" alt="Prism Code"><img class="ic" src="brand/icon-192.png" alt=""></a><div class="sl"><a href="index.html">Home</a><a href="use.html">Use</a><a href="prism.html">Advanced</a><a href="docs.html">Docs</a></div><a class="scanpill" href="fast-camera.html"><span class="l">Scan a code</span><span class="s">Scan</span></a></div></div>
+<header class="ui"><h1>Print kit</h1><p class="lead">Stickers, a poster and a test sheet. Print the test sheet first, scan it, then print the rest.</p>
+<div class="ctl"><div><span class="lab">Paper</span><span class="seg" id="paper"><button aria-pressed="true" data-p="a4">A4</button><button aria-pressed="false" data-p="letter">US Letter</button></span></div>
+<div><span class="lab">Sheet</span><span class="seg" id="sheet"><button aria-pressed="true" data-s="test">Test</button><button aria-pressed="false" data-s="stickers">Stickers</button><button aria-pressed="false" data-s="poster">Poster</button></span></div>
+<div><span class="lab">Cut guides</span><span class="seg" id="cuts"><button aria-pressed="false" data-c="0">Off</button><button aria-pressed="true" data-c="1">On</button></span></div></div>
+<div class="act"><button class="btn" id="pr">Print this sheet</button><button class="btn alt" id="pa">Print all sheets</button></div>
+<p class="note" id="pn">In the print dialog choose scale 100% (not "fit to page"), margins none, and the same paper size as above.</p></header>
+<div class="stage"><div class="fit" id="fit">
+<section class="page on" id="p-test"><h2>Test sheet</h2><small>Print at 100%. Scan each code with the Prism reader. The smallest one that reads is your minimum size for this printer and paper.</small>
+<div class="tests"><div class="tt"><img src="brand/sample-prism-code.png" style="width:30mm" alt="">30 mm</div><div class="tt"><img src="brand/sample-prism-code.png" style="width:40mm" alt="">40 mm</div><div class="tt"><img src="brand/sample-prism-code.png" style="width:52mm" alt="">52 mm</div><div class="tt"><img src="brand/sample-prism-code.png" style="width:70mm" alt="">70 mm</div></div>
+<div class="rule"></div><small>This line must measure exactly 100 mm. If it does not, scaling is on. Turn it off and print again.</small></section>
+<section class="page" id="p-stickers"><h2>Stickers</h2><small>Matte or gloss sticker paper. Dashed lines are cut guides, switch them off for the final print.</small>
+<div class="grid s40"><div class="st c40"><img src="brand/prism-mark.svg" alt=""></div><div class="st c40"><img src="brand/prism-mark.svg" alt=""></div><div class="st c40"><img src="brand/prism-mark.svg" alt=""></div><div class="st c40"><img src="brand/prism-mark.svg" alt=""></div><div class="st c40 dk"><img src="brand/prism-mark-on-dark.svg" alt=""></div><div class="st c40 dk"><img src="brand/prism-mark-on-dark.svg" alt=""></div><div class="st c40 dk"><img src="brand/prism-mark-on-dark.svg" alt=""></div><div class="st c40 dk"><img src="brand/prism-mark-on-dark.svg" alt=""></div><div class="st r40"><img src="brand/prism-mark.svg" alt=""></div><div class="st r40"><img src="brand/prism-mark.svg" alt=""></div><div class="st r40"><img src="brand/prism-mark.svg" alt=""></div><div class="st r40"><img src="brand/prism-mark.svg" alt=""></div></div><div class="grid s25"><div class="st c25"><img src="brand/prism-mark.svg" alt=""></div><div class="st c25"><img src="brand/prism-mark.svg" alt=""></div><div class="st c25"><img src="brand/prism-mark.svg" alt=""></div><div class="st c25"><img src="brand/prism-mark.svg" alt=""></div><div class="st c25"><img src="brand/prism-mark.svg" alt=""></div><div class="st c25"><img src="brand/prism-mark.svg" alt=""></div><div class="st c25"><img src="brand/prism-mark.svg" alt=""></div><div class="st c25"><img src="brand/prism-mark.svg" alt=""></div><div class="st c25"><img src="brand/prism-mark.svg" alt=""></div><div class="st c25"><img src="brand/prism-mark.svg" alt=""></div><div class="st c25"><img src="brand/prism-mark.svg" alt=""></div><div class="st c25"><img src="brand/prism-mark.svg" alt=""></div><div class="st r25 dk"><img src="brand/prism-mark-on-dark.svg" alt=""></div><div class="st r25 dk"><img src="brand/prism-mark-on-dark.svg" alt=""></div><div class="st r25 dk"><img src="brand/prism-mark-on-dark.svg" alt=""></div><div class="st r25 dk"><img src="brand/prism-mark-on-dark.svg" alt=""></div><div class="st r25 dk"><img src="brand/prism-mark-on-dark.svg" alt=""></div><div class="st r25 dk"><img src="brand/prism-mark-on-dark.svg" alt=""></div></div></section>
+<section class="page poster" id="p-poster"><img src="brand/logo-stacked.png" style="height:64mm" alt="Prism"><h2>Scan to open</h2><p>Point your camera. Prism Code, free, no app store.</p><img src="brand/sample-prism-code.png" style="width:105mm;margin-top:10mm" alt=""><div class="cut">Poster. Print at 100%, no scaling.</div></section>
+</div></div>
+<section class="sec"><h2>Test print in four steps</h2><ol class="steps">
+<li><b>Print the test sheet.</b>Pick your paper, choose Test, then Print this sheet. Scale 100%.</li>
+<li><b>Check the ruler.</b>The line on the sheet must measure 100 mm. If not, turn off fit to page.</li>
+<li><b>Scan every code.</b>Use the Scan tab at the reader, in normal room light, from about 20 cm.</li>
+<li><b>Print the batch.</b>Keep codes at least as large as the smallest one that read.</li></ol></section>
+<section class="sec" style="padding-top:0"><h2>Size and cell radius</h2>
+<p class="note">Starting values from the project notes, not measured on real printers yet.</p>
+<div class="tw"><table class="sz"><tr><th>Setting</th><th>Value</th><th>Why</th></tr>
+<tr><td>Cell radius</td><td>0.9 mm or more</td><td>About 1.8 mm cell width</td></tr>
+<tr><td>29-column code</td><td>about 52 mm wide</td><td>At 0.9 mm radius</td></tr>
+<tr><td>Scan distance</td><td>up to about 10 times the code width</td><td>Make it bigger for posters</td></tr></table></div>
+<div class="honest">Real-printer and real-phone testing is still outstanding. Use the test sheet to confirm sizes on your own printer.</div></section>
+<section class="sec" style="padding-top:0"><h2>Print tips</h2><ul class="tips">
+<li><b>Scaling</b>Turn off fit to page and shrink. Print at 100%.</li>
+<li><b>Margin</b>Keep the white margin the file has. Never crop it.</li>
+<li><b>Colour</b>Print in colour for 8-colour mode. Use black and white mode on a mono printer. Avoid conversions that dull blue and cyan.</li>
+<li><b>Paper</b>Matte white. Glossy paper causes glare, so use matte laminate. Curved bottles and cans need a test first.</li>
+<li><b>Screens</b>Brightness medium or higher. Turn off night mode and colour filters.</li>
+<li><b>Logo</b>Keep one cell of clear space. Do not recolour or fill the gap in the mark.</li></ul></section>
+<script>
+(function(){try{
+var B=document.body,fit=document.getElementById('fit'),ps=document.getElementById('paper'),ss=document.getElementById('sheet'),cs=document.getElementById('cuts'),st=document.createElement('style');document.head.appendChild(st);
+var paper='a4',sheet='test',S={a4:['210mm','297mm','A4'],letter:['215.9mm','279.4mm','Letter']};
+B.classList.add('cuts');
+function seg(el,attr,val){[].forEach.call(el.children,function(b){b.setAttribute('aria-pressed',b.dataset[attr]===val?'true':'false')})}
+function fitScale(){var p=document.querySelector('.page.on');if(!p)return;fit.style.transform='none';fit.style.width='';fit.style.height='';var w=p.offsetWidth,h=p.offsetHeight,avail=Math.min(window.innerWidth-24,1000),k=Math.min(1,avail/w);fit.style.width=w+'px';fit.style.transform='scale('+k+')';fit.style.height=(h*k)+'px';fit.parentNode.style.paddingLeft=fit.parentNode.style.paddingRight='0';fit.style.marginLeft=Math.max(12,(window.innerWidth-w*k)/2)+'px'}
+function apply(){var d=S[paper];document.documentElement.style.setProperty('--pw',d[0]);document.documentElement.style.setProperty('--ph',d[1]);
+st.textContent='@media print{@page{size:'+d[2]+';margin:0}}';
+[].forEach.call(document.querySelectorAll('.page'),function(p){p.classList.toggle('on',p.id==='p-'+sheet)});seg(ps,'p',paper);seg(ss,'s',sheet);fitScale()}
+ps.onclick=function(e){var v=e.target.dataset&&e.target.dataset.p;if(v){paper=v;apply()}};
+ss.onclick=function(e){var v=e.target.dataset&&e.target.dataset.s;if(v){sheet=v;apply()}};
+cs.onclick=function(e){var v=e.target.dataset&&e.target.dataset.c;if(v!=null){B.classList.toggle('cuts',v==='1');seg(cs,'c',v)}};
+document.getElementById('pr').onclick=function(){B.classList.remove('all');window.print()};
+document.getElementById('pa').onclick=function(){B.classList.add('all');window.print();setTimeout(function(){B.classList.remove('all')},500)};
+window.addEventListener('resize',fitScale);apply();
+if(location.hash==='#poster'||location.hash==='#stickers'){sheet=location.hash.slice(1);apply()}
+}catch(e){}})();
+</script><script src="prism-pwa.js"></script></body></html>
