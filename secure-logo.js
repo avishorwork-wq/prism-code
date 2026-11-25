@@ -1,32 +1,24 @@
-/* Prism Secure animated logo ("Prism Code Secured").
-   Mounts Avi's animation into a container on a page.
+/* Prism Secure animated logo ("Prism Code Secured"), scroll-LOCK variant v2.
+   TEST BUILD - lives on secure-logo-lock2-test.html only. The production
+   secure-logo.js (v6 scrub) is untouched.
 
-   mode "scrub" (home band, test page): the container is wrapped in a tall
-   track (~250svh) with a sticky, viewport-high inner frame, so the logo
-   stays pinned while the user scrolls through the track. Scroll position
-   inside the track drives the animation as a pure function of progress
-   (scroll-scrubbed), no timers and no loop.
+   Same visuals/keyframes as v6 (Avi's 3.9s timeline, spin, click bounce,
+   scramble -> dots, closed shackle at the end). Driver: v6's tall track +
+   sticky pinned frame, but instead of scrubbing, crossing the pin point
+   downward starts a FIXED-DURATION (3.9s) timeline forward; crossing the
+   track end upward plays it in reverse at the same speed. While it plays,
+   user input is blocked (non-passive touchmove/wheel preventDefault +
+   touch-action/overscroll-behavior on the root); release = remove those
+   blockers only. NO body-fixed, NO scrollTo, NO position changes of any
+   kind - so there is nothing to jump. Triggers are edge crossings from
+   OUTSIDE the track, so a play can never re-trigger itself: after it
+   finishes, the next swipe simply scrolls on.
 
-   mode "auto" (prism-secure.html hero): plays once when scrolled into view
-   (masked dots -> revealed "Secured") and holds; click/tap toggles.
+   Playback is setInterval-driven: on Android Chrome, rAF only fires on
+   scroll frames while the scroll controller is active, which made earlier
+   builds advance only while the user kept scrolling.
 
-   Direction (Avi, 2026-11-25): the top of the track is READABLE - the word
-   "Secured" with the shackle rested away (his loop's t=0 state). Scrolling
-   down plays his keyframes forward: the shackle fades in, rises, SPINS
-   open (his arc sweep, scale 0.05 -> 1 while raised), drops and locks with
-   the click bounce; then "Secured" Battery-Park-scrambles as a whole word
-   and the chars collapse into a row of dots (masked), shackle staying
-   CLOSED once the dots appear. Track end = dots + locked. Scrolling back
-   up runs the same function in reverse: the dots unscramble into "Secured"
-   and the shackle rises/unlocks, spins away and rests.
-
-   The shackle timeline (KF table, easing, click) is Avi's original,
-   unchanged. Text uses his two-phase scramble spec ("scramble, then dots")
-   placed in his original text window (t 2.4 - 3.9 of the 6s loop).
-
-   Honors prefers-reduced-motion and no-rAF by leaving the static lock
-   fallback in the markup untouched. transform/opacity/textContent writes
-   only; scroll work is a passive listener plus one rAF per scroll frame. */
+   Honors prefers-reduced-motion and no-rAF via the static-lock fallback. */
 window.PrismSecureLogo = (function () {
   "use strict";
   var NS = "http://www.w3.org/2000/svg";
@@ -78,7 +70,7 @@ window.PrismSecureLogo = (function () {
     opts = opts || {};
     var section = anchor || container;
     // default: scrub when a separate section is given, auto for a lone hero container
-    var mode = opts.mode || (section === container ? "auto" : "scrub");
+    var mode = opts.mode || (section === container ? "auto" : "lockpin");
     var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduce) return;                                 // static lock stays
     if (!("requestAnimationFrame" in window)) return;   // static lock stays
@@ -177,8 +169,8 @@ window.PrismSecureLogo = (function () {
       ? Promise.race([document.fonts.load("700 66px Poppins"), new Promise(function (res) { setTimeout(res, 1500); })])
       : Promise.resolve();
 
-    if (mode === "scrub") {
-      // ---- scroll-scrubbed: tall track + sticky viewport frame ----
+    if (mode === "lockpin") {
+      // ---- pinned section + fixed-duration timeline + input blockers only ----
       var track = document.createElement("div");
       var pin = document.createElement("div");
       track.className = "psl-track";
@@ -189,7 +181,6 @@ window.PrismSecureLogo = (function () {
       parent.insertBefore(track, container);
       pin.appendChild(container);
       track.appendChild(pin);
-      // keep the text column pinned alongside on wide layouts, top-aligned
       var col = track.parentElement;
       var split = col && col.parentElement;
       if (split && split.classList && split.classList.contains("split")) {
@@ -201,30 +192,139 @@ window.PrismSecureLogo = (function () {
         }
       }
 
-      var trackTop = 0, travel = 1, lastP = -1, raf = 0;
+      var DUR = 3900; // ms - his 3.9s keyframe timing, same both directions
+      // If a single scroll event moves more than this many viewport heights (try 3), it is
+      // treated as a deliberate jump (Home/End, anchor link) and skips the animation instead
+      // of hijacking it. Infinity = ALWAYS play, even after the wildest fling (never miss).
+      var JUMP_LIMIT = Infinity;
+
+      var trackTop = 0, trackBot = 1, jumpPx = 1e9;
+      var playing = false, dir = 1, t0 = 0, timer = 0, raf = 0, lastTick = 0;
+      var settled = 0;   // what is on screen at rest: 0 = open/readable, 1 = locked/dots
+      var lastRendered = -1, lockY = 0;
+      var htmlEl = document.documentElement;
+      var saved = {};
+
+      function curY() { return window.scrollY || window.pageYOffset || 0; }
+      var prevY = curY();
+
       function measure() {
-        var rect = track.getBoundingClientRect();
-        var vh = window.innerHeight || document.documentElement.clientHeight || 1;
-        trackTop = rect.top + (window.scrollY || window.pageYOffset || 0);
-        travel = Math.max(1, track.offsetHeight - vh);
+        var r = track.getBoundingClientRect();
+        trackTop = r.top + curY();
+        trackBot = trackTop + Math.max(1, track.offsetHeight - pin.offsetHeight);
+        jumpPx = JUMP_LIMIT * window.innerHeight;
       }
-      function apply() {
-        raf = 0;
-        var y = window.scrollY || window.pageYOffset || 0;
-        var p = clamp((y - trackTop) / travel, 0, 1);
-        if (Math.abs(p - lastP) < 0.0005) return;
-        lastP = p;
-        render(p);
+      function renderOnce(p) { if (p !== lastRendered) { lastRendered = p; render(p); } }
+      function jumpTo(y) { window.scrollTo({ top: y, left: 0, behavior: "instant" }); }
+
+      function prevent(e) { if (e.cancelable) e.preventDefault(); }
+      function preventKey(e) {
+        var k = e.keyCode;
+        if (k === 32 || k === 33 || k === 34 || k === 35 || k === 36 || k === 38 || k === 40) e.preventDefault();
       }
-      function onScroll() { if (!raf) raf = requestAnimationFrame(apply); }
+      // Blocking has FOUR layers because touch/wheel preventDefault alone can't stop
+      // a fling that is already in flight, a scrollbar drag, or a touchmove the browser
+      // has already committed to scrolling:
+      //  1) overflow:hidden on <html> (NOT body - that would break position:sticky)
+      //  2) touchmove/wheel/key preventDefault
+      //  3) touch-action / overscroll-behavior
+      //  4) onScroll() snaps any leftover drift back to lockY while playing
+      function block() {
+        saved.of = htmlEl.style.overflow; saved.sg = htmlEl.style.scrollbarGutter;
+        htmlEl.style.scrollbarGutter = "stable";   // no layout shift when the scrollbar hides
+        htmlEl.style.overflow = "hidden";
+        htmlEl.style.touchAction = "none";
+        htmlEl.style.overscrollBehavior = "none";
+        window.addEventListener("touchmove", prevent, { passive: false });
+        window.addEventListener("wheel", prevent, { passive: false });
+        window.addEventListener("keydown", preventKey);
+      }
+      function unblock() {
+        window.removeEventListener("touchmove", prevent);
+        window.removeEventListener("wheel", prevent);
+        window.removeEventListener("keydown", preventKey);
+        htmlEl.style.overflow = saved.of || "";
+        htmlEl.style.scrollbarGutter = saved.sg || "";
+        htmlEl.style.touchAction = "";
+        htmlEl.style.overscrollBehavior = "";
+      }
+
+      // y = where the user is now. We ALWAYS pin the logo on screen first (clamp into the
+      // track), so a fast flick that overshoots the pin can't play it off-screen.
+      function start(d, y) {
+        measure();
+        lockY = clamp(y, trackTop, trackBot);
+        if (Math.abs(curY() - lockY) > 0.5) jumpTo(lockY);
+        dir = d; playing = true;
+        block();
+        renderOnce(d === 1 ? 0 : 1);
+        t0 = performance.now(); lastTick = 0;
+        // Time-based playback => same speed no matter how often frames arrive.
+        // Driven by BOTH setInterval (never starves on Android scroll-controller
+        // quirks) and rAF (smooth, vsync-aligned). tick() de-dupes them.
+        timer = setInterval(tick, 16);
+        raf = requestAnimationFrame(loop);
+      }
+      function loop() { if (!playing) { raf = 0; return; } tick(); raf = requestAnimationFrame(loop); }
+      function tick() {
+        if (!playing) return;
+        var now = performance.now();
+        if (now - lastTick < 8) return;
+        lastTick = now;
+        var k = (now - t0) / DUR;
+        if (k >= 1) { finish(); return; }
+        var p = dir === 1 ? k : 1 - k;
+        render(p); lastRendered = p;
+      }
+      function finish() {
+        playing = false;
+        if (timer) { clearInterval(timer); timer = 0; }
+        if (raf) { cancelAnimationFrame(raf); raf = 0; }
+        settled = dir === 1 ? 1 : 0;
+        renderOnce(settled);
+        unblock();
+        if (Math.abs(curY() - lockY) > 0.5) jumpTo(lockY);
+        prevY = lockY;
+      }
+
+      function onScroll() {
+        var y = curY();
+        if (!svg) { prevY = y; return; }
+        if (playing) {                       // layer 4: undo any drift, ignore everything else
+          if (Math.abs(y - lockY) > 0.5) jumpTo(lockY);
+          return;
+        }
+        var was = prevY; prevY = y;
+        measure();
+
+        // Deliberate jump (Home/End/anchor): don't hijack it, just show the right resting state.
+        if (Math.abs(y - was) > jumpPx) {
+          if (y > trackBot) settled = 1; else if (y < trackTop) settled = 0;
+          renderOnce(settled);
+          return;
+        }
+        // Heading down, logo still open, and we reached OR FLEW PAST the pin point.
+        if (y > was && settled === 0 && y >= trackTop) { start(1, y); return; }
+        // Heading up, logo locked, and we came back into/through the track from below,
+        // or left it through the top.
+        if (y < was && settled === 1 && y <= trackBot && (was > trackBot || y < trackTop)) { start(-1, y); return; }
+      }
 
       ready.then(function () {
         svg = buildDom();
         measure();
+        var y0 = curY();
+        prevY = y0;
+        settled = y0 > trackBot ? 1 : 0;
+        renderOnce(settled);
         window.addEventListener("scroll", onScroll, { passive: true });
-        window.addEventListener("resize", function () { measure(); onScroll(); });
-        apply();
-        container.__psl = { get p() { return lastP; }, render: render, mode: "scrub" };
+        window.addEventListener("resize", measure);
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+        // Page opened (or reloaded) with the pin already active: play it now instead of waiting.
+        if (y0 >= trackTop && y0 <= trackBot) start(1, y0);
+        container.__psl = { get p() { return lastRendered; },
+          get state() { return playing ? "playing" : (settled ? "locked" : "open"); },
+          render: render, mode: "lockpin" };
       }, function () {});
     } else {
       // ---- auto: play once on view, hold; click toggles direction ----
