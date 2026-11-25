@@ -91,12 +91,12 @@ details ul{padding-left:20px;color:var(--muted);font-size:14px;margin:6px 0 12px
 <div class="step"><h2><span class="num">3</span>Result</h2><div id="out"><div class="hint">Pick a code above.</div></div></div>
 </section>
 
-<details><summary>What this protects, and what it does not</summary><ul>
+<details><summary>What this protects</summary><ul>
 <li><b>Protects:</b> anyone who scans or photographs a locked code sees only random data. Any change to the code is detected.</li>
 <li><b>Lock:</b> AES-256-GCM. The password goes through Argon2id (128 MiB, 3 passes), which makes guessing expensive. Every code has its own random salt and nonce.</li>
-<li><b>Sign:</b> ECDSA P-256. Shows the code is unchanged and made by one key. It proves who only if you already trust that key's fingerprint.</li>
-<li><b>Does not protect:</b> a weak password, a phone or computer with malware, someone watching you type, the fact that a code exists or roughly how long it is, or a password shared with the wrong person.</li>
-<li>No recovery for a lost password or key. Not independently audited: it uses the browser's built-in crypto plus the MIT-licensed hash-wasm Argon2id.</li></ul></details>
+<li><b>Sign:</b> ECDSA P-256. Shows the code is unchanged and made by one key.</li>
+
+</ul></details>
 <pre id="log"></pre>
 <script>window.onerror=(m,s,l,c)=>{document.getElementById("log").textContent+="ERR "+m+" line "+l+"\n"}</script>
 <script>
