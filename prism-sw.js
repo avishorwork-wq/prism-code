@@ -1,6 +1,6 @@
 /* Prism Code, Copyright (c) 2026 Avi Shor. Free to use, with or without credit. See LICENSE.md. No warranty. */
 // Prism Code offline cache. Same-origin GET only. Bump VERSION to refresh.
-const VERSION='prism-shell-77';
+const VERSION='prism-shell-79';
 const SHELL=[
   './','index.html','landing.html','use.html','prism.html','docs.html','print.html','progress.html','install.html','prism-secure.html','boarding.html',
   'fast-camera.html','fast-reader.html','slow-reader.html','simulator.html','offline.html',
@@ -17,5 +17,5 @@ self.addEventListener('fetch',e=>{
     e.respondWith((async()=>{try{const fd=await r.formData();const f=fd.get('image');
       if(f&&f.size){const c=await caches.open('prism-share');await c.put('shared-image',new Response(f,{headers:{'content-type':f.type||'image/png','x-name':f.name||'shared.png'}}))}}catch(_){}
       return Response.redirect('./use.html?shared=1',303)})());return}if(r.method!=='GET'||new URL(r.url).origin!==location.origin)return;
-  e.respondWith(fetch(r).then(res=>{if(res.ok){const cp=res.clone();caches.open(VERSION).then(c=>c.put(r,cp))}return res}).catch(()=>caches.match(r).then(m=>m||caches.match(r.mode==='navigate'?'offline.html':'use.html'))));
+  e.respondWith(fetch(r,{cache:'no-cache'}).then(res=>{if(res.ok){const cp=res.clone();caches.open(VERSION).then(c=>c.put(r,cp))}return res}).catch(()=>caches.match(r).then(m=>m||caches.match(r.mode==='navigate'?'offline.html':'use.html'))));
 });
