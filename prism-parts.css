@@ -22,7 +22,7 @@
 body.pp-has-parts #result:not(#ppScan){display:none!important}
 body.pp-has-parts #chip{display:none!important}
 .pp-dark{margin:0 0 12px;padding:0;border:1.5px solid #E5E5EA;border-radius:16px;overflow:hidden;color:#1b1b1b;background:#fff}
-.pp-head{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:48px;padding:13px 16px;border:0;color:#fff;font:700 16px/1.3 Poppins,system-ui,sans-serif;letter-spacing:-.01em;text-align:center;cursor:pointer;background:#2E5BFF;transition:background-color .2s cubic-bezier(.4,0,.2,1)}
+.pp-head{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:48px;padding:13px 16px;border:0;color:#fff;font:700 16px/1.3 Poppins,system-ui,sans-serif;letter-spacing:-.01em;text-align:center;cursor:pointer;text-shadow:0 1px 2px rgba(0,0,0,.28);background:#2E5BFF;transition:background-color .2s cubic-bezier(.4,0,.2,1)}
 .pp-head:hover{background:#1E4BEF}
 .pp-head:active{background:#1A44D6}
 .pp-head:focus-visible{box-shadow:inset 0 0 0 2px #fff,inset 0 0 0 4px #14141a;outline:none}
@@ -31,7 +31,7 @@ body.pp-has-parts #chip{display:none!important}
 .pp-dark .pp-body{padding:4px 16px 14px;text-align:center}
 .pp-dark .pp-sub{display:block;margin:0 0 8px;color:#585254;font-size:13.5px}
 .pp-dark .pp-count{font-size:18px;margin-bottom:6px;color:#1b1b1b}
-.pp-dark .pp-bar{background:#EFEFF4}.pp-dark .pp-bar i{background:#2E5BFF}
+.pp-dark .pp-bar{background:#EFEFF4}.pp-dark .pp-bar i{background:linear-gradient(90deg,#2E5BFF 0%,#00B8D9 50%,#2DB35A 100%)}
 .pp-dark .pp-chips{margin:8px 0;justify-content:center}
 .pp-dark .pp-chip{min-width:30px;padding:2px 5px;font-size:12px;border-color:#C9C9CE;color:#6f666a}
 .pp-dark .pp-chip.on{background:#2E5BFF;border-color:#2E5BFF;color:#fff}
