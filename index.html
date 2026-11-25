@@ -69,7 +69,7 @@ section.b{padding:clamp(80px,10vw,140px) 22px}.tint{background:var(--gray)}.cent
 <div class="cta-row"><a class="btn btn-pri" href="use.html">Make your own</a></div></header>
 
 <section class="b tint center ph-how"><div class="in"><h2 class="k">How a scan reads a code.</h2><p class="lede">Eight steps, all on your device.</p>
-<div class="steps"><div class="step"><i>01</i><h3>Take a photo</h3><p>Or grab a camera frame.</p></div><div class="step"><i>02</i><h3>Find the code</h3><p>Separate it from the background.</p></div><div class="step"><i>03</i><h3>Straighten it</h3><p>The border, guide cells and orientation pattern fix perspective and bending.</p></div><div class="step"><i>04</i><h3>Calibrate colors</h3><p>Guide cells have known colors, so tinted light does not matter.</p></div><div class="step"><i>05</i><h3>Read the cells</h3><p>Each color becomes a 3-bit number.</p></div><div class="step"><i>06</i><h3>Read the header</h3><p>Three copies, and the majority wins.</p></div><div class="step"><i>07</i><h3>Repair</h3><p>Un-shuffle the cells, then error correction fixes damaged numbers.</p></div><div class="step"><i>08</i><h3>Check it</h3><p>A 4-byte check number must match, or the reader says try again. It never shows a guess.</p></div></div></div></section>
+<div class="steps"><div class="step"><i>01</i><h3>Take a photo</h3><p>Or grab a camera frame.</p></div><div class="step"><i>02</i><h3>Find the code</h3><p>Separate it from the background.</p></div><div class="step"><i>03</i><h3>Straighten it</h3><p>The border, guide cells and orientation pattern fix perspective and bending.</p></div><div class="step"><i>04</i><h3>Calibrate colors</h3><p>Guide cells have known colors, so tinted light still reads true.</p></div><div class="step"><i>05</i><h3>Read the cells</h3><p>Each color becomes a 3-bit number.</p></div><div class="step"><i>06</i><h3>Read the header</h3><p>Three copies, and the majority wins.</p></div><div class="step"><i>07</i><h3>Repair</h3><p>Un-shuffle the cells, then error correction fixes damaged numbers.</p></div><div class="step"><i>08</i><h3>Check it</h3><p>A 4-byte check number must match, or the reader says try again. It never shows a guess.</p></div></div></div></section>
 <script>
 (()=>{
 const cv=document.getElementById('phCanvas'),ctx=cv.getContext('2d');
@@ -101,7 +101,7 @@ const DM=dm.map((c,i)=>{let best=null,bd=1e9;for(const e of EC){if(used.has(e))c
   return {c,e:best,wrong:i==0?5:(c.n+3+i)%8,tb:14.8+i*.58}});
 D.forEach(c=>c.di=-1);DM.forEach((d,i)=>d.c.di=i);
 const T_DATA=9.8,T_EC=13.3,T_DMG=14.1,T_BACK=17.7;
-const CAP=[[0,'Real Prism Code','21 × 24 hexagon cells, each one of 8 colours.'],
+const CAP=[[0,'Real Prism Code','21 × 24 hexagon cells, each one of 8 colors.'],
 [3.4,'Splitting it open','The cells lift apart into five layers. Every cell keeps its exact place.'],
 [5.3,'1. Data · 227 cells','These carry your message, scattered across the whole code.'],
 [6.2,'2. Error correction · 96 cells','Extra numbers that fix damaged cells. They are mixed in with the data, not in a separate block.'],

@@ -13,7 +13,7 @@ p.innerHTML='<div class="frHead"><h2>Try it in 10 seconds</h2><button class="frS
 '<li id="frS2"><span class="frNum">2 · Get the scanner</span><h3 class="frDesktop">Open it on your phone</h3><h3 class="frPhoneOnly">You are on your phone</h3>'+
 '<p class="frDesktop">Point your phone\'s normal camera at this link code. It opens the Prism scanner.</p><canvas class="frQR frDesktop" id="frQR" width="10" height="10" aria-label="Link to the Prism scanner"></canvas>'+
 '<p class="frPhoneOnly">Save the picture of the code, or show it on another screen.</p>'+
-'<div class="frRow"><button class="frBtn alt" id="frCopy" type="button">Copy link</button><button class="frBtn alt" id="frShare" type="button" hidden>Share link</button></div><p class="frNote">Your phone\'s normal camera cannot read a Prism Code. Only Prism\'s own scanner can.</p></li>'+
+'<div class="frRow"><button class="frBtn alt" id="frCopy" type="button">Copy link</button><button class="frBtn alt" id="frShare" type="button" hidden>Share link</button></div><p class="frNote">Your phone\'s camera reads the link code above; Prism Codes read in Prism\'s own scanner.</p></li>'+
 '<li id="frS3"><span class="frNum">3 · Scan</span><h3>Point it at the code</h3><p class="frDesktop">In the scanner on your phone, tap Open camera and aim at the code on this screen.</p><p class="frPhoneOnly">Tap Open camera and aim at a code on another screen.</p>'+
 '<div class="frRow"><button class="frBtn" id="frRead" type="button">Read it here instead</button></div><p id="frOut" class="frNote" role="status" aria-live="polite">Reading it here takes about a second and uses no camera.</p></li></ol>';
 nav.parentNode.insertBefore(p,nav);
