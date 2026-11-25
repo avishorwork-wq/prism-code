@@ -34,3 +34,6 @@ a.rf-btn{text-decoration:none;display:inline-flex;align-items:center}
 @media (max-width:520px){.rf-zone{padding:20px 14px}.rf-drop div{padding:28px 24px;font-size:20px}}
 #scan .viewer .empty{width:100%;flex:1 1 100%}
 #scan .status.error{color:var(--rf-bad)}
+
+/* Reading sweep removed per Avi: static bar while a read is in flight */
+.rf-reading .rf-bar i{animation:none}
