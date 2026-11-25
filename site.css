@@ -44,3 +44,10 @@ details>:not(summary){animation:pcfade .22s ease both}
 @keyframes pcfade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+
+/* Standing rule: no tap/focus boxes anywhere; keyboard focus keeps a subtle cue */
+*:focus-visible{outline:none!important}
+a:focus-visible{text-decoration:underline!important;text-underline-offset:3px;text-decoration-thickness:2px}
+button:focus-visible,[role="button"]:focus-visible,summary:focus-visible,label:focus-visible{filter:brightness(.93)}
+input:focus-visible,select:focus-visible,textarea:focus-visible{filter:brightness(.96)}
