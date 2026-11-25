@@ -29,7 +29,6 @@ button,.btn,[role="button"],a.scanpill{min-height:44px}
 select{min-height:44px}
 main .result .controls button{min-height:44px}
 nav[role=tablist] button{min-height:44px}
-.pcredit a{display:inline-flex;align-items:center;min-height:44px;padding:0 4px}
 
 /* 5. Focus is a soft neutral ring on fields and a subtle dim on controls.
       Never an outline box. */
