@@ -1,0 +1,607 @@
+<!doctype html><!-- Prism Code, Copyright (c) 2026 Avi Shor. Free to use, with or without credit. See LICENSE.md. No warranty. -->
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f4efec"><link rel="icon" href="brand/icon-32.png"><link rel="apple-touch-icon" href="brand/icon-180.png"><title>Prism Boarding Pass (demo)</title>
+<style>
+@font-face{font-family:Poppins;font-weight:400;src:url(brand/fonts/Poppins-Regular.ttf)}
+@font-face{font-family:Poppins;font-weight:600;src:url(brand/fonts/Poppins-SemiBold.ttf)}
+@font-face{font-family:Poppins;font-weight:700;src:url(brand/fonts/Poppins-Bold.ttf)}
+:root{--ink:#1b1b1b;--muted:#585254;--ground:#f4efec;--green:#367464;--line:#e2dad5;--red:#D7263D;--ok:#2DB35A;--blue:#2E5BFF;--ease:cubic-bezier(.22,.8,.3,1)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}[hidden]{display:none!important}
+button,a,input,select,summary{outline:none}
+body{margin:0;font:400 16px/1.55 Poppins,system-ui,sans-serif;color:var(--ink);background:#fff;-webkit-text-size-adjust:100%}
+.wrap{max-width:720px;margin:auto;padding:0 18px 40px}
+h1{font-size:32px;line-height:1.1;letter-spacing:-.02em;margin:18px 0 6px}
+.lead{color:var(--muted);margin:0 0 16px}
+.pill{font-size:12px;font-weight:600;background:var(--ground);border-radius:99px;padding:4px 11px;color:var(--green);vertical-align:middle}
+.tabs{position:relative;display:flex;background:var(--ground);border-radius:16px;padding:4px;margin:0 0 16px}
+.tabs .thumb{position:absolute;top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/3);background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.12);transition:transform .35s var(--ease)}
+.tabs button{position:relative;z-index:1;flex:1;border:0;background:transparent;font:600 15px Poppins,system-ui;padding:11px 4px;border-radius:12px;color:var(--muted);cursor:pointer;transition:color .25s ease}
+.tabs button.on{color:var(--ink)}
+.view{animation:vin .4s var(--ease)}
+@keyframes vin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.card{border:1px solid var(--line);border-radius:20px;padding:18px;margin:0 0 14px;background:#fff}
+.card.appear{animation:vin .45s var(--ease)}
+.card h2{font-size:17px;margin:0 0 12px;letter-spacing:-.01em}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid .full{grid-column:1/-1}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:0 0 4px 2px}
+input,select{width:100%;font:400 16px Poppins,system-ui;color:var(--ink);padding:11px 12px;border:1.5px solid var(--line);border-radius:12px;background:#fff;appearance:none;-webkit-appearance:none;transition:border-color .25s ease,background-color .25s ease}
+input:focus,select:focus{border-color:var(--green)}
+.btn{font:600 15px Poppins,system-ui;border:0;border-radius:14px;padding:13px 18px;background:var(--ink);color:#fff;cursor:pointer;text-decoration:none;display:inline-block;text-align:center;transition:transform .2s var(--ease),filter .25s ease,background-color .25s ease,opacity .25s ease}
+.btn:hover{filter:brightness(1.12)}.btn:active{transform:scale(.97)}
+.btn.alt{background:var(--ground);color:var(--ink)}.btn.alt:hover{filter:brightness(.96)}.btn.small{padding:9px 13px;font-size:13.5px;border-radius:12px}.btn.big{width:100%;padding:15px;font-size:17px}
+.btn.blue{background:var(--ink)}
+.btn:focus-visible,summary:focus-visible,.tabs button:focus-visible{text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.hint{font-size:13px;color:var(--muted);margin:6px 2px 0}
+.chip{font-size:12.5px;font-weight:600;border-radius:99px;padding:4px 11px;background:var(--ground);display:inline-block}
+.chip.ok{background:#dff3e6;color:#17663a}.chip.warn{background:#fdecc8;color:#8a5200}.chip.bad{background:#fbd9de;color:#9b1226}
+.fp{font-family:ui-monospace,Menlo,monospace;font-weight:700}
+details{border:1px solid var(--line);border-radius:16px;padding:4px 16px;margin:0 0 12px;transition:background-color .3s ease}
+details[open]{background:#fcfaf9}
+details[open]>*:not(summary){animation:vin .4s var(--ease)}
+summary{cursor:pointer;font-weight:600;padding:12px 0;font-size:15px;list-style:none;display:flex;justify-content:space-between;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary:after{content:"";width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .3s var(--ease);margin-right:4px}
+details[open] summary:after{transform:rotate(225deg)}
+details[open] summary{border-bottom:1px solid var(--line);margin-bottom:8px}
+details p,details li{color:var(--muted);font-size:14px}details ul{padding-left:20px}
+/* boarding pass */
+.pass{max-width:400px;margin:4px auto 14px;background:#fff;border-radius:26px;box-shadow:0 10px 30px rgba(27,27,27,.14),0 0 0 1px rgba(27,27,27,.06);position:relative;overflow:hidden;animation:vin .5s var(--ease)}
+.pass .bar{display:flex;height:6px}.pass .bar i{flex:1}
+.pass .top{padding:16px 22px 6px;display:flex;justify-content:space-between;align-items:center}
+.pass .al{font-weight:700;font-size:15px;letter-spacing:.02em}
+.pass .kind{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--muted)}
+.route{display:flex;align-items:center;justify-content:space-between;padding:6px 22px 2px}
+.route .ap b{display:block;font-size:44px;line-height:1;letter-spacing:-.02em;font-weight:700}
+.route .ap span{font-size:12px;color:var(--muted)}
+.route .ap:last-child{text-align:right}
+.route .mid{flex:1;margin:0 10px;display:flex;align-items:center;color:var(--muted)}
+.route .mid:before,.route .mid:after{content:"";flex:1;border-top:1.5px dashed #c9c1bc}
+.route .mid svg{margin:0 6px;width:22px;height:22px;fill:var(--ink)}
+.pfields{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 10px;padding:14px 22px 16px}
+.pf small{display:block;font-size:10.5px;font-weight:600;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+.pf b{display:block;font-size:19px;font-weight:700;line-height:1.2}
+.pf.w2{grid-column:span 2}.pf.hl b{font-size:26px}.pf.nm b{font-size:17px}
+.perf{position:relative;height:0;border-top:2px dashed #d9d2cd;margin:0 20px}
+.perf:before,.perf:after{content:"";position:absolute;top:-13px;width:24px;height:24px;border-radius:50%;background:#f4efec;box-shadow:inset 0 0 0 1px rgba(27,27,27,.06)}
+.perf:before{left:-32px}.perf:after{right:-32px}
+.stub{padding:16px 22px 18px;text-align:center;background:#fff}
+.stub canvas{width:100%;max-width:300px;height:auto;display:block;margin:0 auto 10px;image-rendering:pixelated;border-radius:6px}
+.stub .sg{font-size:12px;color:var(--muted)}
+.live{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 0 10px;text-align:left}
+.live .ring{width:34px;height:34px;flex:none}.live b{display:block;font-size:14px;line-height:1.2}.live .lt{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.pulse{display:inline-block;width:8px;height:8px;border-radius:50%;background:#2DB35A;margin-right:6px}
+.pass.dim{opacity:.55}
+.status{max-width:400px;margin:0 auto 10px;border-radius:14px;padding:9px 14px;display:flex;justify-content:space-between;align-items:center;font-size:13.5px;font-weight:600;background:#e9f6ee;color:#17663a;animation:vin .4s var(--ease)}
+.status.bad{background:#fde8eb;color:#9b1226}.status.warn{background:#fff4d9;color:#8a5200}
+.plist{max-width:400px;margin:0 auto 12px;display:flex;gap:8px;overflow-x:auto;padding:2px 0}
+.plist button{flex:none;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:8px 12px;font:600 13px Poppins,system-ui;cursor:pointer;transition:border-color .25s ease,background-color .25s ease}
+.plist button.on{border-color:var(--green);background:#f1f7f5}
+.empty{text-align:center;padding:30px 10px;color:var(--muted)}
+/* gate */
+.gatehead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.gcount{font-size:28px;font-weight:700;letter-spacing:-.02em}.gcount small{font-size:13px;color:var(--muted);font-weight:600}
+video{width:100%;border-radius:16px;background:#111;max-height:320px;object-fit:cover;margin-bottom:10px}
+.result{border-radius:24px;padding:22px 20px;margin:12px 0;text-align:center;color:#fff;animation:rin .45s var(--ease)}
+@keyframes rin{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+.result.ok{background:#1f9a4c}.result.bad{background:#d7263d}.result.warn{background:#d98a00}
+.result .big{font-size:64px;line-height:1}.result h3{margin:4px 0 2px;font-size:28px;letter-spacing:-.01em}
+.result p{margin:2px 0;opacity:.95}.result .who{font-size:22px;font-weight:700;margin-top:8px}
+.result .meta{display:flex;justify-content:center;gap:22px;margin-top:10px;font-size:15px}.result .meta b{display:block;font-size:26px}
+.scanlog{font-size:13px;color:var(--muted)}.scanlog div{padding:6px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:8px;animation:vin .35s var(--ease)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px}
+@media(max-width:480px){h1{font-size:27px}.card{padding:14px;border-radius:18px}.route .ap b{font-size:38px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+</style><link rel="stylesheet" href="site.css"><link rel="stylesheet" href="a11y.css"></head><body>
+<div class="sbstrip"><i style="background:#D7263D"></i><i style="background:#F77F00"></i><i style="background:#F5C518"></i><i style="background:#2DB35A"></i><i style="background:#00B8D9"></i><i style="background:#2E5BFF"></i><i style="background:#B5179E"></i></div>
+<div class="sitebar"><div class="sb-in"><a class="brand" href="index.html" aria-label="Prism Code home"><img class="full" src="brand/logo-horizontal.png" alt="Prism Code"><img class="ic" src="brand/icon-192.png" alt=""></a><div class="sl"><a href="index.html">Home</a><a href="use.html">Use</a><a href="prism.html">Advanced</a><a href="docs.html">Docs</a></div><a class="scanpill" href="fast-camera.html"><span class="l">Scan a code</span><span class="s">Scan</span></a></div></div>
+<div class="wrap">
+<h1>Boarding pass <span class="pill">Demo</span></h1>
+<p class="lead">A signed boarding pass as a Prism code. The airline issues it, the passenger keeps it offline with a code that refreshes, the gate checks it.</p>
+<div class="tabs" role="tablist"><i class="thumb" id="thumb"></i><button id="tAirline" class="on">Airline</button><button id="tPass">Passenger</button><button id="tGate">Gate</button></div>
+
+<section id="vAirline" class="view">
+<div class="card"><h2>Issue a boarding pass</h2>
+<div class="grid">
+<div><label for="fAl">Airline</label><input id="fAl" value="Prism Air"></div>
+<div><label for="fCode">Code (2 letters)</label><input id="fCode" value="PA" maxlength="2"></div>
+<div><label for="fNo">Flight number</label><input id="fNo" value="214" inputmode="numeric" maxlength="4"></div>
+<div><label for="fDate">Date</label><input id="fDate" type="date"></div>
+<div><label for="fFrom">From</label><select id="fFrom"></select></div>
+<div><label for="fTo">To</label><select id="fTo"></select></div>
+<div><label for="fDep">Departs</label><input id="fDep" type="time" value="09:40"></div>
+<div><label for="fBrd">Boarding</label><input id="fBrd" type="time" value="09:00"></div>
+<div><label for="fGate">Gate</label><input id="fGate" value="B12" maxlength="4"></div>
+<div><label for="fTerm">Terminal</label><input id="fTerm" value="3" maxlength="2"></div>
+<div><label for="fLast">Passenger last name</label><input id="fLast" value="Shor"></div>
+<div><label for="fFirst">First name</label><input id="fFirst" value="Avi"></div>
+<div><label for="fSeat">Seat</label><input id="fSeat" value="14A" maxlength="4"></div>
+<div><label for="fCls">Class</label><select id="fCls"><option value="Y">Economy</option><option value="W">Premium</option><option value="J">Business</option></select></div>
+<div><label for="fRef">Code refresh</label><select id="fRef"><option value="5">Every 5 s</option><option value="10">Every 10 s</option><option value="20" selected>Every 20 s</option><option value="30">Every 30 s</option><option value="60">Every 60 s</option></select></div>
+<div><label for="fSeq">Sequence</label><input id="fSeq" value="42" inputmode="numeric" maxlength="4"></div>
+<div><label for="fPnr">Booking ref</label><input id="fPnr" maxlength="6"></div>
+</div>
+<div class="row" style="margin-top:14px"><button class="btn big blue" id="issue">Issue signed pass</button></div>
+<div class="hint">Signed with the demo airline key. The key is built into this demo page, so anyone can sign with it. A real airline keeps its private key on its own server.</div>
+</div>
+<div class="card appear" id="issued" hidden><h2>Issued</h2><div id="issuedPass"></div>
+<div class="row" style="justify-content:center;margin-top:8px"><button class="btn" id="toPass">Open as passenger</button><button class="btn alt" id="dlCode">Download credential</button><button class="btn alt" id="cpLink">Copy pass link</button></div>
+<div class="row" style="justify-content:center;margin-top:8px"><button class="btn alt small" id="mkWrong">Also issue a pass for another flight</button><button class="btn alt small" id="mkForged">Make a forged copy</button><button class="btn alt small" id="mkStranger">Sign with an unknown key</button></div>
+<p class="hint" id="issuedInfo"></p></div>
+<details><summary>What is inside the code</summary><ul>
+<li>A standard IATA boarding pass text line (the same fields a PDF417 or QR boarding pass carries): passenger, booking ref, route, flight, day, seat, sequence.</li>
+<li>One extra line with gate, terminal, boarding and departure times, full date, refresh time and the pass's own public key.</li>
+<li>The airline signature and public key (129 bytes).</li>
+<li>On the passenger device: a time stamp signed with the pass key, renewed at the refresh time you choose. The gate rejects a code that is older than the refresh time plus 25 s.</li></ul><p id="payloadView" class="fp" style="font-size:12px;word-break:break-all;color:var(--muted)"></p></details>
+<details><summary>Real world notes</summary><ul>
+<li>Gate scanners and kiosks today read IATA BCBP in PDF417, QR and Aztec. They cannot read a Prism code. An airline could not drop Prism in without new readers or a phone based gate app.</li>
+<li>Here the airline signs the pass and the gate checks that signature without a network. That is stronger than plain BCBP, which has an optional security field that most airlines leave empty.</li>
+<li>This demo has no booking system, check-in, seat inventory, no-fly checks, revocation or live gate changes. Those are the real work.</li></ul></details>
+</section>
+
+<section id="vPass" class="view" hidden>
+<div id="plist" class="plist"></div>
+<div id="passHost"></div>
+<div id="pstatus"></div>
+<div class="row" style="justify-content:center;margin:6px 0 14px"><button class="btn alt small" id="pDemo">Load a demo pass</button><button class="btn alt small" id="pDel">Remove pass</button></div>
+<p class="hint" style="text-align:center">Saved on this device. After the first visit it works with no connection. Turn the screen brightness up at the gate.</p>
+</section>
+
+<section id="vGate" class="view" hidden>
+<div class="card"><div class="gatehead"><div><label style="margin:0">Boarding now</label><div style="font-size:22px;font-weight:700" id="gFlightTxt"></div><div class="hint" style="margin:0" id="gSub"></div></div><div class="gcount"><span id="gN">0</span> <small>boarded</small></div></div>
+<details style="margin:12px 0 0"><summary>Gate setup</summary><div class="grid">
+<div><label for="gCode">Airline code</label><input id="gCode" value="PA" maxlength="2"></div>
+<div><label for="gNo">Flight number</label><input id="gNo" value="214" maxlength="4"></div>
+<div class="full"><label for="gDate">Date</label><input id="gDate" type="date"></div></div>
+<p class="hint">Trusted airline keys (offline list on this device):</p><div id="trustList"></div>
+<div class="row" style="margin-top:8px"><button class="btn alt small" id="gReset">Clear boarded list</button></div></details></div>
+<div id="gResult"></div>
+<div class="card"><h2>Scan a boarding pass</h2>
+<video id="vid" playsinline muted hidden></video>
+<div class="row"><button class="btn" id="camBtn">Start camera</button><button class="btn alt" id="gImg">Open image</button><button class="btn alt" id="gLatest">Scan the pass on this device</button><button class="btn alt" id="gOld">Scan a screenshot from 2 min ago</button></div>
+<input type="file" id="gfile" accept="image/*" hidden>
+<p class="hint">The camera reader is the same Prism reader used on the Scan page. Camera mode is not yet tested on a real phone for this page. The screenshot button replays a code with the gate clock moved 2 minutes ahead.</p></div>
+<div class="card"><h2>Recent scans</h2><div class="scanlog" id="gLog"><div>No scans yet</div></div></div>
+</section>
+</div>
+<script>
+/* Trace captures the real decoder path only when requested. */
+globalThis.PrismTrace={active:false,events:[],images:[],start:0,last:0,counts:{},dropped:0,suppressed:{},
+begin(image,on){this.active=!!on;this.sampleImage=0;this.events=[];this.images=[];this.counts={};this.dropped=0;this.suppressed={};this.start=this.last=performance.now();if(on)this.image('Input pixels',image);},
+add(name,data={},view=null,state='info'){if(!this.active)return;let now=performance.now();this.counts[name]=(this.counts[name]||0)+1;if(/^(RS |ECC or CRC rejected)/.test(name)&&this.counts[name]>120){this.suppressed[name]=(this.suppressed[name]||0)+1;return;}if(this.events.length>=2400){this.dropped++;return;}this.events.push({name,state,at:now-this.start,elapsed:now-this.last,data:structuredClone(data),view:view?structuredClone(view):null});this.last=now;},
+image(name,im){if(!this.active)return null;let scale=Math.min(1,640/Math.max(im.width,im.height)),w=Math.max(1,Math.round(im.width*scale)),h=Math.max(1,Math.round(im.height*scale)),data=new Uint8ClampedArray(w*h*4);for(let y=0;y<h;y++)for(let x=0;x<w;x++){let a=(y*w+x)*4,b=(Math.min(im.height-1,Math.floor(y/scale))*im.width+Math.min(im.width-1,Math.floor(x/scale)))*4;data.set(im.data.subarray(b,b+4),a);}let id=this.images.length;this.images.push({name,width:w,height:h,sourceWidth:im.width,sourceHeight:im.height,data});this.add(name,{width:im.width,height:im.height},{image:id});this.currentImage=id;return id;},
+mask(name,mask,w,h,sourceW,sourceH){if(!this.active)return;let data=new Uint8ClampedArray(w*h*4);for(let i=0;i<mask.length;i++){let k=i*4;data[k]=data[k+1]=data[k+2]=mask[i]?235:20;data[k+3]=255;}let id=this.images.length;this.images.push({name,width:w,height:h,sourceWidth:sourceW,sourceHeight:sourceH,data});this.add(name,{width:w,height:h,meaning:'Bright pixels survive the actual saturation/darkness mask and morphology.'},{image:id});},
+finish(result,error){if(!this.active)return null;if(this.events.length>=2400){this.events.pop();this.dropped++;}this.add(error?'Scan rejected':'Payload CRC verified',error?{stage:error.stage||'other',message:error.message}:{header:result.header,bytes:result.bytes.length,correctedBytes:result.corrected,erasures:result.erasures,quality:result.quality,format:result.variant||'original',fallback:result.fallback||null},null,error?'fail':'pass');let out={events:this.events,images:this.images,counts:this.counts,suppressed:this.suppressed,dropped:this.dropped,totalMs:performance.now()-this.start,note:'Real stage and candidate trace. Timings include debug capture overhead; elapsed is time since the previous event, not an isolated profiler. Optimizer pixel evaluations are counted, not saved individually. Repeated ECC event families keep the first 120 events each; totals remain in evaluationCounts. At most 2,400 events and 1,800 sampled-cell dots per view are saved. Notch orientation is inferred by known-cell/header/CRC agreement, not an independent notch detector.'};this.active=false;return out;}};
+
+'use strict';
+/* Prism Code. Self-contained experimental optical format. */
+const Prism = (() => {
+const trace=(...a)=>globalThis.PrismTrace?.add(...a);
+const S3=Math.sqrt(3), Q=3*S3, SIZES=[[21,24],[29,33],[41,47],[57,66],[81,94],[113,130]], HEX=['#1B1B1B','#2E5BFF','#00B8D9','#2DB35A','#F5C518','#F77F00','#D7263D','#B5179E','#FFFFFF'];
+let decodeDeadline=Infinity;
+const CFG={detectionWidth:320,saturation:.25,darkness:.55,minScore:.5,refineStop:.03,meshRadius:.6,sigmaFloor:6,llrClamp:12,minRadius:4,glareThreshold:.90};
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const rng=seed=>()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};
+const median=a=>{a.sort((x,y)=>x-y);return a[a.length>>1]};
+const EXP=new Uint8Array(512), LOG=new Uint8Array(256);let z=1;for(let i=0;i<255;i++){EXP[i]=z;LOG[z]=i;z<<=1;if(z&256)z^=0x11d;}for(let i=255;i<512;i++)EXP[i]=EXP[i-255];
+const mul=(a,b)=>a&&b?EXP[LOG[a]+LOG[b]]:0, div=(a,b)=>{if(!b)throw Error('GF division by zero');return a?EXP[(LOG[a]+255-LOG[b])%255]:0;};
+const peval=(p,x)=>{let y=0;for(let i=p.length-1;i>=0;i--)y=mul(y,x)^p[i];return y;};
+const pmul=(a,b)=>{let o=new Uint8Array(a.length+b.length-1);for(let i=0;i<a.length;i++)for(let j=0;j<b.length;j++)o[i+j]^=mul(a[i],b[j]);return o;};
+const genCache=new Map();
+function rsEncode(m,nsym){let g=genCache.get(nsym);if(!g){g=new Uint8Array([1]);for(let i=0;i<nsym;i++)g=pmul(g,new Uint8Array([1,EXP[i]]));genCache.set(nsym,g);}let out=new Uint8Array(m.length+nsym);out.set(m);for(let i=0;i<m.length;i++){let c=out[i];if(c)for(let j=1;j<g.length;j++)out[i+j]^=mul(g[j],c);}out.set(m);return out;}
+function syndromes(r,n){let s=new Uint8Array(n);for(let j=0;j<n;j++){let y=0;for(let i=0;i<r.length;i++)y=mul(y,EXP[j])^r[i];s[j]=y;}return s;}
+function bm(s){let c=new Uint8Array(s.length+1), b=new Uint8Array(s.length+1);c[0]=b[0]=1;let L=0,m=1,bb=1;for(let n=0;n<s.length;n++){let d=s[n];for(let i=1;i<=L;i++)d^=mul(c[i],s[n-i]);if(!d){m++;continue;}let t=c.slice(),v=div(d,bb);for(let i=0;i+m<c.length;i++)c[i+m]^=mul(v,b[i]);if(2*L<=n){L=n+1-L;b=t;bb=d;m=1;}else m++;}return c.slice(0,L+1);}
+function rsDecode(input,nsym,erasures=[]){let r=Uint8Array.from(input),s=syndromes(r,nsym);if(s.every(x=>x===0))return {bytes:r,corrected:0};if(erasures.length>nsym)throw Error('Too many erasures');let G=new Uint8Array([1]),T=Array.from(s);for(let p of erasures){if(p<0||p>=r.length)throw Error('Erasure index');let X=EXP[r.length-1-p];G=pmul(G,new Uint8Array([1,X]));for(let j=0;j<T.length-1;j++)T[j]=mul(T[j],X)^T[j+1];T.pop();}let E=bm(T);if(2*(E.length-1)+erasures.length>nsym)throw Error('RS correction limit');let loc=pmul(G,E),pos=[];for(let p=0;p<r.length;p++){let e=r.length-1-p;if(peval(loc,EXP[(255-e)%255])===0)pos.push(p);}if(pos.length!==loc.length-1)throw Error('RS roots');let omega=pmul(s,loc).slice(0,nsym),der=new Uint8Array(Math.max(1,loc.length-1));for(let i=1;i<loc.length;i+=2)der[i-1]=loc[i];for(let p of pos){let e=r.length-1-p,X=EXP[e],xi=EXP[(255-e)%255];r[p]^=div(mul(X,peval(omega,xi)),peval(der,xi));}if(!syndromes(r,nsym).every(x=>x===0))throw Error('RS syndrome check');return {bytes:r,corrected:pos.length};}
+const crcTable=Uint32Array.from({length:256},(_,n)=>{for(let j=0;j<8;j++)n=n&1?0xEDB88320^(n>>>1):n>>>1;return n>>>0;});
+const crc32=bytes=>{let c=0xFFFFFFFF;for(let b of bytes)c=crcTable[(c^b)&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;};
+function crc4(bits){let r=0;for(let b of bits){let f=((r>>3)&1)^b;r=(r<<1)&15;if(f)r^=3;}return r;}
+const pushBits=(a,x,n)=>{for(let k=n-1;k>=0;k--)a.push((x>>>k)&1);};
+const cache=new Map();
+function layout(size){if(cache.has(size))return cache.get(size);if(!SIZES[size])throw Error('Unknown size');let [C,R]=SIZES[size],cells=[],M=[],known=[];for(let j=0;j<R;j++)for(let i=0;i<C;i++){let role='data',symbol=-1,pi=(i-2)/5,pj=(j-2)/5;if(j<=2&&i<=2){role='gap';symbol=8;}else if(j===0||j===R-1||i===0||i===C-1){role='ring';symbol=(j*5+i*3)%8;}else if(i%5===2&&j%5===2){role='pilot';symbol=(pi*2+pj*3)%9;}let c={i,j,x:S3*(i+.5+.5*(j&1)),y:1+1.5*j,role,symbol,pi,pj,index:cells.length};cells.push(c);if(role==='data')M.push(c);else if(role!=='gap')known.push(c);}let headers=[];for(let n=0;n<72;n++){let c=M[Math.floor((n+.5)*M.length/72)];c.role='header';c.header=n;headers.push(c);}let data=cells.filter(c=>c.role==='data'),rand=rng(0x5EED^size);for(let i=data.length-1;i>0;i--){let j=Math.floor(rand()*(i+1));[data[i],data[j]]=[data[j],data[i]];}let l={size,C,R,W:S3*(C+.5),H:2+1.5*(R-1),cells,headers,data,known};cache.set(size,l);return l;}
+function capacity(size,ecc=1,mode=0){let l=layout(size),n=Math.floor(l.data.length*(mode?1:3)/8),B=Math.ceil(n/255),blocks=[];for(let i=0;i<B;i++){let len=Math.floor(n/B)+(i<n%B?1:0),nsym=Math.max(4,2*Math.round(len*[.1,.2,.3,.4][ecc]/2));blocks.push({n:len,nsym,k:len-nsym});}return {n,blocks,k:blocks.reduce((v,b)=>v+b.k,0),payload:Math.max(0,blocks.reduce((v,b)=>v+b.k,0)-4)};}
+function headerBits(size,ecc,mode,type,L){let b=[];pushBits(b,size,3);pushBits(b,ecc,2);pushBits(b,mode,1);pushBits(b,type,1);pushBits(b,L,13);pushBits(b,crc4(b),4);return b;}
+function encode(bytes,{size=-1,ecc=1,mode=0,type=0}={}){bytes=Uint8Array.from(bytes);if(bytes.length>8191)throw Error('Payload exceeds 8191 bytes');if(size<0){size=SIZES.findIndex((_,i)=>capacity(i,ecc,mode).k>=bytes.length+4);if(size<0)throw Error('Payload too large for this mode and ECC');}let cap=capacity(size,ecc,mode);if(cap.k<bytes.length+4)throw Error('Payload does not fit: maximum '+cap.payload+' bytes');let msg=new Uint8Array(cap.k);msg.set(bytes);let crc=crc32(bytes);for(let k=0;k<4;k++)msg[bytes.length+k]=(crc>>>(24-8*k))&255;let off=0,blocks=cap.blocks.map(b=>{let r=rsEncode(msg.slice(off,off+b.k),b.nsym);off+=b.k;return r;}),stream=[];for(let p=0;p<Math.max(...blocks.map(x=>x.length));p++)for(let b of blocks)if(p<b.length)pushBits(stream,b[p],8);let rand=rng(0xBEEF),l=layout(size),symbols=new Uint8Array(l.cells.length);symbols.fill(8);for(let c of l.known)symbols[c.index]=knownSymbol(c,mode);let hb=headerBits(size,ecc,mode,type,bytes.length);for(let c of l.headers)symbols[c.index]=hb[c.header%24]?0:8;for(let c of l.cells)if(c.role==='gap')symbols[c.index]=mode?((c.i+c.j)%2?0:8):(c.j*5+c.i*3)%8;let at=0;for(let c of l.data){if(mode)symbols[c.index]=(stream[at++]??(rand()>.5?1:0))?0:8;else{let b=0;for(let k=0;k<3;k++)b=(b<<1)|(stream[at++]??(rand()>.5?1:0));let v=b;v^=v>>1;v^=v>>2;symbols[c.index]=v;}}return {size,ecc,mode,type,bytes,symbols,layout:l,capacity:cap};}
+function knownSymbol(c,mode){return mode?(c.role==='ring'?0:(c.pi+c.pj)%2===0?0:8):c.symbol;}
+function render(code,r=12,canvas){canvas=canvas||document.createElement('canvas');let l=code.layout;canvas.width=Math.ceil((l.W+2*Q)*r);canvas.height=Math.ceil((l.H+2*Q)*r);let ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);for(let c of l.cells){let s=code.symbols[c.index];if(s===8)continue;ctx.fillStyle=HEX[s];ctx.beginPath();for(let k=0;k<6;k++){let a=(30+60*k)*Math.PI/180,x=(c.x+Q+1.03*Math.cos(a))*r,y=(c.y+Q+1.03*Math.sin(a))*r;k?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.closePath();ctx.fill();}return canvas;}
+const lin=x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4, srgb=x=>x<=.0031308?12.92*x:1.055*x**(1/2.4)-.055;
+const LUT=Float32Array.from({length:256},(_,i)=>lin(i/255));
+function lab(c){let x=(.4124564*c[0]+.3575761*c[1]+.1804375*c[2])/.95047,y=.2126729*c[0]+.7151522*c[1]+.072175*c[2],z=(.0193339*c[0]+.119192*c[1]+.9503041*c[2])/1.08883;let f=v=>v>.008856?Math.cbrt(v):7.787*v+16/116;let a=f(x),b=f(y),d=f(z);return [116*b-16,500*(a-b),200*(b-d)];}
+const PAL=HEX.map(h=>[1,3,5].map(i=>lin(parseInt(h.slice(i,i+2),16)/255))), LAB=PAL.map(lab);
+const dist=(a,b)=>(a[0]-b[0])**2+(a[1]-b[1])**2+(a[2]-b[2])**2;
+function solve(a,b){let n=b.length,m=a.map((r,i)=>[...r,b[i]]);for(let j=0;j<n;j++){let p=j;for(let k=j+1;k<n;k++)if(Math.abs(m[k][j])>Math.abs(m[p][j]))p=k;if(Math.abs(m[p][j])<1e-10)throw Error('Singular geometry');[m[j],m[p]]=[m[p],m[j]];let v=m[j][j];for(let k=j;k<=n;k++)m[j][k]/=v;for(let i=0;i<n;i++)if(i!==j){v=m[i][j];for(let k=j;k<=n;k++)m[i][k]-=v*m[j][k];}}return m.map(r=>r[n]);}
+function homography(src,dst){let a=[],b=[];for(let i=0;i<4;i++){let [x,y]=src[i],[u,v]=dst[i];a.push([x,y,1,0,0,0,-u*x,-u*y],[0,0,0,x,y,1,-v*x,-v*y]);b.push(u,v);}return solve(a,b);}
+const map=(h,x,y)=>{if(h.warp){let {W,H,p}=h.warp,u=2*x/W-1,v=2*y/H-1; x+=(1-u*u)*(p[0]+p[1]*v)+p[2]*(1-v*v)+(p[6]||0)*u*(1-u*u)+(p[8]||0)*u*(1-v*v);y+=(1-v*v)*(p[3]+p[4]*u)+p[5]*(1-u*u)+(p[7]||0)*v*(1-u*u)+(p[9]||0)*v*(1-v*v);}let d=h[6]*x+h[7]*y+1;return [(h[0]*x+h[1]*y+h[2])/d,(h[3]*x+h[4]*y+h[5])/d];};
+const corners=l=>[[0,0],[l.W,0],[l.W,l.H],[0,l.H]];
+function frame(image){let {width:w,height:h,data}=image,p=new Float32Array(w*h*3);for(let i=0,j=0;i<data.length;i+=4){p[j++]=LUT[data[i]];p[j++]=LUT[data[i+1]];p[j++]=LUT[data[i+2]];}return {w,h,p,image};}
+function pixel(f,x,y){if(x<0||y<0||x>=f.w-1||y>=f.h-1)return [1,1,1];let i=Math.floor(x),j=Math.floor(y),a=x-i,b=y-j,k=(j*f.w+i)*3,o=[];for(let c=0;c<3;c++)o[c]=(f.p[k+c]*(1-a)+f.p[k+3+c]*a)*(1-b)+(f.p[k+f.w*3+c]*(1-a)+f.p[k+f.w*3+3+c]*a)*b;return o;}
+const OFF=[[0,0],...Array.from({length:6},(_,k)=>[.45*Math.cos(k*Math.PI/3),.45*Math.sin(k*Math.PI/3)])];
+function meshAt(mesh,x,y){if(!mesh||!mesh.length)return [0,0];let list=[];for(let m of mesh){let d=(m.x-x)**2+(m.y-y)**2;if(list.length<4||d<list[3].d){list.push({d,m});list.sort((a,b)=>a.d-b.d);list.length=Math.min(list.length,4);}}let sx=0,sy=0,sw=0;for(let a of list){let w=1/(a.d+.05);sx+=a.m.dx*w;sy+=a.m.dy*w;sw+=w;}return [sx/sw,sy/sw];}
+function sample(f,h,c,white=[1,1,1],mesh=null,fast=false){let of=meshAt(mesh,c.x,c.y),a=[[],[],[]];for(let o of (fast?OFF.slice(0,1):OFF)){let q=map(h,c.x+o[0],c.y+o[1]),v=pixel(f,q[0]+of[0],q[1]+of[1]);for(let k=0;k<3;k++)a[k].push(v[k]/white[k]);}return a.map(median);}
+function whiteBalance(f,h,l){let a=[[],[],[]];for(let t=0;t<24;t++){let u=(t+.5)/24;for(let [x,y] of [[u*l.W,-2.5],[u*l.W,l.H+2.5],[-2.5,u*l.H],[l.W+2.5,u*l.H]]){let q=map(h,x,y);if(q[0]<0||q[1]<0||q[0]>=f.w-1||q[1]>=f.h-1)continue;let v=pixel(f,...q);for(let k=0;k<3;k++)a[k].push(v[k]);}}return a.map(x=>Math.max(.08,x.length?median(x):1));}
+function nearest(c,mode=0){let v=lab(c),best=-1,d=Infinity;for(let i=0;i<9;i++){if(mode&&i!==0&&i!==8)continue;let q=dist(v,LAB[i]);if(q<d){d=q;best=i;}}return {symbol:best,d:Math.sqrt(d)};}
+function hypothesisScore(f,h,l,mode,white,fast=true){if(globalThis.PrismTrace?.active)globalThis.PrismTrace.counts.hypothesisScoreEvaluations=(globalThis.PrismTrace.counts.hypothesisScoreEvaluations||0)+1;let cost=0,n=0,match=0,stride=Math.max(1,Math.floor(l.known.length/120));for(let z=0;z<l.known.length;z+=stride){let c=l.known[z];if(mode&&c.role==='ring')continue;let v=sample(f,h,c,white,null,fast),expect=knownSymbol(c,mode),near=nearest(v,mode),d=Math.sqrt(dist(lab(v),LAB[expect]));cost+=Math.min(d/30,1);match+=near.symbol===expect?1:0;n++;}return {cost:cost/n,score:match/n};}
+function refine(f,h,l,mode,quad,white){let q=quad.map(p=>p.slice()),radius=Math.hypot(q[1][0]-q[0][0],q[1][1]-q[0][1])/l.W,step=radius*.5,best=hypothesisScore(f,h,l,mode,white,false).cost;for(;step>radius*CFG.refineStop;step*=.5){for(let pass=0;pass<2;pass++){let changed=false;for(let i=0;i<4;i++)for(let j=0;j<2;j++){let v=q[i][j],win=v;for(let s of [-1,1]){q[i][j]=v+s*step;let hh=homography(corners(l),q),cost=hypothesisScore(f,hh,l,mode,white,false).cost;if(cost<best){best=cost;win=q[i][j];h=hh;changed=true;}}q[i][j]=win;}if(!changed)break;}}return {h,quad:q,cost:best};}
+const cross=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
+function hull(points){points.sort((a,b)=>a[0]-b[0]||a[1]-b[1]);let a=[],b=[];for(let p of points){while(a.length>1&&cross(a[a.length-2],a[a.length-1],p)<=0)a.pop();a.push(p);}for(let i=points.length-1;i>=0;i--){let p=points[i];while(b.length>1&&cross(b[b.length-2],b[b.length-1],p)<=0)b.pop();b.push(p);}a.pop();b.pop();return a.concat(b);}
+const area=q=>Math.abs(q.reduce((s,p,i)=>s+p[0]*q[(i+1)%q.length][1]-p[1]*q[(i+1)%q.length][0],0))/2;
+function morph(a,w,h,r,max){let tmp=new Uint8Array(a.length),out=new Uint8Array(a.length);for(let y=0;y<h;y++)for(let x=0;x<w;x++){let v=max?0:1;for(let d=-r;d<=r;d++){let xx=clamp(x+d,0,w-1);if(max)v|=a[y*w+xx];else v&=a[y*w+xx];}tmp[y*w+x]=v;}for(let y=0;y<h;y++)for(let x=0;x<w;x++){let v=max?0:1;for(let d=-r;d<=r;d++){let yy=clamp(y+d,0,h-1);if(max)v|=tmp[yy*w+x];else v&=tmp[yy*w+x];}out[y*w+x]=v;}return out;}
+function smoothFilter(a,w,h,r,isMax){let tmp=new Float32Array(a.length),out=new Float32Array(a.length);for(let y=0;y<h;y++){let dq=[],head=0,sum=0;for(let x=-r;x<w+r;x++){let v=a[y*w+clamp(x,0,w-1)];if(isMax){while(dq.length>head&&dq[dq.length-1].v<=v)dq.pop();dq.push({x,v});while(dq[head].x<x-2*r)head++;}else{sum+=v;if(x>r)sum-=a[y*w+clamp(x-2*r-1,0,w-1)];}if(x>=r)tmp[y*w+x-r]=isMax?dq[head].v:sum/(2*r+1);}}for(let x=0;x<w;x++){let dq=[],head=0,sum=0;for(let y=-r;y<h+r;y++){let v=tmp[clamp(y,0,h-1)*w+x];if(isMax){while(dq.length>head&&dq[dq.length-1].v<=v)dq.pop();dq.push({y,v});while(dq[head].y<y-2*r)head++;}else{sum+=v;if(y>r)sum-=tmp[clamp(y-2*r-1,0,h-1)*w+x];}if(y>=r)out[(y-r)*w+x]=isMax?dq[head].v:sum/(2*r+1);}}return out;}
+function fitLine(points){let x=0,y=0;for(let p of points){x+=p[0];y+=p[1];}x/=points.length;y/=points.length;let xx=0,xy=0,yy=0;for(let p of points){let a=p[0]-x,b=p[1]-y;xx+=a*a;xy+=a*b;yy+=b*b;}let t=.5*Math.atan2(2*xy,xx-yy),nx=-Math.sin(t),ny=Math.cos(t);return [nx,ny,nx*x+ny*y];}
+const intersect=(a,b)=>{let d=a[0]*b[1]-a[1]*b[0];if(Math.abs(d)<1e-6)throw Error('Parallel edges');return [(a[2]*b[1]-a[1]*b[2])/d,(a[0]*b[2]-a[2]*b[0])/d];};
+function detect(f){let scale=Math.min(1,CFG.detectionWidth/Math.max(f.w,f.h)),w=Math.round(f.w*scale),h=Math.round(f.h*scale),V=new Float32Array(w*h),sat=new Float32Array(w*h);for(let y=0;y<h;y++)for(let x=0;x<w;x++){let p=pixel(f,x/scale,y/scale).map(srgb),mx=Math.max(...p),mn=Math.min(...p);V[y*w+x]=mx;sat[y*w+x]=mx?(mx-mn)/mx:0;}let paper=smoothFilter(smoothFilter(V,w,h,7,true),w,h,15,false),mask=new Uint8Array(w*h);for(let k=0;k<mask.length;k++)mask[k]=sat[k]>CFG.saturation&&V[k]>.15||V[k]<CFG.darkness*Math.max(paper[k],.4)?1:0;mask=morph(morph(mask,w,h,2,true),w,h,2,false);globalThis.PrismTrace?.mask('Boundary segmentation mask',mask,w,h,f.w,f.h);let seen=new Uint8Array(mask.length),queue=new Int32Array(mask.length),candidates=[];for(let k=0;k<mask.length;k++){if(!mask[k]||seen[k])continue;let head=0,tail=1,boundary=[];queue[0]=k;seen[k]=1;while(head<tail){let p=queue[head++],x=p%w,y=Math.floor(p/w),edge=false;for(let q of [x>0?p-1:-1,x<w-1?p+1:-1,y>0?p-w:-1,y<h-1?p+w:-1]){if(q<0||!mask[q]){edge=true;continue;}if(!seen[q]){seen[q]=1;queue[tail++]=q;}}if(edge)boundary.push([x,y]);}if(tail<100)continue;let hu=hull(boundary),ar=area(hu),xs=hu.map(p=>p[0]),ys=hu.map(p=>p[1]),aspect=(Math.max(...xs)-Math.min(...xs))/(Math.max(...ys)-Math.min(...ys));if(tail/ar<.04||aspect<.4||aspect>2.5)continue;candidates.push({hu,tail,boundary,ar});}candidates.sort((a,b)=>b.ar-a.ar);if(!candidates.length)throw stageError('detect','No code found. Use a plain background with a wide white margin.');let out=[];for(let cc of candidates.slice(0,3)){let poly=cc.hu.map(p=>p.slice());let per=poly.reduce((s,p,i)=>s+Math.hypot(p[0]-poly[(i+1)%poly.length][0],p[1]-poly[(i+1)%poly.length][1]),0);while(poly.length>4){let min=Infinity,at=0;for(let i=0;i<poly.length;i++){let a=poly[(i+poly.length-1)%poly.length],b=poly[(i+1)%poly.length],v=Math.abs(cross(a,poly[i],b))/Math.hypot(b[0]-a[0],b[1]-a[1]);if(v<min){min=v;at=i;}}if(min>.7)break;poly.splice(at,1);}let edges=poly.map((a,i)=>({a,b:poly[(i+1)%poly.length],i,len:Math.hypot(a[0]-poly[(i+1)%poly.length][0],a[1]-poly[(i+1)%poly.length][1])})).sort((a,b)=>b.len-a.len).slice(0,4).sort((a,b)=>a.i-b.i);let lines=[];for(let i=0;i<4;i++){let a=edges[i].a,b=edges[i].b,dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy),points=cc.boundary.filter(p=>Math.abs(cross(a,b,p))/len<2);lines.push(points.length>=2?fitLine(points):fitLine([a,b]));}try{let quad=lines.map((l,i)=>intersect(lines[(i+3)%4],l)).map(p=>p.map(v=>(v+.5)/scale));out.push(quad);}catch(e){}}if(!out.length)throw stageError('detect','Could not fit four edges');trace('Legacy boundary candidates',{count:out.length}, {quads:out,image:globalThis.PrismTrace?.currentImage||0});return out;}
+function detectCurved(f){let scale=Math.min(1,CFG.detectionWidth/Math.max(f.w,f.h)),w=Math.round(f.w*scale),h=Math.round(f.h*scale),V=new Float32Array(w*h),sat=new Float32Array(w*h);for(let y=0;y<h;y++)for(let x=0;x<w;x++){let p=pixel(f,x/scale,y/scale).map(srgb),mx=Math.max(...p),mn=Math.min(...p);V[y*w+x]=mx;sat[y*w+x]=mx?(mx-mn)/mx:0;}let paper=smoothFilter(smoothFilter(V,w,h,7,true),w,h,15,false),mask=new Uint8Array(w*h);for(let k=0;k<mask.length;k++)mask[k]=sat[k]>CFG.saturation&&V[k]>.15||V[k]<CFG.darkness*Math.max(paper[k],.4)?1:0;mask=morph(morph(mask,w,h,2,true),w,h,2,false);globalThis.PrismTrace?.mask('Boundary segmentation mask',mask,w,h,f.w,f.h);let seen=new Uint8Array(mask.length),queue=new Int32Array(mask.length),candidates=[];for(let k=0;k<mask.length;k++){if(!mask[k]||seen[k])continue;let head=0,tail=1,boundary=[];queue[0]=k;seen[k]=1;while(head<tail){let p=queue[head++],x=p%w,y=Math.floor(p/w),edge=false;for(let q of [x>0?p-1:-1,x<w-1?p+1:-1,y>0?p-w:-1,y<h-1?p+w:-1]){if(q<0||!mask[q]){edge=true;continue;}if(!seen[q]){seen[q]=1;queue[tail++]=q;}}if(edge)boundary.push([x,y]);}if(tail<100)continue;let hu=hull(boundary),ar=area(hu),xs=hu.map(p=>p[0]),ys=hu.map(p=>p[1]),aspect=(Math.max(...xs)-Math.min(...xs))/(Math.max(...ys)-Math.min(...ys));if(tail/ar<.04||aspect<.4||aspect>2.5)continue;candidates.push({hu,tail,boundary,ar});}candidates.sort((a,b)=>b.ar-a.ar);if(!candidates.length)throw stageError('detect','No code found. Use a plain background with a wide white margin.');let out=[];for(let cc of candidates.slice(0,3)){let rect=null,rectArea=Infinity;for(let ii=0;ii<cc.hu.length;ii++){let a=cc.hu[ii],b=cc.hu[(ii+1)%cc.hu.length],dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy);dx/=len;dy/=len;let ux=cc.hu.map(p=>p[0]*dx+p[1]*dy),vy=cc.hu.map(p=>-p[0]*dy+p[1]*dx),lo=Math.min(...ux),hi=Math.max(...ux),bot=Math.min(...vy),top=Math.max(...vy),ar=(hi-lo)*(top-bot);if(ar<rectArea){rectArea=ar;rect=[[lo,bot],[hi,bot],[hi,top],[lo,top]].map(([u,v])=>[(u*dx-v*dy+.5)/scale,(u*dy+v*dx+.5)/scale]);}}if(rect)out.push(rect);let coarse=cc.hu.map(p=>p.slice());while(coarse.length>4){let min=Infinity,at=0;for(let i=0;i<coarse.length;i++){let a=coarse[(i+coarse.length-1)%coarse.length],b=coarse[(i+1)%coarse.length],v=Math.abs(cross(a,coarse[i],b))/Math.max(.1,Math.hypot(b[0]-a[0],b[1]-a[1]));if(v<min){min=v;at=i;}}coarse.splice(at,1);}if(coarse.length===4){out.push(coarse.map(p=>p.map(v=>(v+.5)/scale)));let lines=[];for(let i=0;i<4;i++){let a=coarse[i],b=coarse[(i+1)%4],start=cc.hu.findIndex(p=>p[0]===a[0]&&p[1]===a[1]),end=cc.hu.findIndex(p=>p[0]===b[0]&&p[1]===b[1]),edge=null,maxLen=0;for(let j=start;j!==end;j=(j+1)%cc.hu.length){let c=cc.hu[j],d=cc.hu[(j+1)%cc.hu.length],len=Math.hypot(c[0]-d[0],c[1]-d[1]);if(len>maxLen){maxLen=len;edge=[c,d];}}let [c,d]=edge||[a,b],points=cc.boundary.filter(p=>Math.abs(cross(c,d,p))/Math.max(1,maxLen)<2);lines.push(fitLine(points.length>2?points:[c,d]));}try{let q=lines.map((l,i)=>intersect(lines[(i+3)%4],l));if(area(q)>cc.ar*.6&&area(q)<cc.ar*1.5)out.push(q.map(p=>p.map(v=>(v+.5)/scale)));}catch(e){}}let poly=cc.hu.map(p=>p.slice());let per=poly.reduce((s,p,i)=>s+Math.hypot(p[0]-poly[(i+1)%poly.length][0],p[1]-poly[(i+1)%poly.length][1]),0);while(poly.length>4){let min=Infinity,at=0;for(let i=0;i<poly.length;i++){let a=poly[(i+poly.length-1)%poly.length],b=poly[(i+1)%poly.length],v=Math.abs(cross(a,poly[i],b))/Math.hypot(b[0]-a[0],b[1]-a[1]);if(v<min){min=v;at=i;}}if(min>.7)break;poly.splice(at,1);}let edges=poly.map((a,i)=>({a,b:poly[(i+1)%poly.length],i,len:Math.hypot(a[0]-poly[(i+1)%poly.length][0],a[1]-poly[(i+1)%poly.length][1])})).sort((a,b)=>b.len-a.len).slice(0,4).sort((a,b)=>a.i-b.i);let lines=[];for(let i=0;i<4;i++){let a=edges[i].a,b=edges[i].b,dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy),points=cc.boundary.filter(p=>Math.abs(cross(a,b,p))/len<2);lines.push(points.length>=2?fitLine(points):fitLine([a,b]));}try{let quad=lines.map((l,i)=>intersect(lines[(i+3)%4],l)).map(p=>p.map(v=>(v+.5)/scale));out.push(quad);}catch(e){}}if(!out.length)throw stageError('detect','Could not fit four edges');trace('Curved boundary candidates',{count:out.length},{quads:out,image:globalThis.PrismTrace?.currentImage||0});return out;}
+function stageError(stage,msg){let e=Error(msg);e.stage=stage;return e;}
+function calibrate(f,h,l,mode,white,mesh){let refs=l.known.map(c=>({c,o:sample(f,h,c,white,mesh),E:PAL[knownSymbol(c,mode)]})).filter(v=>knownSymbol(v.c,mode)===8||!v.o.every(x=>x>CFG.glareThreshold)),A=Array.from({length:4},()=>[0,0,0,0]),b=Array.from({length:3},()=>[0,0,0,0]);for(let v of refs){let o=[...v.o,1];for(let i=0;i<4;i++){for(let j=0;j<4;j++)A[i][j]+=o[i]*o[j];for(let k=0;k<3;k++)b[k][i]+=o[i]*v.E[k];}}for(let i=0;i<4;i++)A[i][i]+=.001;let M=b.map(v=>solve(A,v));const apply=o=>M.map(row=>row[0]*o[0]+row[1]*o[1]+row[2]*o[2]+row[3]);for(let v of refs){let a=apply(v.o);v.res=v.E.map((x,k)=>x-a[k]);}function correction(o,c){let a=apply(o),near=[];for(let v of refs){let d=(v.c.x-c.x)**2+(v.c.y-c.y)**2;if(near.length<6||d<near[5].d){near.push({d,v});near.sort((a,b)=>a.d-b.d);near.length=Math.min(6,near.length);}}let sw=0,res=[0,0,0];for(let {d,v} of near){let w=1/(d+.05);sw+=w;for(let k=0;k<3;k++)res[k]+=w*v.res[k];}return a.map((x,k)=>clamp(x+res[k]/sw));}let errors=refs.filter(v=>v.c.role==='pilot').map(v=>Math.sqrt(dist(lab(correction(v.o,v.c)),lab(v.E))))||[6];return {correction,sigma:Math.max(CFG.sigmaFloor,1.4*median(errors.length?errors:[6])),refs,M};}
+function buildMesh(f,h,l,mode,white,previous){let pilots=l.known.filter(c=>c.role==='pilot'),scale=Math.hypot(...mapDelta(h,l.W/2,l.H/2,1,0)),offsets=[];for(let c of pilots){let base=map(h,c.x,c.y),prior=meshAt(previous,c.x,c.y),best=Infinity,win=null,expect=knownSymbol(c,mode);for(let iy=-2;iy<=2;iy++)for(let ix=-2;ix<=2;ix++){let dx=prior[0]+ix*.3*scale,dy=prior[1]+iy*.3*scale;let v=pixel(f,base[0]+dx,base[1]+dy).map((v,k)=>v/white[k]),d=dist(lab(v),LAB[expect]);let reg=.2*(dx*dx+dy*dy)/(scale*scale);if(d+reg<best){best=d+reg;win={x:c.x,y:c.y,dx,dy};}}offsets.push(win);}return offsets.filter(m=>{let near=offsets.filter(n=>n!==m).map(n=>({n,d:(n.x-m.x)**2+(n.y-m.y)**2})).sort((a,b)=>a.d-b.d).slice(0,8);if(!near.length)return true;let dx=median(near.map(n=>n.n.dx)),dy=median(near.map(n=>n.n.dy));return Math.hypot(m.dx-dx,m.dy-dy)<=.3*scale;});}
+function buildDenseMesh(f,h,l,mode,white,previous){let pilots=l.known,scale=Math.hypot(...mapDelta(h,l.W/2,l.H/2,1,0)),offsets=[];for(let c of pilots){let base=map(h,c.x,c.y),prior=meshAt(previous,c.x,c.y),best=Infinity,win=null,expect=knownSymbol(c,mode);for(let iy=-2;iy<=2;iy++)for(let ix=-2;ix<=2;ix++){let dx=prior[0]+ix*.3*scale,dy=prior[1]+iy*.3*scale;let v=pixel(f,base[0]+dx,base[1]+dy).map((v,k)=>v/white[k]),d=dist(lab(v),LAB[expect]);let reg=.2*(dx*dx+dy*dy)/(scale*scale);if(d+reg<best){best=d+reg;win={x:c.x,y:c.y,dx,dy};}}offsets.push(win);}return offsets.filter(m=>{let near=offsets.filter(n=>n!==m).map(n=>({n,d:(n.x-m.x)**2+(n.y-m.y)**2})).sort((a,b)=>a.d-b.d).slice(0,8);if(!near.length)return true;let dx=median(near.map(n=>n.n.dx)),dy=median(near.map(n=>n.n.dy));return Math.hypot(m.dx-dx,m.dy-dy)<=.8*scale;});}
+function mapDelta(h,x,y,dx,dy){let a=map(h,x,y),b=map(h,x+dx,y+dy);return [b[0]-a[0],b[1]-a[1]];}
+function llr(c,mode,sigma,glare=false){if(glare)return mode?[0]:[0,0,0];let v=lab(c),classes=mode?[0,8]:[0,1,2,3,4,5,6,7],logp=classes.map(k=>-dist(v,LAB[k])/(2*sigma*sigma)),max=Math.max(...logp),p=logp.map(x=>Math.exp(x-max)),out=[];for(let b=0;b<(mode?1:3);b++){let a=1e-6,z=1e-6;for(let i=0;i<classes.length;i++){let sym=classes[i],bit=mode?(sym===0?1:0):((sym^(sym>>1))>>(2-b))&1;if(bit)a+=p[i];else z+=p[i];}out.push(clamp(Math.log(z/a),-CFG.llrClamp,CFG.llrClamp));}return out;}
+function parseHeader(hb){let bits=Array.from(hb,x=>x<0?1:0),at=0;const read=n=>{let v=0;while(n--)v=(v<<1)|bits[at++];return v;};let size=read(3),ecc=read(2),mode=read(1),type=read(1),length=read(13),crc=read(4);if(crc4(bits.slice(0,20))!==crc||size>5)throw stageError('header','Header checksum did not pass');if(length>capacity(size,ecc,mode).payload)throw stageError('header','Invalid length');return {size,ecc,mode,type,length};}
+function headerCandidates(hb,size,mode){let soft=Float32Array.from(hb);for(let k=0;k<3;k++)soft[k]=((size>>(2-k))&1)?-36:36;soft[5]=mode?-36:36;let uncertain=Array.from({length:24},(_,i)=>i).filter(i=>![0,1,2,5].includes(i)).sort((i,j)=>Math.abs(hb[i])-Math.abs(hb[j])).slice(0,12),out=[];function test(flips){let b=Float32Array.from(soft),cost=0;for(let i of flips){b[i]=-b[i];cost+=Math.abs(hb[i]);}try{let h=parseHeader(b);if(h.size===size&&h.mode===mode)out.push({h,cost});}catch(e){}}test([]);for(let i=0;i<uncertain.length;i++){test([uncertain[i]]);for(let j=i+1;j<uncertain.length;j++){test([uncertain[i],uncertain[j]]);for(let k=j+1;k<uncertain.length;k++)test([uncertain[i],uncertain[j],uncertain[k]]);}}out.sort((a,b)=>a.cost-b.cost);let seen=new Set();return out.filter(o=>{let key=JSON.stringify(o.h);if(seen.has(key))return false;seen.add(key);return true;}).slice(0,12).map(o=>o.h);}
+function decodeClass(cls){let last;for(let header of cls.headers||[cls.header]){if(performance.now()>decodeDeadline)throw stageError('budget','Image needs a clearer view. Processing limit reached.');for(let variant of [0,1]){let stream=cls.stream;if(variant){let random=rng(0xC0DE);stream=Float32Array.from(cls.stream,v=>random()<.5?-v:v);}try{let decoded=decodeStream(header,stream);trace('ECC and payload CRC passed',{header,variant:variant?'generator-whitened':'original',corrected:decoded.corrected,erasures:decoded.erasures},null,'pass');return {...decoded,variant:variant?'generator-whitened':'original'};}catch(e){trace('ECC or CRC rejected',{header,variant:variant?'generator-whitened':'original',stage:e.stage,message:e.message},null,'fail');last=e;}}}throw last||stageError('header','Header checksum did not pass');}
+function classify(f,h,l,mode,white,mesh){let cal=calibrate(f,h,l,mode,white,mesh),hb=new Float32Array(24);for(let c of l.headers){let v=sample(f,h,c,white,mesh),corrected=cal.correction(v,c),glare=v.every(x=>x>CFG.glareThreshold);/* Paper is a valid header value; never erase it merely for being white. */hb[c.header%24]+=llr(corrected,1,cal.sigma,false)[0];}let headers=headerCandidates(hb,l.size,mode).filter(header=>{if(header.length!==0)return true;try{let direct=parseHeader(hb);return JSON.stringify(direct)===JSON.stringify(header);}catch(e){return false;}}),header=headers[0];trace('Header candidates',{size:l.size,mode,candidates:headers,softBits:Array.from(hb)},null,header?'pass':'fail');if(!header)throw stageError('header','Header checksum did not pass');if(header.size!==l.size||header.mode!==mode)throw stageError('header','Header conflicts with geometry');let stream=new Float32Array(l.data.length*(mode?1:3)),points=[],at=0;for(let c of l.data){let v=sample(f,h,c,white,mesh),cv=cal.correction(v,c),glare=!mode&&v.every(x=>x>CFG.glareThreshold),soft=llr(cv,mode,cal.sigma,glare);for(let q of soft)stream[at++]=q;points.push({x:c.x,y:c.y,confidence:Math.min(...soft.map(Math.abs))/12});}let matched=0;for(let v of cal.refs)if(nearest(cal.correction(v.o,v.c),mode).symbol===knownSymbol(v.c,mode))matched++;if(globalThis.PrismTrace?.active){let shown=l.cells.filter((_,i)=>i%Math.max(1,Math.ceil(l.cells.length/1800))===0).map(c=>{let v=sample(f,h,c,white,mesh),rgb=cal.correction(v,c).map(x=>Math.round(255*clamp(srgb(x)))),pt=map(h,c.x,c.y),of=meshAt(mesh,c.x,c.y);return {x:pt[0]+of[0],y:pt[1]+of[1],rgb,rawRgb:v.map(x=>Math.round(255*clamp(srgb(x)))),role:c.role,expected:c.role==='pilot'||c.role==='ring'?knownSymbol(c,mode):null};});trace('Sampled cells and color calibration',{size:l.size,mode,sigma:cal.sigma,whiteBalance:white,knownMatch:matched/cal.refs.length,meshPoints:mesh?.length||0,totalCells:l.cells.length,shownCells:shown.length,legend:'Dots show calibrated sampled RGB. White outlines mark existing ring/pilot cells. Tap a dot for raw and calibrated RGB and role. Large layouts are subsampled for this view only.',header},{image:globalThis.PrismTrace.sampleImage||0,cells:shown,h:Array.from(h)});}return {header,headers,stream,hb,sigma:cal.sigma,points,knownMatch:matched/cal.refs.length};}
+function decodeStream(header,stream){
+let cap=capacity(header.size,header.ecc,header.mode),bytes=new Uint8Array(cap.n),conf=new Float32Array(cap.n);
+for(let i=0;i<cap.n;i++){let v=0,q=12;for(let k=0;k<8;k++){let s=stream[8*i+k];v=(v<<1)|(s<0?1:0);q=Math.min(q,Math.abs(s));}bytes[i]=v;conf[i]=q;}
+let blocks=cap.blocks.map(b=>({bytes:new Uint8Array(b.n),conf:new Float32Array(b.n),candidates:[],tried:new Set(),...b})),at=0;
+for(let p=0;p<Math.max(...blocks.map(x=>x.n));p++)for(let b of blocks)if(p<b.n){b.bytes[p]=bytes[at];b.conf[p]=conf[at++];}
+let rsAttempts=0,rsValid=0;let messageOffset=0;for(let b of blocks){b.offset=messageOffset;for(let p=0;p<b.k;p++)if(header.length>0&&messageOffset+p>=header.length+4){b.bytes[p]=0;b.conf[p]=12;}messageOffset+=b.k;b.order=Array.from({length:b.n},(_,i)=>i).sort((i,j)=>b.conf[i]-b.conf[j]);}
+function attempt(b,m){if(b.tried.has(m))return;rsAttempts++;b.tried.add(m);try{let ok=rsDecode(b.bytes,b.nsym,b.order.slice(0,m));for(let p=0;p<b.k;p++)if(b.offset+p>=header.length+4&&ok.bytes[p]!==0)return;rsValid++;let data=ok.bytes.slice(0,b.k);if(b.candidates.some(v=>v.data.every((x,i)=>x===data[i])))return;trace('RS block corrected',{block:blocks.indexOf(b),blockLength:b.n,parity:b.nsym,erasures:m,corrected:ok.corrected,changedPositions:Array.from(ok.bytes,(_,i)=>i).filter(i=>ok.bytes[i]!==b.bytes[i])},null,'pass');let score=0;for(let p=0;p<b.n;p++)if(ok.bytes[p]!==b.bytes[p])score+=.02+b.conf[p];b.candidates.push({data,corrected:ok.corrected,erasures:m,score});b.candidates.sort((a,b)=>a.score-b.score);b.candidates.length=Math.min(8,b.candidates.length);}catch(e){}}
+function assemble(){let combinations=0,found=null;function visit(i,msg,corrected,erasures){if(found||combinations>=1024)return;if(i===blocks.length){combinations++;let payload=Uint8Array.from(msg.slice(0,header.length)),crc=0;for(let v of msg.slice(header.length,header.length+4))crc=(crc<<8)|v;if(crc32(payload)===(crc>>>0)){let text=null;if(!header.type)try{text=new TextDecoder('utf-8',{fatal:true}).decode(payload);}catch(e){return;}found={bytes:payload,text,header,corrected,erasures};}return;}for(let c of blocks[i].candidates)visit(i+1,msg.concat(Array.from(c.data)),corrected+c.corrected,erasures+c.erasures);}visit(0,[],0,0);trace('RS erasure ladder',{header,blocks:blocks.map(b=>({length:b.n,parity:b.nsym,triedErasures:Array.from(b.tried),validCandidates:b.candidates.length})),attempts:rsAttempts,validCodewords:rsValid,crcCombinations:combinations,crcPassed:!!found},null,found?'pass':'info');return found;}
+for(let b of blocks)for(let m of [...new Set([0,.25,.5,.75,1].map(q=>Math.round(b.nsym*q)))]){attempt(b,m);if(b.candidates.length)break;}
+let result=assemble();if(result)return result;
+/* CRC can reject a valid but wrong RS codeword. Densify the erasure ladder
+   and check bounded combinations rather than returning unverified bytes. */
+for(let b of blocks)for(let m=0;m<=b.nsym;m+=2)attempt(b,m);
+result=assemble();if(result)return result;
+if(blocks.some(b=>!b.candidates.length))throw stageError('RS','Error correction could not recover this image');
+throw stageError('CRC','Payload checksum did not pass');
+}
+function readNormal(image,{known=null,mesh=true,onStage=null,fusion=null,debug=false}={}){let start=performance.now(),f=frame(image);onStage?.('detect');let hyps=[];if(known){let l=layout(known.size),h=homography(corners(l),known.quad),white=whiteBalance(f,h,l);hyps=[{h,l,mode:known.mode,quad:known.quad,white,...hypothesisScore(f,h,l,known.mode,white)}];}else{let quads=detect(f);onStage?.('hypothesis');for(let quad of quads)for(let size=0;size<6;size++){let l=layout(size);for(let rot=0;rot<4;rot++){let q=quad.map((_,i)=>quad[(i+rot)%4]),h;try{h=homography(corners(l),q);}catch(e){continue;}let white=whiteBalance(f,h,l);for(let mode=0;mode<2;mode++){let sc=hypothesisScore(f,h,l,mode,white,true);hyps.push({h,l,mode,quad:q,white,rot,...sc});trace('Legacy hypothesis',{size,mode,rotation:rot*90,...sc},{quad:q,image:0});}}}hyps.sort((a,b)=>b.score-a.score||a.cost-b.cost);hyps=hyps.slice(0,4);}trace('Ranked legacy shortlist',{candidates:hyps.map(v=>({size:v.l.size,mode:v.mode,score:v.score,cost:v.cost,rotation:(v.rot||0)*90}))});let attempts=[],bestError=null;const stageRank={detect:0,hypothesis:1,'too small':1,header:2,RS:3,CRC:4};let last=stageError('hypothesis','Code pattern not recognized. Try better light or a closer photo.');for(let hyp of hyps){try{let {h,l,mode,quad,white}=hyp;if(!known){onStage?.('refine');let refined=refine(f,h,l,mode,quad,white);h=refined.h;quad=refined.quad;white=whiteBalance(f,h,l);}let quality=hypothesisScore(f,h,l,mode,white,false).score;trace('Legacy geometry refined',{size:l.size,mode,quality,orientation:'Known-cell ring and header validate notch orientation'},{quad,h:Array.from(h),warp:h.warp||null,W:l.W,H:l.H,image:0});if(quality<(mode?.75:CFG.minScore))throw stageError('hypothesis','Known cells do not match');let radius=Math.min(Math.hypot(...mapDelta(h,l.W/2,l.H/2,1,0)),Math.hypot(...mapDelta(h,l.W/2,l.H/2,0,1)));if(radius<CFG.minRadius)throw stageError('too small','Too small. Move closer or use a larger image.');onStage?.('calibrate');let m=null,cls;try{cls=classify(f,h,l,mode,white,null);}catch(e){if(!mesh)throw e;last=e;}let result=null;try{if(cls)result=decodeClass(cls);}catch(e){last=e;}if(!result&&mesh){onStage?.('mesh');m=buildMesh(f,h,l,mode,white,null);m=buildMesh(f,h,l,mode,white,m);cls=classify(f,h,l,mode,white,m);try{result=decodeClass(cls);}catch(e){last=e;}}if(fusion&&cls){let merged=fusion.add(cls.header,cls.stream,quality);if(!result)try{result=decodeClass({...cls,stream:merged});}catch(e){last=e;}}if(result)return {...result,quality,radius,quad,h,layout:l,points:debug?cls.points:null,sigma:cls.sigma,ms:performance.now()-start};if(debug){last.debug={quad,h,layout:l,points:cls?.points};}throw last;}catch(e){if(!bestError||(stageRank[e.stage]||0)>(stageRank[bestError.stage]||0))bestError=e;trace('Legacy attempt rejected',{size:hyp.l.size,mode:hyp.mode,stage:e.stage,message:e.message},null,'fail');attempts.push({size:hyp.l.size,mode:hyp.mode,score:hyp.score,cost:hyp.cost,stage:e.stage,message:e.message});if(!last||['RS','CRC'].includes(e.stage)||!['RS','CRC'].includes(last.stage))last=e;}}last=bestError||last;last.attempts=attempts;throw last;}
+/* Compatibility fallback for full-canvas exports from the supplied generator.
+   Geometry is inferred from the bitmap aspect and known-cell consistency.
+   No payload, expected text, filename, or effect-slider values are supplied. */
+function readGeneratorExport(image,debug=false){let f=frame(image),candidates=[];
+for(let size=0;size<6;size++){let l=layout(size),r=(f.w/(l.W+2*Q)+f.h/(l.H+2*Q))/2;if(r<CFG.minRadius||Math.abs((l.W+2*Q)*r-f.w)>2||Math.abs((l.H+2*Q)*r-f.h)>2)continue;let known=l.known.filter(c=>c.role==='ring'||c.role==='pilot'),stride=Math.max(1,Math.floor(known.length/180));known=known.filter((_,i)=>i%stride===0);const h=[r,0,Q*r,0,r,Q*r,0,0];
+function cost(skew,curve){let buckets=Array.from({length:9},()=>[]),t=Math.tan(skew*Math.PI/180);for(let c of known){let y=(c.y+Q)*r,dx=t*(y/f.h-.5)*y+Math.sin(y/f.h*Math.PI)*curve*f.w*.08,v=pixel(f,(c.x+Q)*r+dx,y).map(srgb);buckets[c.symbol].push(v);}let centers=buckets.map(a=>a.length?[0,1,2].map(k=>a.reduce((s,v)=>s+v[k],0)/a.length):[0,0,0]),within=0,between=0,mean=[0,0,0],classes=0;for(let i=0;i<9;i++)if(buckets[i].length){classes++;for(let k=0;k<3;k++)mean[k]+=centers[i][k];}mean=mean.map(x=>x/classes);for(let i=0;i<9;i++)if(buckets[i].length){between+=centers[i].reduce((s,x,k)=>s+(x-mean[k])**2,0);for(let v of buckets[i])within+=v.reduce((s,x,k)=>s+(x-centers[i][k])**2,0);}if(between<.02)return 1e6;return within/known.length/(between/classes);}
+let best={loss:Infinity,skew:0,curve:0};for(let skew=-18;skew<=18;skew+=3)for(let curve=0;curve<=1.001;curve+=.1){let loss=cost(skew,curve);if(loss<best.loss)best={loss,skew,curve};}let base=best;for(let ds=-3;ds<=3.001;ds+=.3)for(let dc=-.1;dc<=.1001;dc+=.01){let skew=base.skew+ds,curve=base.curve+dc,loss=cost(skew,curve);if(loss<best.loss)best={loss,skew,curve};}candidates.push({size,l,r,h,...best});}
+trace('Full-canvas curve fit candidates',{candidates:candidates.map(({size,r,skew,curve,loss})=>({size,r,skew,curve,loss}))});candidates.sort((a,b)=>a.loss-b.loss);let last=stageError('hypothesis','Full-canvas export geometry did not match');for(let candidate of candidates.slice(0,2)){if(performance.now()>decodeDeadline)throw stageError('budget','Processing limit reached');if(candidate.loss>.45)continue;let {l,r,h,skew,curve}=candidate,rect=new ImageData(f.w,f.h),t=Math.tan(skew*Math.PI/180);for(let y=0;y<f.h;y++)for(let x=0;x<f.w;x++){let dx=t*(y/f.h-.5)*y+Math.sin(y/f.h*Math.PI)*curve*f.w*.08,v=pixel(f,x+dx,y),at=(y*f.w+x)*4;for(let k=0;k<3;k++)rect.data[at+k]=clamp(srgb(v[k]))*255;rect.data[at+3]=255;}globalThis.PrismTrace?.image('Full-canvas rectified pixels',rect);if(globalThis.PrismTrace?.active)globalThis.PrismTrace.sampleImage=globalThis.PrismTrace.currentImage;let ff=frame(rect),white=whiteBalance(ff,h,l);try{let cls=classify(ff,h,l,0,white,null),res=decodeClass(cls);if(!res.bytes.length)throw stageError('header','Empty payload needs a direct high-confidence header');return {...res,quality:cls.knownMatch,radius:r,quad:corners(l).map(([x,y])=>map(h,x,y)),h,layout:l,points:debug?cls.points:null,sigma:cls.sigma,fallback:'full-canvas generator curve model',fitted:{skew,curve,loss:candidate.loss},rectified:debug?rect:null};}catch(e){last=e;}}throw last;}
+function readImage(image,options={}){let start=performance.now(),error;decodeDeadline=start+2500;try{let result=readNormal(image,options);if(!result.bytes.length&&result.quality<.8)throw stageError('hypothesis','Empty result lacks a strong code-pattern match');return result;}catch(e){error=e;}if(!options.known&&options.exportFallback!==false)try{let result=readGeneratorExport(image,options.debug);return {...result,ms:performance.now()-start};}catch(e){}throw error;}
+
+class Fusion{constructor(){this.reset();}reset(){this.key=null;this.stream=null;this.time=0;this.frames=0;}add(header,s,quality){let key=JSON.stringify(header),now=performance.now();if(key!==this.key||now-this.time>3000||s.length!==this.stream?.length){this.key=key;this.stream=new Float32Array(s.length);this.frames=0;}let w=quality**2;for(let i=0;i<s.length;i++)this.stream[i]+=s[i]*w;this.time=now;this.frames++;return this.stream;}}
+return {beginDecode:ms=>decodeDeadline=performance.now()+ms,CFG,SIZES,HEX,PAL,LAB,S3,Q,rng,layout,capacity,encode,render,rsEncode,rsDecode,syndromes,crc32,crc4,headerBits,frame,homography,map,corners,readImage,decodeStream,parseHeader,lab,lin,srgb,Fusion,detect,detectCurved,refine,knownSymbol,hypothesisScore,whiteBalance,classify,buildMesh,buildDenseMesh,readGeneratorExport,decodeClass,sample,calibrate,llr,nearest};
+})();
+
+
+/* Prism Secure: optional encryption and signing layer for Prism Code payloads.
+   Separate from the reader. It only transforms the bytes put into a code and the
+   bytes read back out. Offline, no network.
+
+   Envelope v2 (bytes):  "PSC" 0x02 | flags | body
+     flags bit0 = encrypted, bit1 = signed
+     encrypted body: kdf(1) kdfParams(6) salt(16) iv(12) ciphertext+tag(16)
+       kdf 2 = Argon2id: memKiB(4, BE) passes(1) lanes(1)   (default 128 MiB, 3 passes)
+       kdf 1 = PBKDF2-SHA256: iterations(4, BE) + 2 unused  (fallback, 600,000 rounds)
+     signed: appended pubkey(65, P-256 raw) + signature(64) over everything before it
+   Encryption: AES-256-GCM, fresh random salt (16 bytes) and nonce (12 bytes) per code;
+   the whole header is authenticated as additional data. v1 codes (PBKDF2 only) still open.
+   Signing: ECDSA P-256 / SHA-256. Proves the code is unchanged and made by the holder of
+   that key; who owns the key is only known if the reader already trusts its fingerprint.
+   Argon2id comes from hash-wasm (MIT), loaded as global `hashwasm` (argon2.umd.min.js). */
+(function (root) {
+  const C = root.crypto || require('node:crypto').webcrypto, subtle = C.subtle;
+  const rnd = n => C.getRandomValues(new Uint8Array(n));
+  const MAGIC = [0x50, 0x53, 0x43], F_ENC = 1, F_SIG = 2;
+  const PBKDF2_ITER = 600000, A2 = { mem: 131072, t: 3, p: 1 }, MAX_MEM = 262144, MAX_T = 12;
+  const HEAD2 = 4 + 1 + 1 + 6 + 16 + 12, HEAD1 = 4 + 1 + 16 + 12 + 4;
+  const enc = s => new TextEncoder().encode(s);
+  const cat = (...a) => { let o = new Uint8Array(a.reduce((n, x) => n + x.length, 0)), p = 0; for (const x of a) { o.set(x, p); p += x.length; } return o; };
+  const hex = b => [...b].map(x => x.toString(16).padStart(2, '0')).join('');
+  const be32 = n => new Uint8Array([n >>> 24, n >>> 16 & 255, n >>> 8 & 255, n & 255]);
+  const rd32 = (b, i) => ((b[i] << 24) | (b[i + 1] << 16) | (b[i + 2] << 8) | b[i + 3]) >>> 0;
+  const wipe = b => { if (b && b.fill) b.fill(0); };
+  /* Compare without stopping at the first difference. */
+  function ctEqual(a, b) { if (typeof a === 'string') a = enc(a); if (typeof b === 'string') b = enc(b); let d = a.length ^ b.length; const n = Math.max(a.length, b.length); for (let i = 0; i < n; i++) d |= (a[i] || 0) ^ (b[i] || 0); return d === 0; }
+  const inList = (list, v) => { let f = false; for (const x of list) if (ctEqual(x, v)) f = true; return f; };
+  const argon = () => root.hashwasm && root.hashwasm.argon2id;
+  const hasArgon2 = () => !!argon();
+
+  async function deriveKey(pass, salt, kdf, p) {
+    const pw = enc(pass.normalize('NFKC'));
+    try {
+      if (kdf === 2) {
+        if (!argon()) throw Error('This code needs Argon2id, which is not loaded');
+        const raw = await argon()({ password: pw, salt, parallelism: p.p, iterations: p.t, memorySize: p.mem, hashLength: 32, outputType: 'binary' });
+        const k = await subtle.importKey('raw', raw, 'AES-GCM', false, ['encrypt', 'decrypt']); wipe(raw); return k;
+      }
+      const base = await subtle.importKey('raw', pw, 'PBKDF2', false, ['deriveKey']);
+      return await subtle.deriveKey({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations: p.iter }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+    } finally { wipe(pw); }
+  }
+  async function generateSigningKey() {
+    const k = await subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
+    return { publicKey: new Uint8Array(await subtle.exportKey('raw', k.publicKey)), privateJwk: await subtle.exportKey('jwk', k.privateKey) };
+  }
+  async function fingerprint(pub) { const h = new Uint8Array(await subtle.digest('SHA-256', pub)); return hex(h.slice(0, 8)).replace(/(....)(?=.)/g, '$1-').toUpperCase(); }
+
+  /* Random passphrase: 7 groups of 4 from a 32-symbol alphabet = 140 bits of entropy
+     (32 symbols = exactly 5 bits each, so no modulo bias). */
+  const ALPHA = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  function generatePassphrase() { const out = [], r = rnd(28); for (let g = 0; g < 7; g++) { let s = ''; for (let i = 0; i < 4; i++) s += ALPHA[r[g * 4 + i] & 31]; out.push(s); } wipe(r); return out.join('-'); }
+
+  /* Strength estimate, in bits. An attacker who photographs a code can guess offline,
+     so this is the number that matters. Heuristic, deliberately on the cautious side. */
+  const COMMON = ['password', 'passw0rd', 'qwerty', 'letmein', 'welcome', 'admin', 'iloveyou', 'monkey', 'dragon', 'football', 'baseball', 'shalom', 'israel', 'master', 'login', 'abc123', 'prism', 'secret', 'hello', 'test', 'summer', 'winter', 'sunshine', 'princess', 'trustno1', 'whatever', 'google', 'avi', '1234', 'asdf', 'zxcv', 'love', 'god', 'cohen', 'levi'];
+  function strength(pw) {
+    const warnings = []; if (!pw) return { bits: 0, label: 'none', level: 0, warnings: ['Enter a password'] };
+    const body = pw.replace(/-/g, '');
+    if (pw.split('-').length >= 6 && /^[A-HJ-NP-Z2-9-]+$/.test(pw) && body.length >= 24) return { bits: Math.floor(body.length * 5), label: 'excellent (random)', level: 4, warnings: [] };
+    let pool = 0; if (/[a-z]/.test(pw)) pool += 26; if (/[A-Z]/.test(pw)) pool += 26; if (/[0-9]/.test(pw)) pool += 10; if (/[^A-Za-z0-9]/.test(pw)) pool += 33;
+    const uniq = new Set(pw).size; let bits = Math.min(pw.length, uniq * 2) * Math.log2(Math.max(pool, 2));
+    const low = pw.toLowerCase();
+    if (/^[a-z ]+$/i.test(pw)) { const w = pw.trim().split(/\s+/).filter(x => x.length > 2).length; bits = Math.min(bits, w > 1 ? w * 12 : pw.length * 2.5); if (w <= 1) warnings.push('A single word is easy to guess'); }
+    if (/(.)\1\1/.test(pw)) { bits *= 0.7; warnings.push('Repeated characters'); }
+    if (/(012|123|234|345|456|567|678|789|abc|bcd|cde|def|qwe|wer|asd|sdf|zxc)/i.test(pw)) { bits *= 0.7; warnings.push('Keyboard or number sequence'); }
+    if (/^[a-z]+$/i.test(pw) || /^[0-9]+$/.test(pw)) { bits *= 0.8; warnings.push('Only one kind of character'); }
+    if (/(19|20)\d\d\b/.test(pw)) { bits -= 8; warnings.push('Contains a year'); }
+    for (const w of COMMON) if (low.includes(w)) { bits = Math.min(bits, 28) - (low === w ? 8 : 0); warnings.push('Contains a common word or pattern'); break; }
+    if (pw.length < 12) warnings.push('Shorter than 12 characters');
+    bits = Math.max(0, Math.floor(bits));
+    const level = bits < 40 ? 0 : bits < 60 ? 1 : bits < 80 ? 2 : bits < 100 ? 3 : 4;
+    if (bits < 80) warnings.push('Someone with a photo of the code can guess offline. Use Random for a code that matters.');
+    return { bits, level, label: ['weak', 'weak', 'fair', 'good', 'strong'][level], warnings: [...new Set(warnings)] };
+  }
+
+  /* options: { password, signWith: {publicKey, privateJwk}, kdf: 'argon2id' | 'pbkdf2' } */
+  async function seal(bytes, { password, signWith, kdf } = {}) {
+    bytes = Uint8Array.from(bytes);
+    if (!password && !signWith) throw Error('Give a password, a signing key, or both');
+    const flags = (password ? F_ENC : 0) | (signWith ? F_SIG : 0), M = Uint8Array.from([...MAGIC, 2]);
+    let body;
+    if (password) {
+      const useA = kdf ? kdf === 'argon2id' : hasArgon2();
+      if (useA && !hasArgon2()) throw Error('Argon2id is not loaded');
+      const salt = rnd(16), iv = rnd(12);
+      const params = useA ? cat(be32(A2.mem), Uint8Array.of(A2.t, A2.p)) : cat(be32(PBKDF2_ITER), Uint8Array.of(0, 0));
+      const head = cat(M, Uint8Array.of(flags), Uint8Array.of(useA ? 2 : 1), params, salt, iv);
+      const key = await deriveKey(password, salt, useA ? 2 : 1, useA ? A2 : { iter: PBKDF2_ITER });
+      const ct = new Uint8Array(await subtle.encrypt({ name: 'AES-GCM', iv, additionalData: head }, key, bytes));
+      wipe(bytes); body = cat(head, ct);
+    } else body = cat(M, Uint8Array.of(flags), bytes);
+    if (!signWith) return body;
+    const pk = await subtle.importKey('jwk', signWith.privateJwk, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+    const sig = new Uint8Array(await subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, pk, body));
+    return cat(body, signWith.publicKey, sig);
+  }
+
+  const isSecure = b => b.length >= 5 && MAGIC.every((m, i) => b[i] === m) && (b[3] === 1 || b[3] === 2) && b.length >= 6 && (b[4] & ~3) === 0;
+  function inspect(b) { if (!isSecure(b)) return { secure: false }; return { secure: true, version: b[3], encrypted: !!(b[4] & F_ENC), signed: !!(b[4] & F_SIG) }; }
+
+  /* Returns { secure, encrypted, signed, signatureValid, signerFingerprint, trusted, bytes, error, needsPassword }.
+     Plain payloads come back unchanged with secure:false. Wrong password, damage or
+     tampering give bytes:null plus an error. Caller should call PrismSecure.wipe(result.bytes) when done. */
+  async function open(bytes, { password, trustedFingerprints = [] } = {}) {
+    if (!isSecure(bytes)) return { secure: false, bytes };
+    const ver = bytes[3], flags = bytes[4], encrypted = !!(flags & F_ENC), signed = !!(flags & F_SIG);
+    let end = bytes.length; const out = { secure: true, version: ver, encrypted, signed, signatureValid: null };
+    if (signed) {
+      if (bytes.length < 5 + 65 + 64) throw Error('Code is damaged');
+      const pub = bytes.slice(end - 129, end - 64), sig = bytes.slice(end - 64), body = bytes.slice(0, end - 129);
+      try { const k = await subtle.importKey('raw', pub, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']); out.signatureValid = await subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, k, sig, body); } catch (e) { out.signatureValid = false; }
+      out.signerPublicKey = pub; out.signerFingerprint = await fingerprint(pub);
+      out.trusted = out.signatureValid && inList(trustedFingerprints, out.signerFingerprint);
+      end -= 129;
+      if (!out.signatureValid) { out.bytes = null; out.error = 'Signature is not valid. This code was changed or forged.'; return out; }
+    }
+    if (!encrypted) { out.bytes = bytes.slice(5, end); return out; }
+    let head, salt, iv, kdf, p, hl;
+    if (ver === 1) { hl = HEAD1; if (end < hl + 16) throw Error('Code is damaged'); salt = bytes.slice(5, 21); iv = bytes.slice(21, 33); kdf = 1; p = { iter: rd32(bytes, 33) }; }
+    else { hl = HEAD2; if (end < hl + 16) throw Error('Code is damaged'); kdf = bytes[5]; salt = bytes.slice(12, 28); iv = bytes.slice(28, 40); p = kdf === 2 ? { mem: rd32(bytes, 6), t: bytes[10], p: bytes[11] } : { iter: rd32(bytes, 6) }; }
+    head = bytes.slice(0, hl);
+    if (kdf === 1 ? (p.iter < 100000 || p.iter > 5000000) : kdf === 2 ? (p.mem < 8192 || p.mem > MAX_MEM || p.t < 1 || p.t > MAX_T || p.p < 1 || p.p > 4) : true) throw Error('Code is damaged or unsupported');
+    if (!password) { out.bytes = null; out.needsPassword = true; return out; }
+    try {
+      const key = await deriveKey(password, salt, kdf, p);
+      out.bytes = new Uint8Array(await subtle.decrypt({ name: 'AES-GCM', iv, additionalData: head }, key, bytes.slice(hl, end)));
+    } catch (e) { out.bytes = null; out.error = /Argon2id/.test(e.message) ? e.message : 'Wrong password, or the code was changed.'; }
+    return out;
+  }
+
+  const api = { seal, open, inspect, isSecure, generateSigningKey, fingerprint, generatePassphrase, strength, ctEqual, wipe, hasArgon2,
+    params: { argon2id: A2, pbkdf2Iterations: PBKDF2_ITER, passphraseBits: 140 },
+    overhead: { encrypted: HEAD2 + 16, signed: 129 } };
+  root.PrismSecure = api; if (typeof module !== 'undefined') module.exports = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+</script>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const DEMO_KEY={"pub":[4,178,253,152,74,188,138,7,42,245,133,25,136,186,63,154,84,199,30,174,177,132,175,169,6,253,59,164,244,113,197,111,239,112,206,133,248,156,75,203,36,135,76,114,20,168,126,247,246,188,45,211,116,141,30,45,152,105,220,159,111,156,22,204,96],"jwk":{"key_ops":["sign"],"ext":true,"kty":"EC","x":"sv2YSryKByr1hRmIuj-aVMcerrGEr6kG_Tuk9HHFb-8","y":"cM6F-JxLyySHTHIUqH739rwt03SNHi2Yadyfb5wWzGA","crv":"P-256","d":"OivGSvo38NVJ44fnc5MAjspX5ic5ES1_phMOeiSWs5o"}};
+const AIRPORTS={TLV:'Tel Aviv',JFK:'New York',LHR:'London',CDG:'Paris',ATH:'Athens',FCO:'Rome',BER:'Berlin',LAX:'Los Angeles'};
+const CLS={Y:'Economy',W:'Premium',J:'Business'};
+const LS={get:(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const b64=b=>{let s='';b.forEach(x=>s+=String.fromCharCode(x));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')};
+const unb64=t=>{t=t.replace(/-/g,'+').replace(/_/g,'/');while(t.length%4)t+='=';const s=atob(t),o=new Uint8Array(s.length);for(let i=0;i<s.length;i++)o[i]=s.charCodeAt(i);return o};
+const pad2=n=>String(n).padStart(2,'0');
+function isoDate(d){return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())}
+function julian(iso){const [y,m,d]=iso.split('-').map(Number);return Math.round((Date.UTC(y,m-1,d)-Date.UTC(y,0,0))/864e5)}
+const tomorrow=isoDate(new Date(Date.now()+864e5));
+/* ---- BCBP (IATA Resolution 792, mandatory items, one leg) ---- */
+function makeBCBP(f){
+ const name=(f.last+'/'+f.first).toUpperCase().replace(/[^A-Z/ ]/g,'').slice(0,20).padEnd(20);
+ const s='M1'+name+'E'+f.pnr.toUpperCase().padEnd(7)+f.from+f.to+f.code.toUpperCase().padEnd(3)+String(f.no).padStart(4,'0')+' '+String(julian(f.date)).padStart(3,'0')+f.cls+String(f.seat).toUpperCase().padStart(4,'0')+String(f.seq).padStart(4,'0')+' '+'1'+'00';
+ if(s.length!==60)throw Error('BCBP length '+s.length);
+ return s;
+}
+function makePayload(f,k){return makeBCBP(f)+'\n'+['AL='+f.al,'G='+f.gate,'T='+f.term,'BRD='+f.brd,'STD='+f.dep,'D='+f.date,'R='+f.ref,'K='+k].join(';')}
+function parsePayload(text){
+ const [l1,l2]=text.split('\n');
+ if(!l1||l1.length<60||l1[0]!=='M'||l1[1]!=='1')throw Error('Not a boarding pass');
+ const ex={};(l2||'').split(';').forEach(p=>{const i=p.indexOf('=');if(i>0)ex[p.slice(0,i)]=p.slice(i+1)});
+ const nm=l1.slice(2,22).trim().split('/');
+ return {last:nm[0],first:nm[1]||'',pnr:l1.slice(23,30).trim(),from:l1.slice(30,33),to:l1.slice(33,36),code:l1.slice(36,39).trim(),no:String(parseInt(l1.slice(39,43),10)),julian:parseInt(l1.slice(44,47),10),cls:l1[47],seat:l1.slice(48,52).replace(/^0+/,''),seq:String(parseInt(l1.slice(52,56),10)),
+  al:ex.AL||'',K:ex.K||'',ref:Math.min(300,Math.max(5,parseInt(ex.R,10)||20)),gate:ex.G||'',term:ex.T||'',brd:ex.BRD||'',dep:ex.STD||'',date:ex.D||'',bcbp:l1.slice(0,60)};
+}
+/* ---- keys ---- */
+const demoSigner={publicKey:Uint8Array.from(DEMO_KEY.pub),privateJwk:DEMO_KEY.jwk};
+let demoFp='';
+async function trusted(){return [demoFp,...LS.get('bpTrusted',[])]}
+const REFRESH=20,SKEW=10;const maxAge=r=>r+25;
+async function sealPass(f,signer){const pk=await PrismSecure.generateSigningKey();const bytes=new TextEncoder().encode(makePayload(f,b64(pk.publicKey)));const env=await PrismSecure.seal(bytes,{signWith:signer||demoSigner});return {env,d:pk.privateJwk.d}}
+/* ---- live (rotating) code: a short-lived token signed by the pass's own key ---- */
+const catB=(...a)=>{const o=new Uint8Array(a.reduce((n,x)=>n+x.length,0));let p=0;for(const x of a){o.set(x,p);p+=x.length}return o};
+const keyCache=new Map();
+async function passKey(env,d){const ck=b64(env.slice(-8))+d;if(keyCache.has(ck))return keyCache.get(ck);
+ const {p}=await openEnv(env);const raw=unb64(p.K);const k=await crypto.subtle.importKey('jwk',{kty:'EC',crv:'P-256',x:b64(raw.slice(1,33)),y:b64(raw.slice(33,65)),d,ext:true},{name:'ECDSA',namedCurve:'P-256'},false,['sign']);keyCache.set(ck,k);return k}
+async function makeLive(env,d,nowMs){const ts=Math.floor((nowMs??Date.now())/1000);const t4=new Uint8Array([ts>>>24,ts>>>16&255,ts>>>8&255,ts&255]);
+ const sig=new Uint8Array(await crypto.subtle.sign({name:'ECDSA',hash:'SHA-256'},await passKey(env,d),catB(t4,env)));
+ return catB(new Uint8Array([0x50,0x42,0x52,1]),t4,sig,env)}
+function codeCanvas(env,cell){const code=Prism.encode(env,{ecc:1,mode:0,type:1});const c=document.createElement('canvas');Prism.render(code,cell||8,c);return {c,code}}
+/* ---- rendering a pass ---- */
+const PLANE='<svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>';
+function prettyDate(iso){if(!iso)return'';const [y,m,d]=iso.split('-').map(Number);return d+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1]}
+function passHTML(p,opts={}){
+ return `<div class="pass${opts.dim?' dim':''}"><div class="bar"><i style="background:#D7263D"></i><i style="background:#F77F00"></i><i style="background:#F5C518"></i><i style="background:#2DB35A"></i><i style="background:#00B8D9"></i><i style="background:#2E5BFF"></i><i style="background:#B5179E"></i></div>
+ <div class="top"><div class="al">${esc(p.al||p.code)}</div><div class="kind">BOARDING PASS</div></div>
+ <div class="route"><div class="ap"><b>${esc(p.from)}</b><span>${esc(AIRPORTS[p.from]||'')}</span></div><div class="mid">${PLANE}</div><div class="ap"><b>${esc(p.to)}</b><span>${esc(AIRPORTS[p.to]||'')}</span></div></div>
+ <div class="pfields">
+ <div class="pf nm w2"><small>Passenger</small><b>${esc(p.last)}${p.first?'/'+esc(p.first):''}</b></div><div class="pf"><small>Class</small><b>${esc(CLS[p.cls]||p.cls)}</b></div>
+ <div class="pf"><small>Flight</small><b>${esc(p.code)} ${esc(p.no)}</b></div><div class="pf"><small>Date</small><b>${esc(prettyDate(p.date))}</b></div><div class="pf"><small>Departs</small><b>${esc(p.dep)}</b></div>
+ <div class="pf hl"><small>Gate</small><b>${esc(p.gate)}</b></div><div class="pf hl"><small>Seat</small><b>${esc(p.seat)}</b></div><div class="pf hl"><small>Boards</small><b>${esc(p.brd)}</b></div>
+ <div class="pf"><small>Terminal</small><b>${esc(p.term)}</b></div><div class="pf"><small>Sequence</small><b>${esc(p.seq)}</b></div><div class="pf"><small>Booking</small><b>${esc(p.pnr)}</b></div></div>
+ <div class="perf"></div><div class="stub"><div class="cv"></div><div class="sg">${opts.sg||''}</div></div></div>`}
+async function openEnv(env){const o=await PrismSecure.open(env,{trustedFingerprints:await trusted()});let p=null;
+ if(o.bytes)p=parsePayload(new TextDecoder().decode(o.bytes));
+ else if(o.signed&&o.signatureValid===false){try{p=parsePayload(new TextDecoder().decode(env.slice(5,env.length-129)));p.unverified=true}catch(e){}}
+ return {o,p}}
+let liveTimer=null;
+function stopLive(){if(liveTimer){cancelAnimationFrame(liveTimer);liveTimer=null}}
+async function mountPass(host,env,small,d){
+ stopLive();
+ const {o,p}=await openEnv(env);if(!p)throw Error(o.error||'Could not read pass');
+ const sg=p.unverified?'<span class="chip bad">Signature invalid. Do not use.</span>':o.trusted?'<span class="chip ok">Signed by '+esc(p.al)+'</span> <span class="fp">'+o.signerFingerprint+'</span>':'<span class="chip warn">Signer not in your trusted list</span> <span class="fp">'+o.signerFingerprint+'</span>';
+ const live=d&&!p.unverified;
+ host.innerHTML=passHTML(p,{sg,dim:p.unverified});
+ const stub=host.querySelector('.stub'),cvh=host.querySelector('.cv');
+ if(live){
+  const info=document.createElement('div');info.className='live';info.innerHTML='<svg class="ring" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="none" stroke="#e2dad5" stroke-width="4"/><circle class="arc" cx="18" cy="18" r="15" fill="none" stroke="#2DB35A" stroke-width="4" stroke-linecap="round" transform="rotate(-90 18 18)" stroke-dasharray="94.25" stroke-dashoffset="0"/></svg><div><b><span class="pulse"></span>Live code</b><span class="lt"></span><span class="lt" style="display:block">Refreshes every '+p.ref+' s</span></div>';
+  stub.insertBefore(info,stub.querySelector('.sg'));
+  const arc=info.querySelector('.arc'),lt=info.querySelector('.lt'),RF=p.ref;let born=0,cvs=null,busy=false,n=0;
+  const draw=async()=>{busy=true;const t0=Date.now();const bytes=await makeLive(env,d);const {c}=codeCanvas(bytes,small?5:10);born=t0;n++;
+   if(cvs)cvs.replaceWith(c);else cvh.appendChild(c);cvs=c;host.dataset.n=n;host.dataset.ts=Math.floor(t0/1000);busy=false};
+  await draw();
+  const tick=()=>{const age=(Date.now()-born)/1000;if(age>=RF&&!busy)draw();const left=Math.max(0,RF-age);arc.style.strokeDashoffset=String(94.25*(1-left/RF));lt.textContent='New code in '+Math.ceil(left)+'s';liveTimer=requestAnimationFrame(tick)};
+  liveTimer=requestAnimationFrame(tick);
+  return {o,p,code:null,canvas:cvs};
+ }
+ const {c,code}=codeCanvas(env,small?5:10);cvh.appendChild(c);return {o,p,code,canvas:c};
+}
+/* ---- airline ---- */
+let issued=null;
+function fillAirports(){for(const id of['fFrom','fTo'])$(id).innerHTML=Object.keys(AIRPORTS).map(k=>`<option value="${k}">${k} ${AIRPORTS[k]}</option>`).join('');$('fFrom').value='TLV';$('fTo').value='JFK'}
+function randPnr(){const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';const r=crypto.getRandomValues(new Uint8Array(6));return [...r].map(x=>A[x%A.length]).join('')}
+function formVals(over){const v={al:$('fAl').value.trim()||'Airline',code:($('fCode').value.trim()||'XX').toUpperCase(),no:$('fNo').value.replace(/\D/g,'')||'1',date:$('fDate').value,from:$('fFrom').value,to:$('fTo').value,dep:$('fDep').value,brd:$('fBrd').value,gate:$('fGate').value.trim().toUpperCase(),term:$('fTerm').value.trim(),last:$('fLast').value.trim(),first:$('fFirst').value.trim(),seat:$('fSeat').value.trim().toUpperCase(),cls:$('fCls').value,seq:$('fSeq').value.replace(/\D/g,'')||'1',pnr:$('fPnr').value.trim()||randPnr(),ref:+$('fRef').value||20};return Object.assign(v,over||{})}
+async function showIssued(r,note){
+ const {env,d}=r;const m=await mountPass($('issuedPass'),env,true);issued={env,d,p:m.p};
+ const was=$('issued').hidden;$('issued').hidden=false;if(!was){$('issued').classList.remove('appear');void $('issued').offsetWidth;$('issued').classList.add('appear')}
+ $('issuedInfo').innerHTML=(note||'')+' Credential size: '+env.length+' bytes. The passenger code refreshes every '+m.p.ref+' s. The gate accepts a code up to '+maxAge(m.p.ref)+' s old.';
+ $('payloadView').textContent=m.p.bcbp;savePass(env,d);
+ $('issued').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+$('issue').onclick=async()=>{try{const f=formVals();if(!f.date)throw Error('Pick a date');if(f.from===f.to)throw Error('From and to are the same');$('fPnr').value=f.pnr;await showIssued(await sealPass(f))}catch(e){alert(e.message)}};
+$('mkWrong').onclick=async()=>{const f=formVals({no:String(+formVals().no+1),seat:'22C',pnr:randPnr()});await showIssued(await sealPass(f),'Valid pass for flight '+f.code+' '+f.no+'.')};
+$('mkForged').onclick=async()=>{const f=formVals();const r0=await sealPass(f);const env=r0.env;const txt=new TextDecoder().decode(env.slice(5,env.length-129));const orig=String(f.seat).toUpperCase().padStart(4,'0');const alt=txt.replace(f.cls+orig,f.cls+'001A');const body=new TextEncoder().encode(alt);const out=new Uint8Array(5+body.length+129);out.set(env.slice(0,5));out.set(body,5);out.set(env.slice(env.length-129),5+body.length);await showIssued({env:out,d:r0.d},'The seat was changed after signing, so the signature fails.')};
+$('mkStranger').onclick=async()=>{const k=await PrismSecure.generateSigningKey();await showIssued(await sealPass(formVals(),k),'Signed by a random key that no gate trusts.')};
+$('toPass').onclick=()=>go('pass');
+$('cpLink').onclick=async()=>{if(!issued)return;const u=location.href.split('#')[0]+'#p='+b64(issued.env)+'.'+issued.d;try{await navigator.clipboard.writeText(u);$('cpLink').textContent='Copied'}catch(e){prompt('Copy this link',u)}setTimeout(()=>$('cpLink').textContent='Copy pass link',1400)};
+$('dlCode').onclick=()=>{if(!issued)return;const {c}=codeCanvas(issued.env,12);const pad=document.createElement('canvas');pad.width=c.width+40;pad.height=c.height+40;const x=pad.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,pad.width,pad.height);x.drawImage(c,20,20);const a=document.createElement('a');a.href=pad.toDataURL('image/png');a.download='boarding-credential-'+issued.p.code+issued.p.no+'-'+issued.p.last+'.png';a.click()};
+/* ---- passenger ---- */
+function passes(){return LS.get('bpPasses',[])}
+const splitPass=s=>{const [e,d]=s.split('.');return {env:unb64(e),d}};
+function savePass(env,d){const t=b64(env)+'.'+d,l=passes().filter(x=>x!==t);l.unshift(t);LS.set('bpPasses',l.slice(0,8));LS.set('bpCur',t)}
+async function renderPassenger(){
+ const l=passes(),cur=LS.get('bpCur',l[0]);const pl=$('plist');pl.innerHTML='';stopLive();
+ if(!l.length){$('passHost').innerHTML='<div class="empty"><b>No boarding pass yet</b><br>Open a pass link or load a demo pass.</div>';$('pstatus').innerHTML='';$('pDel').hidden=true;return}
+ $('pDel').hidden=false;
+ for(const t of l){try{const {p}=await openEnv(splitPass(t).env);const b=document.createElement('button');b.textContent=p.code+' '+p.no+' '+p.from+'-'+p.to;if(t===cur)b.className='on';b.onclick=()=>{LS.set('bpCur',t);renderPassenger()};pl.appendChild(b)}catch(e){}}
+ try{const {env,d}=splitPass(cur);const m=await mountPass($('passHost'),env,false,d);
+  const on=navigator.onLine;$('pstatus').innerHTML='<div class="status'+(m.p.unverified?' bad':m.o.trusted?'':' warn')+'"><span>'+(m.p.unverified?'Signature invalid':m.o.trusted?'Valid pass. Checked on this device.':'Signature ok, signer unknown')+'</span><span>'+(on?'Online':'Offline, still works')+'</span></div>'}
+ catch(e){$('passHost').innerHTML='<div class="empty">This pass could not be read.</div>'}
+}
+window.addEventListener('online',()=>{if(cur==='pass')renderPassenger()});window.addEventListener('offline',()=>{if(cur==='pass')renderPassenger()});
+$('pDemo').onclick=async()=>{const f=formVals({pnr:randPnr()});const r=await sealPass(f);savePass(r.env,r.d);renderPassenger()};
+$('pDel').onclick=()=>{const c=LS.get('bpCur');LS.set('bpPasses',passes().filter(x=>x!==c));LS.set('bpCur',null);renderPassenger()};
+async function readFileToEnv(f){const bm=await createImageBitmap(f),c=document.createElement('canvas');c.width=bm.width;c.height=bm.height;c.getContext('2d').drawImage(bm,0,0);return Prism.readImage(c.getContext('2d').getImageData(0,0,c.width,c.height)).bytes}
+async function parsePayloadFromEnv(env){const {p}=await openEnv(env);if(!p)throw Error('bad')}
+/* ---- gate ---- */
+const gcfg=()=>({code:$('gCode').value.trim().toUpperCase(),no:String(parseInt($('gNo').value,10)||0),date:$('gDate').value});
+function boardedKey(){const g=gcfg();return 'bpBoarded:'+g.code+g.no+':'+g.date}
+function refreshGate(){const g=gcfg();$('gFlightTxt').textContent=g.code+' '+g.no;$('gSub').textContent=prettyDate(g.date)+', offline list';const b=LS.get(boardedKey(),{});$('gN').textContent=Object.keys(b).length;LS.set('bpGate',g)}
+async function drawTrust(){const l=await trusted();$('trustList').innerHTML=l.map((f,i)=>`<div style="font-size:14px;margin:4px 0"><span class="fp">${f}</span> ${i===0?'<span class="chip ok">Prism Air demo key</span>':''}</div>`).join('')}
+function showResult(kind,title,sub,p){
+ const ic=kind==='ok'?'&#10003;':'&#10005;';
+ $('gResult').innerHTML=`<div class="result ${kind}"><div class="big">${ic}</div><h3>${esc(title)}</h3><p>${esc(sub||'')}</p>${p?`<div class="who">${esc(p.last)}${p.first?'/'+esc(p.first):''}</div><div class="meta"><div><small>SEAT</small><b>${esc(p.seat)}</b></div><div><small>SEQ</small><b>${esc(p.seq)}</b></div><div><small>${esc(CLS[p.cls]||'')}</small><b>${esc(p.code)} ${esc(p.no)}</b></div></div>`:''}</div>`;
+ if(navigator.vibrate)navigator.vibrate(kind==='ok'?60:[80,60,80]);
+}
+function logScan(kind,text){const l=LS.get('bpLog',[]);l.unshift({k:kind,t:text,at:new Date().toTimeString().slice(0,8)});LS.set('bpLog',l.slice(0,12));drawLog()}
+function drawLog(){const l=LS.get('bpLog',[]);$('gLog').innerHTML=l.length?l.map(x=>`<div><span><span class="dot" style="background:${x.k==='ok'?'#1f9a4c':'#d7263d'}"></span>${esc(x.t)}</span><span>${x.at}</span></div>`).join(''):'<div>No scans yet</div>'}
+let lastGood=0;
+async function verifyAtGate(bytes,nowMs){
+ nowMs=nowMs??Date.now();
+ if(!(bytes.length>73&&bytes[0]===0x50&&bytes[1]===0x42&&bytes[2]===0x52&&bytes[3]===1)){showResult('bad','No live check','This is a static code. A boarding pass here must show the live, refreshing code.');logScan('bad','Static code refused');return}
+ const ts=((bytes[4]<<24)|(bytes[5]<<16)|(bytes[6]<<8)|bytes[7])>>>0,sig=bytes.slice(8,72),env=bytes.slice(72);
+ const o=await PrismSecure.open(env,{trustedFingerprints:await trusted()});
+ if(!o.secure||!o.signed){showResult('bad','Not accepted','This code is not a signed boarding pass.');logScan('bad','Unsigned code');return}
+ if(!o.signatureValid){showResult('bad','Forged or altered','The airline signature does not match. Send to the desk.');logScan('bad','Signature failed');return}
+ if(!o.trusted){showResult('bad','Unknown issuer','Signed, but not by an airline this gate trusts. Key '+o.signerFingerprint);logScan('bad','Unknown issuer '+o.signerFingerprint);return}
+ let p;try{p=parsePayload(new TextDecoder().decode(o.bytes))}catch(e){showResult('bad','Not accepted','Signed, but not a boarding pass.');logScan('bad','Bad content');return}
+ const who=p.last+(p.first?'/'+p.first:'');
+ let liveOk=false;try{const raw=unb64(p.K);const k=await crypto.subtle.importKey('raw',raw,{name:'ECDSA',namedCurve:'P-256'},false,['verify']);liveOk=await crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'},k,sig,catB(bytes.slice(4,8),env))}catch(e){}
+ if(!liveOk){showResult('bad','Live check failed','The code was not made by the passenger device that holds this pass.',p);logScan('bad','Live signature failed: '+who);return}
+ const age=Math.round(nowMs/1000-ts);
+ if(age>maxAge(p.ref)){showResult('bad','Code expired','This code is '+(age>=120?Math.round(age/60)+' min':age+' s')+' old. This pass allows '+maxAge(p.ref)+' s. A screenshot does not work. Ask the passenger to open the pass again.',p);logScan('bad','Expired code ('+age+'s): '+who);return}
+ if(age<-SKEW){showResult('bad','Code from the future','The phone clock is off by '+(-age)+' s. Ask the passenger to fix the time.',p);logScan('bad','Clock off: '+who);return}
+ const g=gcfg();
+ if(p.code!==g.code||p.no!==g.no||p.date!==g.date){showResult('bad','Wrong flight','Pass is for '+p.code+' '+p.no+', '+prettyDate(p.date)+'. This gate is '+g.code+' '+g.no+'.',p);logScan('bad','Wrong flight: '+who);return}
+ const b=LS.get(boardedKey(),{}),id=p.pnr+'-'+p.seq;
+ if(b[id]){showResult('bad','Already boarded','Scanned at '+b[id]+'.',p);logScan('bad','Already boarded: '+who);return}
+ b[id]=new Date().toTimeString().slice(0,5);LS.set(boardedKey(),b);refreshGate();
+ showResult('ok','Boarding OK','Signature valid, live code '+Math.max(0,age)+' s old (limit '+maxAge(p.ref)+' s).',p);logScan('ok','Boarded: '+who+' '+p.seat);
+}
+async function scanEnv(bytes,nowMs){try{await verifyAtGate(bytes,nowMs)}catch(e){showResult('bad','Could not read','The code is damaged or not a Prism code.')}}
+async function curPass(){const l=passes(),c=LS.get('bpCur',l[0]);return c?splitPass(c):null}
+$('gLatest').onclick=async()=>{const r=await curPass();if(!r){showResult('bad','No pass yet','Issue one on the Airline tab first.');return}scanEnv(await makeLive(r.env,r.d))};
+$('gOld').onclick=async()=>{const r=await curPass();if(!r){showResult('bad','No pass yet','Issue one on the Airline tab first.');return}scanEnv(await makeLive(r.env,r.d,Date.now()-1000),Date.now()+120000)};
+$('gImg').onclick=()=>$('gfile').click();
+$('gfile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{await scanEnv(await readFileToEnv(f))}catch(x){showResult('bad','Could not read','No Prism code found in that image.')}e.target.value=''};
+$('gReset').onclick=()=>{LS.set(boardedKey(),{});LS.set('bpLog',[]);refreshGate();drawLog();$('gResult').innerHTML=''};
+for(const id of['gCode','gNo','gDate'])$(id).addEventListener('change',refreshGate);
+/* camera */
+let stream=null,scanning=false;
+$('camBtn').onclick=async()=>{
+ if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;scanning=false;$('vid').hidden=true;$('camBtn').textContent='Start camera';return}
+ try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280}},audio:false});$('vid').srcObject=stream;$('vid').hidden=false;await $('vid').play();$('camBtn').textContent='Stop camera';scanning=true;loop()}catch(e){showResult('bad','Camera not available','Allow camera access, or open an image instead.')}};
+const cv=document.createElement('canvas');
+async function loop(){
+ while(scanning){const v=$('vid');
+  if(v.videoWidth&&performance.now()-lastGood>2500){const s=Math.min(1,960/v.videoWidth);cv.width=Math.round(v.videoWidth*s);cv.height=Math.round(v.videoHeight*s);const x=cv.getContext('2d',{willReadFrequently:true});x.drawImage(v,0,0,cv.width,cv.height);
+   try{const r=Prism.readImage(x.getImageData(0,0,cv.width,cv.height));if(r&&r.bytes){lastGood=performance.now();await scanEnv(r.bytes)}}catch(e){}}
+  await new Promise(r=>setTimeout(r,120));}}
+/* ---- tabs ---- */
+let cur='airline';
+const TABS=[['airline','vAirline','tAirline'],['pass','vPass','tPass'],['gate','vGate','tGate']];
+function go(v){cur=v;TABS.forEach(([k,id,t],i)=>{const el=$(id);const show=k===v;if(show&&el.hidden){el.hidden=false;el.style.animation='none';void el.offsetWidth;el.style.animation=''}else if(!show)el.hidden=true;$(t).classList.toggle('on',show);if(show)$('thumb').style.transform='translateX('+(i*100)+'%)'});
+ if(v!=='gate'&&stream){$('camBtn').onclick()}if(v!=='pass')stopLive();
+ if(v==='pass')renderPassenger();if(v==='gate'){refreshGate();drawLog()}
+ const h=v==='airline'?'':'#'+v;if(location.hash!==h&&!location.hash.startsWith('#p='))history.replaceState(null,'',location.pathname+location.search+h);window.scrollTo({top:0,behavior:'smooth'})}
+$('tAirline').onclick=()=>go('airline');$('tPass').onclick=()=>go('pass');$('tGate').onclick=()=>go('gate');
+async function init(){
+ demoFp=await PrismSecure.fingerprint(demoSigner.publicKey);fillAirports();$('fDate').value=tomorrow;$('fPnr').value=randPnr();
+ const g=LS.get('bpGate',null);$('gDate').value=(g&&g.date>=isoDate(new Date()))?g.date:tomorrow;if(g&&g.date>=isoDate(new Date())){$('gCode').value=g.code;$('gNo').value=g.no}
+ await drawTrust();drawLog();
+ const h=location.hash;
+ if(h.startsWith('#p=')){try{const [e,d]=h.slice(3).split('.');const env=unb64(e);await parsePayloadFromEnv(env);savePass(env,d);history.replaceState(null,'',location.pathname+location.search+'#pass');go('pass');return}catch(e){}}
+ go(h==='#pass'?'pass':h==='#gate'?'gate':'airline');
+}
+window.bpTest={makeBCBP,parsePayload,sealPass,verifyAtGate,openEnv,codeCanvas,formVals,demoSigner,scanEnv,go,makeLive,REFRESH,maxAge};
+init();
+</script><script src="prism-pwa.js"></script></body></html>
