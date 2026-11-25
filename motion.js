@@ -221,4 +221,33 @@ window.pcSetText=function(el,txt){
   },{passive:true});
 })();
 
+/* Never-blank safety net for scroll reveals (page .rv sections and .pc-sr).
+   IntersectionObserver can miss a section on a fast phone flick (it jumps past between
+   frames) or fire late while the main thread is busy; then the section stays at opacity 0.
+   Reveal anything whose top is above the viewport bottom, including sections already
+   scrolled past, on every scroll frame, touch event, load, and a slow timer. */
+(function(){
+  function sweep(){
+    var vh=window.innerHeight||document.documentElement.clientHeight,left=0;
+    var list=document.querySelectorAll('.rv:not(.on),.pc-sr:not(.pc-sr-in)');
+    for(var i=0;i<list.length;i++){
+      var el=list[i],r=el.getBoundingClientRect();
+      if(r.top<vh*0.95){
+        if(el.classList.contains('rv'))el.classList.add('on');
+        if(el.classList.contains('pc-sr'))el.classList.add('pc-sr-in');
+      }else left++;
+    }
+    return left;
+  }
+  var tick=false;
+  function soon(){if(tick)return;tick=true;requestAnimationFrame(function(){tick=false;sweep();});}
+  window.addEventListener('scroll',soon,{passive:true});
+  window.addEventListener('touchmove',soon,{passive:true});
+  window.addEventListener('touchend',soon,{passive:true});
+  window.addEventListener('resize',soon);
+  window.addEventListener('load',function(){sweep();setTimeout(sweep,600);});
+  /* slow timer covers missed events (a flick that ends with no further scroll event) */
+  setInterval(function(){if(!document.hidden)sweep();},500);
+  sweep();
+})();
 })();
