@@ -80,3 +80,50 @@ input[type=checkbox]:focus-visible{box-shadow:0 0 0 3px rgba(0,0,0,.18)}
   transition:filter .18s var(--cm-ease),background-color .18s var(--cm-ease),border-color .18s var(--cm-ease),transform .14s var(--cm-ease);
   cursor:pointer}
 input[type=file]:active::file-selector-button{transform:scale(.97);filter:brightness(.94)}
+
+/* 8. Page-specific button rules that replaced the transition property get it back in full,
+      so hovers and presses glide instead of snapping. */
+.controls button,main button,main .photo{
+  transition:background-color .18s var(--cm-ease),background .18s var(--cm-ease),color .18s var(--cm-ease),
+             border-color .18s var(--cm-ease),opacity .18s var(--cm-ease),filter .18s var(--cm-ease),
+             box-shadow .18s var(--cm-ease),transform .14s var(--cm-ease)}
+
+/* 9. Hover lift on real pointers: a 1px rise with a soft shadow, settling back into the press. */
+@media(hover:hover) and (pointer:fine){
+  button:not(:disabled):not([disabled]):hover,
+  .btn:not([disabled]):hover,
+  [role="button"]:hover,
+  a.scanpill:hover,
+  .rf-zone:hover{transform:translateY(-1px)}
+  button:not(:disabled):not([disabled]):hover:active,
+  .btn:not([disabled]):hover:active,
+  [role="button"]:hover:active,
+  a.scanpill:hover:active{transform:translateY(0) scale(.97)}
+}
+
+/* 10. Expert-mode checkbox becomes a switch: the knob slides with the spring curve. */
+.expertSwitch input[type=checkbox]{
+  width:44px;height:26px;min-width:44px;min-height:26px;
+  border:0;border-radius:999px;background:#d8d3d5;vertical-align:middle}
+.expertSwitch input[type=checkbox]::after{
+  left:3px;top:50%;width:20px;height:20px;border:0;border-radius:50%;
+  background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.28);
+  transform:translate(0,-50%);
+  transition:transform .22s var(--cm-spring)}
+.expertSwitch input[type=checkbox]:checked{background:#2E5BFF;animation:none}
+.expertSwitch input[type=checkbox]:checked::after{transform:translate(18px,-50%)}
+.expertSwitch input[type=checkbox]:not(:disabled):active::after{width:23px}
+
+/* 11. Controls rise into place when a page loads: 6px fade-up, 40ms stagger, once. */
+@media(prefers-reduced-motion:no-preference){
+  @keyframes cm-rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .actions>*,.bigActions>*,.controls>button{animation:cm-rise .3s var(--cm-ease) both}
+  .actions>*:nth-child(2),.bigActions>*:nth-child(2),.controls>button:nth-child(2){animation-delay:.04s}
+  .actions>*:nth-child(3),.bigActions>*:nth-child(3),.controls>button:nth-child(3){animation-delay:.08s}
+  .actions>*:nth-child(4),.bigActions>*:nth-child(4),.controls>button:nth-child(4){animation-delay:.12s}
+  .actions>*:nth-child(n+5),.bigActions>*:nth-child(n+5),.controls>button:nth-child(n+5){animation-delay:.16s}
+}
+
+/* 12. Page-to-page moves cross-fade on browsers that support it (Chrome/Android). */
+@view-transition{navigation:auto}
+@media(prefers-reduced-motion:reduce){@view-transition{navigation:none}}
