@@ -40,6 +40,8 @@ a:hover{text-decoration-thickness:2px;text-underline-offset:3px}
 
 /* Tiny phones (<=380px): nav links size to their text so labels never overlap */
 @media(max-width:380px){.sitebar .sl a{min-width:0}}
+@media(max-width:340px){.sitebar .sl a{padding-left:3px;padding-right:3px;font-size:11.5px}}
+
 
 /* Hover/focus polish: pointer devices only (no sticky hover on touch), shared easing with the motion layer. */
 @media (hover:hover) and (pointer:fine){
