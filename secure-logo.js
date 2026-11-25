@@ -188,7 +188,21 @@ window.PrismSecureLogo = (function () {
         var textCol = split.children[0];
         if (textCol && textCol !== col) {
           textCol.style.position = "sticky";
-          textCol.style.top = "18vh";
+          textCol.style.zIndex = "2";
+          var stacked = textCol.getBoundingClientRect().width >= col.getBoundingClientRect().width - 1;
+          if (stacked) {
+            // phone layout: pin the text below the site bar and park the logo at
+            // the bottom of the frame so it clears the heading, paragraph and link
+            var bar = document.querySelector(".sitebar");
+            var topPad = Math.round(((bar && bar.offsetHeight) || 64) + 10);
+            textCol.style.top = topPad + "px";
+            pin.style.boxSizing = "border-box";
+            // center the logo in the space left below the pinned text
+            var pad = Math.min(topPad + textCol.offsetHeight + 24, Math.round(window.innerHeight * 0.45));
+            pin.style.paddingTop = pad + "px";
+          } else {
+            textCol.style.top = "18vh";
+          }
         }
       }
 
