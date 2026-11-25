@@ -219,7 +219,7 @@ function setup(nav){
   nav.insertBefore(p,nav.firstChild);
   nav.addEventListener('keydown',function(e){
     var k=e.key;if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].indexOf(k)<0)return;
-    var t=[].slice.call(nav.querySelectorAll('[role="tab"]')).filter(function(x){return !x.disabled&&!x.hidden});
+    var t=[].slice.call(nav.querySelectorAll('[role="tab"]')).filter(function(x){return !x.disabled&&!x.hidden&&x.offsetParent!==null});
     var i=t.indexOf(document.activeElement);if(i<0)return;
     var n=k==='Home'?0:k==='End'?t.length-1:(k==='ArrowLeft'||k==='ArrowUp')?(i-1+t.length)%t.length:(i+1)%t.length;
     e.preventDefault();t[n].focus();t[n].click();

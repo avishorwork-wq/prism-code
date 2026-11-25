@@ -137,3 +137,6 @@ body .pcform input,body .pcform select{min-height:44px}
 .pp-card.pp-dark .pp-body button{transition:color .18s var(--cm-ease),background-color .18s var(--cm-ease),border-color .18s var(--cm-ease),opacity .18s var(--cm-ease),filter .18s var(--cm-ease),box-shadow .18s var(--cm-ease),transform .14s var(--cm-ease)}
 
 .plan a{display:inline-flex;align-items:center;min-height:44px;touch-action:manipulation}
+.toc a,.ds table td a,header > a,.split a.more,p > a[href$=".json"]:only-child{display:inline-flex;align-items:center;min-height:44px}
+input[type=file]{min-height:44px}
+@media(hover:hover) and (pointer:fine){.split a.more:hover{text-decoration:underline;text-underline-offset:3px}}

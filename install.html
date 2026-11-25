@@ -38,7 +38,7 @@ small{color:var(--muted)}#msg{min-height:22px;margin-top:12px;color:var(--muted)
 let dp;const b=document.getElementById('install'),m=document.getElementById('msg');
 const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
 addEventListener('beforeinstallprompt',e=>{e.preventDefault();if(standalone)return;dp=e;b.hidden=false});
-b.onclick=async()=>{if(!dp)return;dp.prompt();const r=await dp.userChoice;m.textContent=r.outcome==='accepted'?'Installed.':'Not installed.';dp=null;b.hidden=true};
+b.onclick=async()=>{if(!dp)return;try{dp.prompt();const r=await dp.userChoice;m.textContent=r.outcome==='accepted'?'Installed.':'No problem, you can install any time.'}catch(e){m.textContent='No problem, you can install any time.'}dp=null;b.hidden=true};
 addEventListener('appinstalled',()=>{m.textContent='Installed. Open Prism from your home screen.';installed()});
 // Standalone = already installed (Android/desktop PWA or iOS home-screen app): swap instructions for a done state.
 function installed(){
