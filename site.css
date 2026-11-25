@@ -66,3 +66,9 @@ nav[role=tablist].seg-on>.segpill{position:absolute;top:0;left:0;border-radius:v
 [role="tabpanel"]:not([hidden]),details>:not(summary){animation-timing-function:cubic-bezier(0,0,.2,1)}
 .meter i{transition:background-color .3s cubic-bezier(.4,0,.2,1)}
 .status,.capacity{transition:color .3s cubic-bezier(.4,0,.2,1)}
+
+/* Motion layer batch 2: page entrance + scroll reveals */
+@keyframes pcpage{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+body{animation:pcpage .28s cubic-bezier(0,0,.2,1) both}
+.pc-sr{opacity:0;transform:translateY(12px);transition:opacity .45s cubic-bezier(0,0,.2,1),transform .45s cubic-bezier(0,0,.2,1)}
+.pc-sr-in{opacity:1;transform:none}

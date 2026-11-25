@@ -142,4 +142,66 @@ window.pcSetText=function(el,txt){
     el.animate([{opacity:'0'},{opacity:'1'}],{duration:150,easing:ENT});
   };
 };
+
+/* ---- Batch 2 additions ---- */
+
+/* Smooth progress bars: tween value changes instead of jumping (interruptible). */
+(function(){
+  var desc=Object.getOwnPropertyDescriptor(HTMLProgressElement.prototype,'value');
+  if(!desc||!desc.set)return;
+  function smooth(p){
+    if(p.__smoothed)return;p.__smoothed=1;
+    var cur=parseFloat(p.value)||0,raf=null;
+    Object.defineProperty(p,'value',{
+      configurable:true,
+      get:function(){return desc.get.call(p);},
+      set:function(v){
+        var t=parseFloat(v)||0;
+        if(rm()){cur=t;desc.set.call(p,t);return;}
+        if(raf)cancelAnimationFrame(raf);
+        var from=cur,t0=performance.now(),dur=180;
+        raf=requestAnimationFrame(function step(now){
+          var k=Math.min(1,(now-t0)/dur);
+          var e=1-Math.pow(1-k,3); /* easeOutCubic: fast response, soft landing */
+          cur=from+(t-from)*e;
+          desc.set.call(p,cur);
+          if(k<1)raf=requestAnimationFrame(step);
+        });
+      }
+    });
+  }
+  document.querySelectorAll('progress').forEach(smooth);
+})();
+
+/* Staggered entrances for batched result rows. */
+(function(){
+  function stagger(c){
+    if(c.__staggerWatched)return;c.__staggerWatched=1;
+    new MutationObserver(function(recs){
+      if(rm())return;
+      var added=[];
+      for(var i=0;i<recs.length;i++){
+        var n=recs[i].addedNodes;
+        for(var j=0;j<n.length;j++)if(n[j].nodeType===1)added.push(n[j]);
+      }
+      added.forEach(function(el,i){el.style.animationDelay=Math.min(i,6)*45+'ms';});
+    }).observe(c,{childList:true});
+  }
+  var t=document.getElementById('testResults');if(t)stagger(t);
+})();
+
+/* Scroll reveals: below-fold sections fade/rise in on first approach. */
+(function(){
+  if(rm())return;
+  var io;
+  try{io=new IntersectionObserver(function(en){
+    en.forEach(function(x){if(x.isIntersecting){x.target.classList.add('pc-sr-in');io.unobserve(x.target);}});
+  },{rootMargin:'0px 0px -8% 0px'});}catch(e){return;}
+  var els=document.querySelectorAll('main section, body>section');
+  for(var i=0;i<els.length;i++){
+    var r=els[i].getBoundingClientRect();
+    if(r.top>window.innerHeight*0.92){els[i].classList.add('pc-sr');io.observe(els[i]);}
+  }
+})();
+
 })();
