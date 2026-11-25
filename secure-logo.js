@@ -152,7 +152,7 @@ window.PrismSecureLogo = (function () {
 
       var k = Math.floor(t * 18), i, ch, unsetAt, c0, m;
       for (i = 0; i < letters.length; i++) {
-        unsetAt = T_SCRAMBLE0 + i * T_UNSET_STAG;
+        unsetAt = T_SCRAMBLE0; // all letters scramble together: no half-word frames
         c0 = T_COLLAPSE0 + i * T_COLL_STAG;
         if (t < unsetAt) { drawLetter(i, WORD[i], 1, 0); continue; }
         if (t >= c0 + T_COLLAPSE) { drawLetter(i, WORD[i], 0, 1); continue; }
@@ -197,8 +197,9 @@ window.PrismSecureLogo = (function () {
       var mqPhone = window.matchMedia ? window.matchMedia("(max-width: 760px)") : { matches: false, addEventListener: null };
       var stackedOn = false, origParent = null, origNext = null;
       var PAD = 40, GAP = 48, LOGO_MIN_H = 56;
+      var pinTopT = 0; // where the stage sits when engaged (updated by relayout)
       function relayout() {
-        if (!hasSplit || !textCol || !svg) return;
+        if (!hasSplit || !textCol || !svg || playing) return;
         var bar = document.querySelector(".sitebar");
         var barH = Math.round((bar && bar.offsetHeight) || 64);
         var vh = window.innerHeight || 700;
@@ -233,7 +234,8 @@ window.PrismSecureLogo = (function () {
             container.style.maxWidth = logoH < natLogoH ? Math.round(logoH * 1060 / 600) + "px" : "";
             pinH = textH + logoH + GAP + 2 * PAD;
           }
-          pin.style.top = Math.max(barH + 8, Math.round((vh - pinH) / 2)) + "px";
+          pinTopT = Math.max(barH + 8, Math.round((vh - pinH) / 2));
+          pin.style.top = pinTopT + "px";
           track.style.height = (pinH + Math.round(vh * 0.7)) + "px";
         } else {
           if (stackedOn && origParent) { origParent.insertBefore(textCol, origNext); stackedOn = false; }
@@ -242,6 +244,7 @@ window.PrismSecureLogo = (function () {
           container.style.maxWidth = "";
           track.style.cssText = TRACK_BASE;
           if (textCol) { textCol.style.position = "sticky"; textCol.style.top = "18vh"; textCol.style.zIndex = "2"; textCol.style.maxWidth = ""; }
+          pinTopT = 0;
         }
         measure();
       }
@@ -305,10 +308,40 @@ window.PrismSecureLogo = (function () {
 
       // y = where the user is now. We ALWAYS pin the logo on screen first (clamp into the
       // track), so a fast flick that overshoots the pin can't play it off-screen.
+      var neutralized = [];
+      function fixStage() {
+        // position:fixed survives what breaks sticky on Android Chrome during the
+        // scroll lock (root overflow:hidden + visual-viewport panning): the stage
+        // must not move a pixel while playing. An ancestor transform/filter makes
+        // fixed behave like absolute, so neutralize those while playing too (the
+        // section's reveal transition ends at transform:none anyway).
+        neutralized = [];
+        for (var n = pin.parentElement; n && n !== document.body; n = n.parentElement) {
+          var cs = getComputedStyle(n);
+          if (cs.transform !== "none" || cs.filter !== "none" || cs.perspective !== "none" || cs.willChange === "transform") {
+            neutralized.push([n, { t: n.style.transform, tr: n.style.transition, w: n.style.willChange, f: n.style.filter }]);
+            n.style.transition = "none"; n.style.transform = "none"; n.style.willChange = "auto"; n.style.filter = "none";
+          }
+        }
+        var r = track.getBoundingClientRect();
+        pin.style.position = "fixed";
+        pin.style.left = r.left + "px";
+        pin.style.width = r.width + "px";
+        pin.style.top = pinTopT + "px";
+        pin.style.margin = "0";
+      }
+      function unfixStage() {
+        for (var i = 0; i < neutralized.length; i++) {
+          var n = neutralized[i][0], s = neutralized[i][1];
+          n.style.transform = s.t; n.style.transition = s.tr; n.style.willChange = s.w; n.style.filter = s.f;
+        }
+        neutralized = [];
+      }
       function start(d, y) {
         measure();
         lockY = clamp(y, trackTop, trackBot);
         if (Math.abs(curY() - lockY) > 0.5) jumpTo(lockY);
+        fixStage();
         dir = d; playing = true;
         block();
         renderOnce(d === 1 ? 0 : 1);
@@ -337,7 +370,9 @@ window.PrismSecureLogo = (function () {
         settled = dir === 1 ? 1 : 0;
         renderOnce(settled);
         unblock();
+        unfixStage();
         if (Math.abs(curY() - lockY) > 0.5) jumpTo(lockY);
+        relayout(); // restores sticky positioning (relayout no-ops while playing)
         prevY = lockY;
       }
 
