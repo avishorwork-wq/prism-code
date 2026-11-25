@@ -318,7 +318,117 @@ PrismRetry.crplain=function(img){const w=img.width,h=img.height,d=img.data;
   o[p]=r;o[p+1]=g;o[p+2]=b;o[p+3]=255;}
  return new ImageData(o,w,h);};
 
-const AsyncPrismReader={read:async(img,o)=>{try{return await roiRead(img,o)}catch(e){if((o&&o.fusion)||/stopped|already/i.test(e.message||''))throw e;const sb=document.getElementById('scanStatus');try{for(const nm of ['liftdn','crplain','zoom','zoomauto','zooman']){if(sb){sb.textContent='Taking a closer look\u2026';sb.classList.add('working')}await new Promise(r=>{let d=false;const f=()=>{if(!d){d=true;r()}};requestAnimationFrame(()=>setTimeout(f,0));setTimeout(f,80)});let im2=null;try{im2=PrismRetry[nm](img)}catch(x){}if(!im2)continue;try{return await roiRead(im2,o)}catch(e2){}}}finally{if(sb)sb.classList.remove('working')}try{e.message='Try a clearer photo.'}catch(_){}throw e}},reset:PrismBoundedWorker.stop};
+window.__pres=PrismRetry;
+/* Candidate retry transforms v2 (blur/motion/jpeg/phone lane).
+   Load after prepasses.js. Retry-only: run after attempt 1 + shipped 5-chain fail.
+   Budget-aware: a shared wall-clock cap (default 8000ms) spans these transforms per image;
+   once exceeded, remaining transforms return null (skipped). Order the chain cheap-first:
+   gs3a2, deblkS, zoomw, lr2, ml45, ml0, ml90, ml135. */
+(function(){
+const CAP=8000;
+let lastImg=null,t0=0;
+function budget(img){if(img!==lastImg){lastImg=img;t0=performance.now();}
+ return performance.now()-t0<CAP;}
+function gk(sig){const r=Math.min(16,Math.ceil(sig*3));const k=new Float32Array(2*r+1);let s=0;
+ for(let i=-r;i<=r;i++){const v=Math.exp(-i*i/(2*sig*sig));k[i+r]=v;s+=v;}
+ for(let i=0;i<k.length;i++)k[i]/=s;return {k,r};}
+function cv1(src,W,H,k,r,horiz){const out=new Float32Array(src.length);
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){const b=(y*W+x)*3;let a0=0,a1=0,a2=0;
+  for(let i=-r;i<=r;i++){const xx=horiz?Math.min(W-1,Math.max(0,x+i)):x;const yy=horiz?y:Math.min(H-1,Math.max(0,y+i));
+   const w=k[i+r],p=(yy*W+xx)*3;a0+=src[p]*w;a1+=src[p+1]*w;a2+=src[p+2]*w;}
+  out[b]=a0;out[b+1]=a1;out[b+2]=a2;}
+ return out;}
+function gconv(src,W,H,sig){const {k,r}=gk(sig);return cv1(cv1(src,W,H,k,r,true),W,H,k,r,false);}
+function toF(img){const d=img.data,N=img.width*img.height,f=new Float32Array(N*3);
+ for(let i=0,j=0;i<d.length;i+=4,j+=3){f[j]=d[i];f[j+1]=d[i+1];f[j+2]=d[i+2];}return f;}
+function toImg(f,W,H){const o=new Uint8ClampedArray(W*H*4);
+ for(let j=0,i=0;j<f.length;j+=3,i+=4){o[i]=f[j]<0?0:f[j]>255?255:f[j];o[i+1]=f[j+1]<0?0:f[j+1]>255?255:f[j+1];o[i+2]=f[j+2]<0?0:f[j+2]>255?255:f[j+2];o[i+3]=255;}
+ return new ImageData(o,W,H);}
+function unsharpG(img,sig,amt){const W=img.width,H=img.height,f=toF(img),bl=gconv(f,W,H,sig);
+ for(let i=0;i<f.length;i++)f[i]+=amt*(f[i]-bl[i]);return toImg(f,W,H);}
+/* saliency bbox (PrismRoi-style) so heavy deconvolution runs on the code region only */
+function saliencyCrop(img,marginFrac){const W=img.width,H=img.height,d=img.data;
+ const g=Math.max(1,Math.floor(Math.max(W,H)/200)),gw=Math.ceil(W/g),gh=Math.ceil(H/g);
+ const px=[];for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){const i=((y*g)*W+x*g)*4;px.push([d[i],d[i+1],d[i+2]]);}
+ const med=c=>{const a=px.map(p=>p[c]).sort((a,b)=>a-b);return a[a.length>>1];};
+ const m=[med(0),med(1),med(2)];
+ const out=new Uint8Array(gw*gh);
+ for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){const p=px[y*gw+x];
+  if(Math.abs(p[0]-m[0])+Math.abs(p[1]-m[1])+Math.abs(p[2]-m[2])>90)out[y*gw+x]=1;}
+ const den=new Uint8Array(gw*gh);
+ for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){if(!out[y*gw+x])continue;let n=0;
+  for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const yy=y+dy,xx=x+dx;
+   if(yy>=0&&yy<gh&&xx>=0&&xx<gw&&out[yy*gw+xx])n++;}
+  if(n>=3)den[y*gw+x]=1;}
+ const lab=new Int32Array(gw*gh).fill(-1);let sizes=[];
+ for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){if(!den[y*gw+x]||lab[y*gw+x]>=0)continue;
+  const id=sizes.length;let sz=0;const st=[[x,y]];lab[y*gw+x]=id;
+  while(st.length){const [cx,cy]=st.pop();sz++;
+   for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const xx=cx+dx,yy=cy+dy;
+    if(xx>=0&&xx<gw&&yy>=0&&yy<gh&&den[yy*gw+xx]&&lab[yy*gw+xx]<0){lab[yy*gw+xx]=id;st.push([xx,yy]);}}}
+  sizes.push(sz);}
+ if(!sizes.length)return null;
+ let best=0;for(let i=1;i<sizes.length;i++)if(sizes[i]>sizes[best])best=i;
+ if(sizes[best]<16)return null;
+ let x0=gw,x1=0,y0=gh,y1=0;
+ for(let y=0;y<gh;y++)for(let x=0;x<gw;x++)if(lab[y*gw+x]===best){
+  if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}
+ let w=(x1-x0+1)*g,h=(y1-y0+1)*g;
+ const mg=Math.round(Math.max(w,h)*marginFrac);
+ let cx=(x0*g+w/2),cy=(y0*g+h/2),s=Math.max(w,h)+2*mg;
+ let sx=Math.max(0,Math.round(cx-s/2)),sy=Math.max(0,Math.round(cy-s/2));
+ let ex=Math.min(W,Math.round(cx+s/2)),ey=Math.min(H,Math.round(cy+s/2));
+ if((ex-sx)*(ey-sy)>0.6*W*H)return null;
+ const cw=ex-sx,ch=ey-sy,o=new Uint8ClampedArray(cw*ch*4);
+ for(let y=0;y<ch;y++){const si=((sy+y)*W+sx)*4;o.set(img.data.subarray(si,si+cw*4),y*cw*4);}
+ return new ImageData(o,cw,ch);}
+function lrG(img,sig,iters){const W=img.width,H=img.height,y=toF(img);let est=Float32Array.from(y);
+ const {k,r}=gk(sig);const blur=e=>cv1(cv1(e,W,H,k,r,true),W,H,k,r,false);
+ for(let it=0;it<iters;it++){const c=blur(est);const ratio=new Float32Array(y.length);
+  for(let i=0;i<y.length;i++)ratio[i]=y[i]/Math.max(8,c[i]);
+  const cr=blur(ratio);for(let i=0;i<est.length;i++)est[i]=Math.max(0,Math.min(255,est[i]*cr[i]));}
+ return toImg(est,W,H);}
+function lrLine(img,L,angDeg,iters){const W=img.width,H=img.height,y=toF(img);
+ const a=angDeg*Math.PI/180,dx=Math.cos(a),dy=Math.sin(a),offs=[];
+ for(let t=-(L-1)/2;t<=(L-1)/2;t++){const ox=Math.round(dx*t),oy=Math.round(dy*t);
+  if(!offs.some(o=>o[0]===ox&&o[1]===oy))offs.push([ox,oy]);}
+ const kw=1/offs.length;
+ const conv=e=>{const o=new Float32Array(e.length);
+  for(let yy=0;yy<H;yy++)for(let xx=0;xx<W;xx++){let a0=0,a1=0,a2=0;
+   for(const [ox,oy] of offs){const x2=Math.min(W-1,Math.max(0,xx+ox)),y2=Math.min(H-1,Math.max(0,yy+oy));const p=(y2*W+x2)*3;a0+=e[p];a1+=e[p+1];a2+=e[p+2];}
+   const b=(yy*W+xx)*3;o[b]=a0*kw;o[b+1]=a1*kw;o[b+2]=a2*kw;}
+  return o;};
+ let est=Float32Array.from(y);
+ for(let it=0;it<iters;it++){const c=conv(est),ratio=new Float32Array(y.length);
+  for(let i=0;i<y.length;i++)ratio[i]=y[i]/Math.max(8,c[i]);
+  const cr=conv(ratio);for(let i=0;i<est.length;i++)est[i]=Math.max(0,Math.min(255,est[i]*cr[i]));}
+ return toImg(est,W,H);}
+/* gaussian unsharp sigma 3 amount 2: blur 2-3, some motion. ~40ms at 640x640. */
+window.__pres.gs3a2=img=>budget(img)?unsharpG(img,3,2):null;
+/* light deblock + sharpen: jpeg level 2. ~130ms. */
+window.__pres.deblkS=img=>budget(img)?unsharpG(img,1.2,1.5):null;
+/* center crop 0.6 then 2.5x zoom (canvas smooth): phone level 2 (t150). ~60ms. */
+window.__pres.zoomw=img=>{if(!budget(img))return null;const w=img.width,h=img.height;
+ const s=Math.round(Math.min(w,h)*0.6);
+ const x0=Math.round((w-s)/2),y0=Math.round((h-s)/2);
+ const S=Math.round(s*2.5);
+ const c=document.createElement('canvas');c.width=w;c.height=h;
+ const cx=c.getContext('2d');cx.putImageData(img,0,0);
+ const c2=document.createElement('canvas');c2.width=S;c2.height=S;
+ const cx2=c2.getContext('2d');cx2.imageSmoothingEnabled=true;cx2.imageSmoothingQuality='high';
+ cx2.drawImage(c,x0,y0,s,s,0,0,S,S);
+ return cx2.getImageData(0,0,S,S);};
+/* Lucy-Richardson gaussian sigma 2 x6 on the saliency crop: phone level 1 (t400). ~0.5-1.5s. */
+window.__pres.lr2=img=>{if(!budget(img))return null;const c=saliencyCrop(img,.15)||img;return lrG(c,2,6);};
+/* Lucy-Richardson motion-line kernels len 19 x8 on the saliency crop, 4 angles. ~0.3-1s each. */
+function ml(img,ang){if(!budget(img))return null;const c=saliencyCrop(img,.15)||img;return lrLine(c,19,ang,8);}
+window.__pres.ml45=img=>ml(img,45);
+window.__pres.ml0=img=>ml(img,0);
+window.__pres.ml90=img=>ml(img,90);
+window.__pres.ml135=img=>ml(img,135);
+})();
+
+const AsyncPrismReader={read:async(img,o)=>{try{return await roiRead(img,o)}catch(e){if((o&&o.fusion)||/stopped|already/i.test(e.message||''))throw e;const sb=document.getElementById('scanStatus');try{const chain=['liftdn','crplain','zoom','zoomauto','zooman','gs3a2','deblkS','zoomw','lr2','ml45','ml0','ml90','ml135'];let step=0;for(const nm of chain){step++;if(sb){sb.textContent=step<6?'Taking a closer look\u2026':'Still looking closely\u2026 step '+step+' of '+chain.length;sb.classList.add('working')}await new Promise(r=>{let d=false;const f=()=>{if(!d){d=true;r()}};requestAnimationFrame(()=>setTimeout(f,0));setTimeout(f,80)});let im2=null;try{im2=PrismRetry[nm](img)}catch(x){}if(!im2)continue;try{return await roiRead(im2,o)}catch(e2){}}}finally{if(sb)sb.classList.remove('working')}try{e.message='Try a clearer photo.'}catch(_){}throw e}},reset:PrismBoundedWorker.stop};
 const PrismTraceView=(()=>{
 function mount(host){let root=document.createElement('section');root.className='prismTrace';root.hidden=true;root.innerHTML=`<h3>Scan, step by step</h3><p class="traceSummary"></p><label class="traceToggle"><input type="checkbox" class="traceAll"> Show candidate and ECC attempts</label><label>Stage <select class="traceSelect" aria-label="Debug stage"></select></label><div class="traceNav"><button type="button" class="tracePrev">Previous</button><span class="traceIndex"></span><button type="button" class="traceNext">Next</button></div><div class="traceFrame"><canvas class="traceCanvas" aria-label="Selected decoder stage image"></canvas></div><p class="traceCaption"></p><pre class="traceData"></pre><button type="button" class="traceDownload">Save trace JSON</button><p class="traceNote"></p>`;host.append(root);let trace=null,indices=[],pos=0,sourceImage=0,selectedCells=null;const $=q=>root.querySelector(q),canvas=$('.traceCanvas'),ctx=canvas.getContext('2d');function candidates(e){return /hypothesis$|RS erasure ladder|RS block corrected|ECC or CRC rejected/.test(e.name);}
 function refill(){let selected=indices[pos];indices=trace.events.map((e,i)=>i).filter(i=>$('.traceAll').checked||!candidates(trace.events[i]));$('.traceSelect').replaceChildren(...indices.map(i=>{let e=trace.events[i],o=document.createElement('option');o.value=i;o.textContent=`${i+1}. ${e.name} · ${e.state==='fail'?'FAIL · ':e.state==='pass'?'PASS · ':''}${Math.round(e.at)} ms`;return o;}));pos=Math.max(0,indices.indexOf(selected));render();}
