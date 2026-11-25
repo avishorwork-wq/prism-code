@@ -29,6 +29,6 @@ label{font-size:13px;font-weight:600;color:var(--ink)}
 .result{border:1px solid var(--line);border-radius:16px;background:#fff;font-size:16px}
 details{font-size:13px;color:var(--muted)}
 summary{cursor:pointer;min-height:44px;display:flex;align-items:center}
-footer{color:#86868b;font-size:12px;border-top:1px solid var(--line)}
+footer{color:#6e6e73;font-size:12px;border-top:1px solid var(--line)}
 footer a{color:#2E5BFF;text-decoration:none}
 .capacity{color:#1d7a3a;font-size:13px;font-weight:600}
