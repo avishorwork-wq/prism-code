@@ -61,3 +61,7 @@ tbody tr:hover{background:rgba(46,91,255,.05)}
 @media (prefers-reduced-motion:reduce){
 .sitebar .sl a,.sitebar .brand img,.scanpill,.btn,.tabs button,tbody tr{transition:none!important}
 }
+
+/* Tap targets: footer, credit and docs-nav links reach 44px without shifting layout (padding in, negative margin out). */
+footer a, .pcredit a, .sitefoot a{padding-top:13px;padding-bottom:13px;margin-top:-13px;margin-bottom:-13px}
+.toc a{display:inline-flex;align-items:center;min-height:44px;box-sizing:border-box}
