@@ -74,7 +74,7 @@ details ul{padding-left:20px;color:var(--muted);font-size:14px;margin:6px 0 12px
 <div class="step"><h2><span class="num">2</span>How should it be protected?</h2>
 <label class="opt on" id="optLock"><input type="checkbox" id="dolock" checked><div><b>Lock with a password</b><span>Nobody can read it without the password.</span></div></label>
 <div id="pwbox">
-<div class="row"><input type="text" id="pw" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Password"><button class="btn alt small" id="genpw" type="button">Random</button></div>
+<div class="row"><input type="text" id="pw" aria-label="Password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Password"><button class="btn alt small" id="genpw" type="button">Random</button></div>
 <div class="meter" id="bars"><i></i><i></i><i></i><i></i></div><div id="meter"><span class="mtext"></span></div>
 <div class="hint">Random makes a 140-bit password. Anyone with a photo of the code can try to guess the password, so a weak one is easy to break.</div></div>
 <label class="opt" id="optSign" style="margin-top:12px"><input type="checkbox" id="dosign"><div><b>Sign it as me</b><span>Proves the code is unchanged and made with your key. Optional.</span></div></label>
@@ -93,7 +93,7 @@ details ul{padding-left:20px;color:var(--muted);font-size:14px;margin:6px 0 12px
 <div class="actions" style="justify-content:flex-start;margin:0"><button class="btn small" id="pick" type="button">Choose an image</button><button class="btn alt small" id="scan" type="button">Use the code I just made</button></div>
 <input type="file" id="codefile" accept="image/*" hidden><div class="hint" id="picked">Pick a photo or screenshot of a Prism code. For live camera scanning, the Prism scanner comes next.</div></div>
 <div class="step"><h2><span class="num">2</span>Password</h2>
-<input type="text" id="pw2" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Password (if the code is locked)"></div>
+<input type="text" id="pw2" aria-label="Password (if the code is locked)" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Password (if the code is locked)"></div>
 <div class="step"><h2><span class="num">3</span>Result</h2><div id="out"><div class="hint">Pick a code above.</div></div></div>
 </section>
 
