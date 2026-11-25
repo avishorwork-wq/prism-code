@@ -122,7 +122,7 @@ video{width:100%;border-radius:16px;background:#111;max-height:320px;object-fit:
 <div><label for="fSeq">Sequence</label><input id="fSeq" value="42" inputmode="numeric" maxlength="4"></div>
 <div><label for="fPnr">Booking ref</label><input id="fPnr" maxlength="6"></div>
 </div>
-<div class="row" style="margin-top:14px"><button class="btn big blue" id="issue">Issue signed pass</button></div>
+<div class="row" style="margin-top:14px"><button class="btn big blue" id="issue">Issue signed pass</button></div><p id="issueMsg" role="status" aria-live="polite" style="margin:10px 0 0;font-size:14px;color:#585254" hidden></p>
 <div class="hint">Signed with the demo airline key. The key is built into this demo page, so anyone can sign with it. A real airline keeps its private key on its own server.</div>
 </div>
 <div class="card appear" id="issued" hidden><h2>Issued</h2><div id="issuedPass"></div>
@@ -509,7 +509,7 @@ async function showIssued(r,note){
  $('payloadView').textContent=m.p.bcbp;savePass(env,d);
  $('issued').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
-$('issue').onclick=async()=>{try{const f=formVals();if(!f.date)throw Error('Pick a date');if(f.from===f.to)throw Error('From and to are the same');$('fPnr').value=f.pnr;await showIssued(await sealPass(f))}catch(e){alert(e.message)}};
+$('issue').onclick=async()=>{const im=$('issueMsg');im.hidden=true;try{const f=formVals();if(!f.date)throw Error('Choose a date to continue.');if(f.from===f.to)throw Error('Choose two different airports for From and To.');$('fPnr').value=f.pnr;await showIssued(await sealPass(f))}catch(e){im.textContent=e.message;im.hidden=false}};
 $('mkWrong').onclick=async()=>{const f=formVals({no:String(+formVals().no+1),seat:'22C',pnr:randPnr()});await showIssued(await sealPass(f),'Valid pass for flight '+f.code+' '+f.no+'.')};
 $('mkForged').onclick=async()=>{const f=formVals();const r0=await sealPass(f);const env=r0.env;const txt=new TextDecoder().decode(env.slice(5,env.length-129));const orig=String(f.seat).toUpperCase().padStart(4,'0');const alt=txt.replace(f.cls+orig,f.cls+'001A');const body=new TextEncoder().encode(alt);const out=new Uint8Array(5+body.length+129);out.set(env.slice(0,5));out.set(body,5);out.set(env.slice(env.length-129),5+body.length);await showIssued({env:out,d:r0.d},'The seat was changed after signing, so the signature fails.')};
 $('mkStranger').onclick=async()=>{const k=await PrismSecure.generateSigningKey();await showIssued(await sealPass(formVals(),k),'Signed by a random key that no gate trusts.')};
