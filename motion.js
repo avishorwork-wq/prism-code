@@ -198,10 +198,23 @@ window.pcSetText=function(el,txt){
     en.forEach(function(x){if(x.isIntersecting){x.target.classList.add('pc-sr-in');io.unobserve(x.target);}});
   },{rootMargin:'0px 0px -8% 0px'});}catch(e){return;}
   var els=document.querySelectorAll('main section, body>section');
+  var watched=[];
   for(var i=0;i<els.length;i++){
     var r=els[i].getBoundingClientRect();
-    if(r.top>window.innerHeight*0.92){els[i].classList.add('pc-sr');io.observe(els[i]);}
+    if(r.top>window.innerHeight*0.92){els[i].classList.add('pc-sr');io.observe(els[i]);watched.push(els[i]);}
   }
+  /* fast flings can jump a whole section between frames; catch up on scroll */
+  var ticking=false;
+  window.addEventListener('scroll',function(){
+    if(ticking)return;ticking=true;
+    requestAnimationFrame(function(){
+      ticking=false;
+      for(var j=watched.length-1;j>=0;j--){
+        var el=watched[j];
+        if(el.getBoundingClientRect().top<window.innerHeight*0.92){el.classList.add('pc-sr-in');io.unobserve(el);watched.splice(j,1);}
+      }
+    });
+  },{passive:true});
 })();
 
 })();
