@@ -13,7 +13,7 @@
 .pp-count{font:700 22px/1.2 Poppins,system-ui,sans-serif;margin-bottom:8px;overflow-wrap:anywhere}
 .pp-bar{height:10px;border-radius:6px;background:#EFEFF4;overflow:hidden}
 .pp-bar i{display:block;height:100%;width:0;background:#1b1b1b;border-radius:6px;transition:width .25s cubic-bezier(.4,0,.2,1)}
-.pp-chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.pp-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:12px 0}
 .pp-chip{min-width:34px;padding:4px 6px;text-align:center;border:1.5px dashed #C9C9CE;border-radius:9px;font:600 13px Poppins,system-ui,sans-serif;color:#6f666a;transition:background-color .2s,border-color .2s,color .2s}
 .pp-chip.on{border-style:solid;border-color:#0a7a4a;background:#e7f6ee;color:#0a7a4a}
 .pp-msg{font-size:15px;margin:4px 0 12px;min-height:1.4em}
