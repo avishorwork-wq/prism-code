@@ -24,7 +24,7 @@ window.PrismSecureLogo = (function () {
   var NS = "http://www.w3.org/2000/svg";
 
   var SVG_MARKUP =
-    '<svg viewBox="300 150 1060 600" role="img" aria-label="Prism Code Secured logo" style="width:100%;height:auto;display:block;cursor:pointer">' +
+    '<svg viewBox="300 150 1060 600" role="img" aria-label="Prism Code Secured logo" draggable="false" focusable="false" style="width:100%;height:auto;display:block;cursor:default;pointer-events:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent">' +
       '<g id="shackleWrap"><path id="shackle" d="" fill="none" stroke="#fff" stroke-width="32"/></g>' +
       '<g id="hexes" stroke="#000" stroke-width="5" stroke-linejoin="round">' +
         '<g transform="translate(408 531)"><polygon fill="#1f4fff" points="0,-66 57,-33 57,33 0,66 -57,33 -57,-33"/></g>' +
@@ -234,7 +234,7 @@ window.PrismSecureLogo = (function () {
             container.style.maxWidth = logoH < natLogoH ? Math.round(logoH * 1060 / 600) + "px" : "";
             pinH = textH + logoH + GAP + 2 * PAD;
           }
-          pinTopT = Math.max(barH + 8, Math.round((vh - pinH) / 2));
+          pinTopT = barH + Math.max(4, Math.round((vh - barH - pinH) / 2)); // box center == visible-area center
           pin.style.top = pinTopT + "px";
           track.style.height = (pinH + Math.round(vh * 0.7)) + "px";
         } else {
@@ -339,7 +339,10 @@ window.PrismSecureLogo = (function () {
       }
       function start(d, y) {
         measure();
-        lockY = clamp(y, trackTop, trackBot);
+        // Always rest at the SAME optimal scroll spot: the middle of the range where
+        // the stage sits fully engaged at its centered position - identical landing
+        // for slow scrolls, flings, reverse entries and any toolbar state.
+        lockY = trackTop + Math.max(0, Math.round((trackBot - pinTopT - trackTop) / 2));
         if (Math.abs(curY() - lockY) > 0.5) jumpTo(lockY);
         fixStage();
         dir = d; playing = true;
@@ -374,6 +377,10 @@ window.PrismSecureLogo = (function () {
         if (Math.abs(curY() - lockY) > 0.5) jumpTo(lockY);
         relayout(); // restores sticky positioning (relayout no-ops while playing)
         prevY = lockY;
+        // Residual fling momentum lands just after unlock: snap back twice so the
+        // resting spot (box perfectly centered) is identical for every entry.
+        setTimeout(function () { if (!playing && Math.abs(curY() - lockY) > 0.5) { jumpTo(lockY); prevY = lockY; } }, 200);
+        setTimeout(function () { if (!playing && Math.abs(curY() - lockY) > 0.5) { jumpTo(lockY); prevY = lockY; } }, 500);
       }
 
       function onScroll() {
@@ -447,7 +454,7 @@ window.PrismSecureLogo = (function () {
           }
         }, { threshold: [0.6] });
         io.observe(container);
-        svg.addEventListener("click", function () { target = target === 1 ? 0 : 1; start(); });
+        // non-interactive by owner's request: no click toggle, no focus, no tap target
         container.__psl = { get p() { return pcur; }, render: render, mode: "auto" };
       }, function () {});
     }
