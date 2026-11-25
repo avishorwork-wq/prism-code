@@ -55,7 +55,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{filter:brightnes
 /* Sliding selection pill for segmented tab controls */
 nav[role=tablist].seg-on{position:relative}
 nav[role=tablist].seg-on>[role=tab]{position:relative;z-index:1;background:transparent!important;box-shadow:none!important}
-nav[role=tablist].seg-on>.segpill{position:absolute;top:0;left:0;border-radius:var(--segpill-r,980px);background:var(--segpill-bg,#fff);box-shadow:var(--segpill-shadow,0 1px 4px rgba(0,0,0,.12));transition:transform .25s ease,width .25s ease,height .25s ease;pointer-events:none;z-index:0}
+nav[role=tablist].seg-on>.segpill{position:absolute;top:0;left:0;border-radius:var(--segpill-r,980px);background:var(--segpill-bg,#fff);box-shadow:var(--segpill-shadow,0 1px 4px rgba(0,0,0,.12));transition:transform .25s cubic-bezier(.4,0,.2,1),width .25s cubic-bezier(.4,0,.2,1),height .25s cubic-bezier(.4,0,.2,1);pointer-events:none;z-index:0}
 /* Reveal fades for collapsible extra blocks */
 #expertOnly:not([hidden]),#expertInfo:not([hidden]),#encodeFileWrap:not([hidden]){animation:pcfade .22s ease both}
 

@@ -4,7 +4,7 @@
 #firstRun h2{margin:0;font:600 21px/1.2 Poppins,system-ui,sans-serif;letter-spacing:-.01em}
 #firstRun .frSkip{background:none;border:0;color:#0066cc;font:inherit;min-height:44px;padding:0 6px;cursor:pointer}
 #firstRun ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-#firstRun li{background:#fff;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0;opacity:.55;transition:opacity .35s,transform .35s;transform:translateY(4px)}
+#firstRun li{background:#fff;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0;opacity:.55;transition:opacity .35s cubic-bezier(0,0,.2,1),transform .35s cubic-bezier(0,0,.2,1);transform:translateY(4px)}
 #firstRun li.on{opacity:1;transform:none}
 #firstRun .frNum{font-size:12px;font-weight:600;color:#6e6e73;text-transform:uppercase;letter-spacing:.06em}
 #firstRun h3{margin:0;font:600 17px/1.25 inherit}

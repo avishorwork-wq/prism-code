@@ -67,7 +67,7 @@ document.addEventListener('click',function(e){
 },true);
 
 /* ---- Smooth reveals: elements shown/hidden through the hidden attribute ---- */
-var REVEAL='[data-reveal],#pwbox,#keybox,#resultbox,#expertOnly,#expertInfo,#encodeFileWrap,.prismTrace,#savewarn,#cpw';
+var REVEAL='[data-reveal],#pwbox,#keybox,#resultbox,#expertOnly,#expertInfo,#encodeFileWrap,.prismTrace,#savewarn,#cpw,#firstRun';
 /* Hide runs keep the hidden attribute in place (so the app's later show write
    is always a real mutation we can interrupt on) and override display instead.
    The real display value is captured whenever the element is seen visible. */
