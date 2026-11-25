@@ -131,3 +131,7 @@ input[type=file]:active::file-selector-button{transform:scale(.97);filter:bright
 /* 6b. Tickets/cards injected UI (prism-cards.js appends its own <style> after this sheet): keep the 44px tap floor with higher specificity. */
 body .pccard button,body .pcbar button{min-height:44px}
 body .pcform input,body .pcform select{min-height:44px}
+
+/* 6c. Parts panel (prism-parts.css sets transition:none on these): keep state changes animated. */
+.pp-chev{transition:transform .18s var(--cm-ease)}
+.pp-card.pp-dark .pp-body button{transition:color .18s var(--cm-ease),background-color .18s var(--cm-ease),border-color .18s var(--cm-ease),opacity .18s var(--cm-ease),filter .18s var(--cm-ease),box-shadow .18s var(--cm-ease),transform .14s var(--cm-ease)}
