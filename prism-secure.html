@@ -395,7 +395,21 @@ $('make').onclick=async()=>{const btn=$('make');try{
 }catch(e){$('info').innerHTML=badge(e.message,'bad')}finally{btn.disabled=false;btn.textContent='Create secure code'}};
 $('dlpng').onclick=()=>{const a=document.createElement('a');a.href=$('code').toDataURL('image/png');a.download='prism-secure-code.png';a.click()};
 function verdict(c,ic,t,s){return `<div class="verdict ${c}"><div class="ic">${ic}</div><div><b>${esc(t)}</b><span>${s||''}</span></div></div>`}
-async function scanCanvas(c,pw,trusted){const id=c.getContext('2d').getImageData(0,0,c.width,c.height);const res=Prism.readImage(id);return show(res.bytes,pw,trusted);}
+const PrismRetry={};PrismRetry.crplain=function(img){const w=img.width,h=img.height,d=img.data;
+ const N=w*h,lum=new Float32Array(N),amp=new Float32Array(N);
+ for(let i=0,p=0;i<N;i++,p+=4){const r=d[p],g=d[p+1],b=d[p+2];lum[i]=(r+g+b)/3;amp[i]=Math.max(r,g,b)-Math.min(r,g,b);}
+ const R=Math.max(4,Math.round(Math.min(w,h)/12));
+ const tmp=new Float32Array(N),bl=new Float32Array(N);
+ for(let y=0;y<h;y++){let s=0;for(let x=0;x<w;x++){if(x+R<w)s+=amp[y*w+x+R];if(x-R-1>=0)s-=amp[y*w+x-R-1];bl[y*w+x]=s/(Math.min(w-1,x+R)-Math.max(0,x-R-1));}}
+ for(let x=0;x<w;x++){let s=0;for(let y=0;y<h;y++){if(y+R<h)s+=bl[(y+R)*w+x];if(y-R-1>=0)s-=bl[(y-R-1)*w+x];tmp[y*w+x]=s/(Math.min(h-1,y+R)-Math.max(0,y-R-1));}}
+ const o=new Uint8ClampedArray(d.length);
+ for(let i=0,p=0;i<N;i++,p+=4){let k=Math.min(6,Math.max(1,90/Math.max(18,tmp[i])));
+  const l=lum[i];if(l<190)k=1;let r=l+(d[p]-l)*k,g=l+(d[p+1]-l)*k,b=l+(d[p+2]-l)*k;
+  const m2=Math.max(r,g,b);if(m2>255){const s=255/m2;r*=s;g*=s;b*=s;}
+  o[p]=r;o[p+1]=g;o[p+2]=b;o[p+3]=255;}
+ return new ImageData(o,w,h);};
+
+async function scanCanvas(c,pw,trusted){const id=c.getContext('2d').getImageData(0,0,c.width,c.height);let res;try{res=Prism.readImage(id)}catch(e0){let im2=null;try{im2=PrismRetry.crplain(id)}catch(x){}if(!im2)throw e0;try{res=Prism.readImage(im2)}catch(e1){throw e0}}return show(res.bytes,pw,trusted);}
 async function show(bytes,pw,trusted){const o=await PrismSecure.open(bytes,{password:pw,trustedFingerprints:trusted||[]});let h='';
  if(!o.secure)h=verdict('warn','!','Plain code, not secured','Anyone can read this one.')+'<div class="msgbox">'+esc(new TextDecoder().decode(o.bytes))+'</div>';
  else{
