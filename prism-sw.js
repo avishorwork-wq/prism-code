@@ -18,3 +18,4 @@ self.addEventListener('fetch',e=>{
       return Response.redirect('./use.html?shared=1',303)})());return}if(r.method!=='GET'||new URL(r.url).origin!==location.origin)return;
   e.respondWith(fetch(r).then(res=>{if(res.ok){const cp=res.clone();caches.open(VERSION).then(c=>c.put(r,cp))}return res}).catch(()=>caches.match(r).then(m=>m||caches.match(r.mode==='navigate'?'offline.html':'use.html'))));
 });
+ 
