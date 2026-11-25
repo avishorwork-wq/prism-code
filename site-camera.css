@@ -13,10 +13,10 @@ main>header a{font-size:13px;color:#2E5BFF;text-decoration:none}
 .controls button.primary{background:#2E5BFF;color:#fff}
 .controls button.primary:hover:not(:disabled){background:#5b84ff}
 .status{color:#a1a1a6;font-size:13px}
-.meta{color:#86868b;font-size:12px}
+.meta{color:#6e6e73;font-size:12px}
 .options{color:#a1a1a6;font-size:13px}
 .result{border-radius:20px;background:#1c1c1e;padding:20px}
-.result small{color:#86868b;font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.result small{color:#6e6e73;font-size:12px;text-transform:uppercase;letter-spacing:.06em}
 .result p{font-size:18px;font-weight:500;word-break:break-word}
 #openLink{color:#2E5BFF;font-weight:500;text-decoration:none}
 details{color:#a1a1a6;font-size:13px}

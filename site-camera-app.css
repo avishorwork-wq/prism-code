@@ -13,7 +13,7 @@ main>header{margin:2px 0 6px;display:flex;align-items:baseline;gap:10px;flex-wra
 main>header h1{font-size:24px;font-weight:700;letter-spacing:-.02em;color:#141416;position:relative;padding-bottom:8px}
 main>header h1::after{content:"";position:absolute;left:1px;bottom:0;width:44px;height:3px;border-radius:2px;
   background:linear-gradient(90deg,#D7263D,#F77F00,#F5C518,#2DB35A,#00B8D9,#2E5BFF,#B5179E)}
-main>header h1 small{font:600 10px Poppins,system-ui;letter-spacing:.12em;color:#86868b;border:1px solid #e3e3e8;background:#fff;padding:4px 9px;border-radius:999px;vertical-align:middle;margin-left:10px}
+main>header h1 small{font:600 10px Poppins,system-ui;letter-spacing:.12em;color:#6e6e73;border:1px solid #e3e3e8;background:#fff;padding:4px 9px;border-radius:999px;vertical-align:middle;margin-left:10px}
 main>header a{font-size:13px;color:#2E5BFF;text-decoration:none;white-space:nowrap;margin-left:auto}
 main>.intro{font-size:14px;line-height:1.5;color:#6e6e73;margin:0 0 16px;max-width:44ch}
 
@@ -72,10 +72,10 @@ main>.controls button:not(:disabled):active{transform:scale(.97)}
 main .status{font-size:12.5px;color:#8a8a90;text-align:center;padding:0 6px;min-height:20px}
 main .status.error{color:#b3541e;background:#fdf3ec;border:1px solid #f5d9c4}
 main .status.error::before{background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23b3541e" stroke-width="2" stroke-linecap="round"><path d="M12 8v5"/><circle cx="12" cy="16.6" r=".6" fill="%23b3541e"/><path d="M10.3 3.9 2.6 17.2A2 2 0 0 0 4.3 20.2h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>')}
-main .meta{border-top:none;color:#b0b0b6;font-size:11px;justify-content:center;gap:12px;padding-top:10px}
+main .meta{border-top:none;color:#6e6e73;font-size:11px;justify-content:center;gap:12px;padding-top:10px}
 
 /* ---------- options ---------- */
-main .options{justify-content:center;gap:8px;color:#86868b;font-size:12px;margin:12px 0 0;flex-wrap:nowrap}
+main .options{justify-content:center;gap:8px;color:#6e6e73;font-size:12px;margin:12px 0 0;flex-wrap:nowrap}
 main .options>span{display:none}
 main .options label{flex:1;justify-content:center;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   min-height:38px;padding:0 14px;border:1px solid #e6e6eb;border-radius:999px;background:#fff;color:#48484d;font-weight:500}
