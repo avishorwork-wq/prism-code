@@ -151,21 +151,23 @@ window.pcSetText=function(el,txt){
   if(!desc||!desc.set)return;
   function smooth(p){
     if(p.__smoothed)return;p.__smoothed=1;
-    var cur=parseFloat(p.value)||0,raf=null;
+    var cur=parseFloat(p.value)||0,target=cur,from=cur,t0=0,raf=null;
     Object.defineProperty(p,'value',{
       configurable:true,
       get:function(){return desc.get.call(p);},
       set:function(v){
-        var t=parseFloat(v)||0;
-        if(rm()){cur=t;desc.set.call(p,t);return;}
-        if(raf)cancelAnimationFrame(raf);
-        var from=cur,t0=performance.now(),dur=180;
-        raf=requestAnimationFrame(function step(now){
-          var k=Math.min(1,(now-t0)/dur);
+        target=parseFloat(v)||0;
+        if(rm()){cur=target;desc.set.call(p,target);return;}
+        /* Rebase the tween toward the new target without canceling the pending frame:
+           rapid updates under load must not starve the display of progress. */
+        from=cur;t0=performance.now();
+        if(!raf)raf=requestAnimationFrame(function step(now){
+          raf=null;
+          var k=Math.min(1,(now-t0)/180);
           var e=1-Math.pow(1-k,3); /* easeOutCubic: fast response, soft landing */
-          cur=from+(t-from)*e;
+          cur=from+(target-from)*e;
           desc.set.call(p,cur);
-          if(k<1)raf=requestAnimationFrame(step);
+          if(k<1&&cur!==target)raf=requestAnimationFrame(step);
         });
       }
     });
