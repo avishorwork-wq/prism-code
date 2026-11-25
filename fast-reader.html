@@ -170,12 +170,43 @@ async function read(image,{debug=false}={}){if(busy)throw Error('Frame already p
 return{read,warm:setup,stop:()=>{if(cancelActive)cancelActive();else dispose();}};
 })();
 
-const PrismRoi=(()=>{function bbox(img){const W=img.width,H=img.height,d=img.data,g=Math.max(1,Math.floor(Math.max(W,H)/200)),gw=Math.ceil(W/g),gh=Math.ceil(H/g);const px=[];for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){const i=((y*g)*W+x*g)*4;px.push([d[i],d[i+1],d[i+2]]);}
-const med=c=>{const a=px.map(p=>p[c]).sort((a,b)=>a-b);return a[a.length>>1];};const m=[med(0),med(1),med(2)];const xs=[],ys=[];for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){const p=px[y*gw+x];const dist=Math.abs(p[0]-m[0])+Math.abs(p[1]-m[1])+Math.abs(p[2]-m[2]);if(dist>90){xs.push(x);ys.push(y);}}
-if(xs.length<30)return null;xs.sort((a,b)=>a-b);ys.sort((a,b)=>a-b);const q=a=>[a[Math.floor(a.length*.01)],a[Math.min(a.length-1,Math.floor(a.length*.99))]];const [x0,x1]=q(xs),[y0,y1]=q(ys);let w=(x1-x0+1)*g,h=(y1-y0+1)*g;const mg=Math.round(Math.max(w,h)*.2);let cx=x0*g+w/2,cy=y0*g+h/2,s=Math.max(w,h)+2*mg;let sx=Math.max(0,Math.round(cx-s/2)),sy=Math.max(0,Math.round(cy-s/2));let ex=Math.min(W,Math.round(cx+s/2)),ey=Math.min(H,Math.round(cy+s/2));if((ex-sx)*(ey-sy)>0.4*W*H)return null;return{sx,sy,w:ex-sx,h:ey-sy};}
+const PrismRoi=(()=>{function bbox(img){const W=img.width,H=img.height,d=img.data;
+const g=Math.max(1,Math.floor(Math.max(W,H)/200)),gw=Math.ceil(W/g),gh=Math.ceil(H/g);
+const px=[];for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){const i=((y*g)*W+x*g)*4;px.push([d[i],d[i+1],d[i+2]]);}
+const med=c=>{const a=px.map(p=>p[c]).sort((a,b)=>a-b);return a[a.length>>1];};
+const m=[med(0),med(1),med(2)];
+const out=new Uint8Array(gw*gh);
+for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){const p=px[y*gw+x];
+if(Math.abs(p[0]-m[0])+Math.abs(p[1]-m[1])+Math.abs(p[2]-m[2])>90)out[y*gw+x]=1;}
+const den=new Uint8Array(gw*gh);
+for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){if(!out[y*gw+x])continue;
+let n=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const yy=y+dy,xx=x+dx;
+if(yy>=0&&yy<gh&&xx>=0&&xx<gw&&out[yy*gw+xx])n++;}
+if(n>=3)den[y*gw+x]=1;}
+const lab=new Int32Array(gw*gh).fill(-1);let sizes=[];
+for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){if(!den[y*gw+x]||lab[y*gw+x]>=0)continue;
+const id=sizes.length;let sz=0;const st=[[x,y]];lab[y*gw+x]=id;
+while(st.length){const [cx,cy]=st.pop();sz++;
+for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const xx=cx+dx,yy=cy+dy;
+if(xx>=0&&xx<gw&&yy>=0&&yy<gh&&den[yy*gw+xx]&&lab[yy*gw+xx]<0){lab[yy*gw+xx]=id;st.push([xx,yy]);}}}
+sizes.push(sz);}
+if(!sizes.length)return null;
+let best=0;for(let i=1;i<sizes.length;i++)if(sizes[i]>sizes[best])best=i;
+if(sizes[best]<16)return null;
+let x0=gw,x1=0,y0=gh,y1=0;
+for(let y=0;y<gh;y++)for(let x=0;x<gw;x++)if(lab[y*gw+x]===best){
+if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}
+let w=(x1-x0+1)*g,h=(y1-y0+1)*g;
+const mg=Math.round(Math.max(w,h)*.25);
+let cx=x0*g+w/2,cy=y0*g+h/2,s=Math.max(w,h)+2*mg;
+let sx=Math.max(0,Math.round(cx-s/2)),sy=Math.max(0,Math.round(cy-s/2));
+let ex=Math.min(W,Math.round(cx+s/2)),ey=Math.min(H,Math.round(cy+s/2));
+if((ex-sx)*(ey-sy)>0.4*W*H)return null;
+return{sx,sy,w:ex-sx,h:ey-sy};}
 function crop(img,b){const out=new Uint8ClampedArray(b.w*b.h*4);for(let y=0;y<b.h;y++){const si=((b.sy+y)*img.width+b.sx)*4;out.set(img.data.subarray(si,si+b.w*4),y*b.w*4);}return new ImageData(out,b.w,b.h);}
 return{bbox,crop};})();
-async function roiRead(image,o){let b=null;try{if(image&&image.data)b=PrismRoi.bbox(image);}catch(e){}if(b){try{return await PrismBoundedWorker.read(PrismRoi.crop(image,b),o);}catch(e){if(/stopped/.test(e.message))throw e;}}return PrismBoundedWorker.read(image,o);}
+function upNN(img,s){const w=img.width,h=img.height,W2=Math.round(w*s),H2=Math.round(h*s),d=img.data;const o2=new Uint8ClampedArray(W2*H2*4);for(let y=0;y<H2;y++){const sy=Math.min(h-1,y/s|0);for(let x=0;x<W2;x++){const sx=Math.min(w-1,x/s|0),pp=(sy*w+sx)*4,q=(y*W2+x)*4;o2[q]=d[pp];o2[q+1]=d[pp+1];o2[q+2]=d[pp+2];o2[q+3]=255;}}return new ImageData(o2,W2,H2);}
+async function roiRead(image,o){let b=null;try{if(image&&image.data)b=PrismRoi.bbox(image);}catch(e){}if(b){try{let c=PrismRoi.crop(image,b);const m=Math.max(c.width,c.height);if(m<400)c=upNN(c,Math.min(6,400/m));return await PrismBoundedWorker.read(c,o);}catch(e){if(/stopped/.test(e.message))throw e;}}return PrismBoundedWorker.read(image,o);}
 const PrismRetry={};
 PrismRetry.lift=function(img){const w=img.width,h=img.height,d=img.data;
  const N=w*h,hist=new Uint32Array(256);
