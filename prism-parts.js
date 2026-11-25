@@ -100,14 +100,18 @@ const camPage=!sc&&camVal&&camRes&&$('start');
 if(sc||camPage){
   const asm=new Assembler(),tally={};
   const card=el('section','pp-card'+(camPage?' pp-dark':''));card.id='ppScan';
-  card.innerHTML='<h3>Scanning a file in parts?</h3><p class="pp-sub">Scan any part first, in any order. Parts are recognised automatically and counted here.</p>'+
+  card.innerHTML=(camPage?'<button type="button" class="pp-head" id="ppHead" aria-expanded="false"><span>Scanning a file in parts?</span><span class="pp-chev" aria-hidden="true"></span></button><div class="pp-body">':'<h3>Scanning a file in parts?</h3>')+
+   '<p class="pp-sub">Scan any part first, in any order. Parts are recognised automatically and counted here.</p>'+
    '<div class="pp-prog" id="ppProg" hidden><div class="pp-count" id="ppCount"></div><div class="pp-bar"><i id="ppFill"></i></div><div class="pp-chips" id="ppChips"></div><div class="pp-msg" id="ppMsg" role="status" aria-live="polite"></div></div>'+
    (sc?'<label for="ppMulti">Or choose several part photos at once</label><input id="ppMulti" type="file" accept="image/*" multiple>':'')+
-   '<div class="actions"><button class="primary" id="ppSave" hidden>Save the file</button><button id="ppReset" hidden>Start over</button></div>';
+   '<div class="actions"><button class="primary" id="ppSave" hidden>Save the file</button><button id="ppReset" hidden>Start over</button></div>'+(camPage?'</div>':'');
   if(sc)(sc.querySelector('.columns')||sc).append(card);else $('stage').before(card);
   const msg=(t,cls)=>{$('ppMsg').textContent=t;$('ppMsg').className='pp-msg'+(cls?' '+cls:'');};
   function listMissing(){const m=asm.missing();return m.length>12?m.slice(0,12).join(', ')+' and '+(m.length-12)+' more':m.join(', ');}
-  function draw(){const on=asm.id!==null;$('ppProg').hidden=!on;$('ppReset').hidden=!on;if(!on)return;
+  let ppOpen=false;
+  const syncOpen=()=>{if(!camPage)return;const v=ppOpen||asm.id!==null;card.classList.toggle('pp-open',v);$('ppHead').setAttribute('aria-expanded',String(v));};
+  if(camPage)$('ppHead').addEventListener('click',()=>{ppOpen=!ppOpen;syncOpen();});
+  function draw(){const on=asm.id!==null;$('ppProg').hidden=!on;$('ppReset').hidden=!on;syncOpen();if(!on)return;
     $('ppCount').textContent=asm.have+' of '+asm.total+' parts'+(asm.name?' · '+asm.name:'');$('ppFill').style.width=(100*asm.have/asm.total)+'%';
     const ch=$('ppChips');ch.replaceChildren();for(let i=1;i<=asm.total&&i<=400;i++){const c=el('span','pp-chip'+(asm.parts.has(i)?' on':''),String(i));c.title=asm.parts.has(i)?'Part '+i+' scanned':'Part '+i+' still needed';ch.append(c);}
     $('ppSave').hidden=!asm.result;if(camPage)document.body.classList.toggle('pp-has-parts',on);}
