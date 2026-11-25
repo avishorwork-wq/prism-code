@@ -30,3 +30,10 @@ details>:not(summary){animation:pcfade .22s ease both}
 a:focus-visible{text-decoration:underline!important;text-underline-offset:3px;text-decoration-thickness:2px}
 button:focus-visible,[role="button"]:focus-visible,summary:focus-visible,label:focus-visible{filter:brightness(.93)}
 input:focus-visible,select:focus-visible,textarea:focus-visible{filter:brightness(.96)}
+
+/* Pointer cursor on every interactive control */
+select{cursor:pointer}
+input[type=checkbox],input[type=radio]{cursor:pointer}
+label:has(input[type=checkbox]),label:has(input[type=radio]){cursor:pointer}
+/* Subtle link hover cue, same language as keyboard focus */
+a:hover{text-decoration-thickness:2px;text-underline-offset:3px}
