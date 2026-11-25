@@ -99,9 +99,9 @@ video{width:100%;border-radius:16px;background:#111;max-height:320px;object-fit:
 <div class="wrap">
 <h1>Boarding pass <span class="pill">Demo</span></h1>
 <p class="lead">A signed boarding pass as a Prism code. The airline issues it, the passenger keeps it offline with a code that refreshes, the gate checks it.</p>
-<div class="tabs" role="tablist"><i class="thumb" id="thumb"></i><button id="tAirline" class="on">Airline</button><button id="tPass">Passenger</button><button id="tGate">Gate</button></div>
+<div class="tabs" role="tablist"><i class="thumb" id="thumb"></i><button id="tAirline" class="on" role="tab" aria-selected="true" aria-controls="vAirline">Airline</button><button id="tPass" role="tab" aria-selected="false" aria-controls="vPass">Passenger</button><button id="tGate" role="tab" aria-selected="false" aria-controls="vGate">Gate</button></div>
 
-<section id="vAirline" class="view">
+<section id="vAirline" class="view" role="tabpanel" aria-labelledby="tAirline">
 <div class="card"><h2>Issue a boarding pass</h2>
 <div class="grid">
 <div><label for="fAl">Airline</label><input id="fAl" value="Prism Air"></div>
@@ -140,7 +140,7 @@ video{width:100%;border-radius:16px;background:#111;max-height:320px;object-fit:
 <li>This demo has no booking system, check-in, seat inventory, no-fly checks, revocation or live gate changes. Those are the real work.</li></ul></details>
 </section>
 
-<section id="vPass" class="view" hidden>
+<section id="vPass" class="view" role="tabpanel" aria-labelledby="tPass" hidden>
 <div id="plist" class="plist"></div>
 <div id="passHost"></div>
 <div id="pstatus"></div>
@@ -148,7 +148,7 @@ video{width:100%;border-radius:16px;background:#111;max-height:320px;object-fit:
 <p class="hint" style="text-align:center">Saved on this device. After the first visit it works with no connection. Turn the screen brightness up at the gate.</p>
 </section>
 
-<section id="vGate" class="view" hidden>
+<section id="vGate" class="view" role="tabpanel" aria-labelledby="tGate" hidden>
 <div class="card"><div class="gatehead"><div><label style="margin:0">Boarding now</label><div style="font-size:22px;font-weight:700" id="gFlightTxt"></div><div class="hint" style="margin:0" id="gSub"></div></div><div class="gcount"><span id="gN">0</span> <small>boarded</small></div></div>
 <details style="margin:12px 0 0"><summary>Gate setup</summary><div class="grid">
 <div><label for="gCode">Airline code</label><input id="gCode" value="PA" maxlength="2"></div>
@@ -591,7 +591,7 @@ async function loop(){
 /* ---- tabs ---- */
 let cur='airline';
 const TABS=[['airline','vAirline','tAirline'],['pass','vPass','tPass'],['gate','vGate','tGate']];
-function go(v){cur=v;TABS.forEach(([k,id,t],i)=>{const el=$(id);const show=k===v;if(show&&el.hidden){el.hidden=false;el.style.animation='none';void el.offsetWidth;el.style.animation=''}else if(!show)el.hidden=true;$(t).classList.toggle('on',show);if(show)$('thumb').style.transform='translateX('+(i*100)+'%)'});
+function go(v){cur=v;TABS.forEach(([k,id,t],i)=>{const el=$(id);const show=k===v;if(show&&el.hidden){el.hidden=false;el.style.animation='none';void el.offsetWidth;el.style.animation=''}else if(!show)el.hidden=true;$(t).classList.toggle('on',show);$(t).setAttribute('aria-selected',show?'true':'false');if(show)$('thumb').style.transform='translateX('+(i*100)+'%)'});
  if(v!=='gate'&&stream){$('camBtn').onclick()}if(v!=='pass')stopLive();
  if(v==='pass')renderPassenger();if(v==='gate'){refreshGate();drawLog()}
  const h=v==='airline'?'':'#'+v;if(location.hash!==h&&!location.hash.startsWith('#p='))history.replaceState(null,'',location.pathname+location.search+h);window.scrollTo({top:0,behavior:'smooth'})}
