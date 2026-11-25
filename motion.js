@@ -68,45 +68,51 @@ document.addEventListener('click',function(e){
 
 /* ---- Smooth reveals: elements shown/hidden through the hidden attribute ---- */
 var REVEAL='[data-reveal],#pwbox,#keybox,#resultbox,#expertOnly,#expertInfo,#encodeFileWrap,.prismTrace,#savewarn,#cpw';
+/* Hide runs keep the hidden attribute in place (so the app's later show write
+   is always a real mutation we can interrupt on) and override display instead.
+   The real display value is captured whenever the element is seen visible. */
 function runReveal(el,hide){
   var from,to,fromO,toO,ease;
   var had=!!el.__animA;
-  if(had){from=boxH(el);var o=parseFloat(getComputedStyle(el).opacity);fromO=isNaN(o)?(hide?1:0):o;}
-  stopAnim(el);
   if(hide){
-    el.__self=false;el.hidden=false; /* own write: keep it on screen for the closing run */
-    if(!had){from=el.offsetHeight;fromO=1;}
+    el.style.setProperty('display',el.__disp||'block','important');
+    from=el.offsetHeight;
+    var o=parseFloat(getComputedStyle(el).opacity);fromO=isNaN(o)?1:o;
+    stopAnim(el);
     to=0;toO=0;ease=had?STD:EXT;
   }else{
-    if(!had){from=0;fromO=0;}
+    el.style.removeProperty('display');
+    if(had){from=boxH(el);var o2=parseFloat(getComputedStyle(el).opacity);fromO=isNaN(o2)?0:o2;}
+    else{from=0;fromO=0;}
+    stopAnim(el);
     var ov=el.style.overflow;el.style.overflow='';
     to=el.offsetHeight;
     el.style.overflow=ov;
     toO=1;ease=had?STD:ENT;
+    el.__disp=getComputedStyle(el).display;
   }
   if(Math.abs(from-to)<1){
-    if(hide){el.__self=true;el.hidden=true;}
+    if(hide)el.style.removeProperty('display');
     return;
   }
   el.style.overflow='hidden';
   var a;
   try{a=el.animate([{height:from+'px',opacity:String(fromO)},{height:to+'px',opacity:String(toO)}],{duration:durFor(Math.abs(to-from)),easing:ease});}
-  catch(err){el.style.overflow='';if(hide){el.__self=true;el.hidden=true;}return;}
+  catch(err){el.style.overflow='';if(hide)el.style.removeProperty('display');return;}
   el.__animA=a;
   a.onfinish=a.oncancel=function(){
     if(el.__animA===a)el.__animA=null;
     el.style.overflow='';
-    if(hide){el.__self=true;el.hidden=true;}
+    if(hide)el.style.removeProperty('display');
   };
 }
 function watch(el){
   if(el.__revealWatched)return;
   el.__revealWatched=1;
   el.__appliedHidden=el.hidden;
+  if(!el.hidden)el.__disp=getComputedStyle(el).display;
   new MutationObserver(function(){
     var h=el.hidden;
-    /* swallow only our own writes; every app write starts or reverses a run */
-    if(el.__self===h){el.__self=undefined;return;}
     if(h===el.__appliedHidden)return;
     el.__appliedHidden=h;
     if(rm())return;

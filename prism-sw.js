@@ -1,6 +1,6 @@
 /* Prism Code, Copyright (c) 2026 Avi Shor. Free to use, with or without credit. See LICENSE.md. No warranty. */
 // Prism Code offline cache. Same-origin GET only. Bump VERSION to refresh.
-const VERSION='prism-shell-22';
+const VERSION='prism-shell-23';
 const SHELL=[
   './','index.html','landing.html','use.html','prism.html','docs.html','print.html','progress.html','install.html','prism-secure.html','boarding.html',
   'fast-camera.html','fast-reader.html','slow-reader.html','simulator.html','offline.html',
