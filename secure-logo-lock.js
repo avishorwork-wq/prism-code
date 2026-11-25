@@ -173,8 +173,9 @@ window.PrismSecureLogo = (function () {
       // ---- scroll-locked playback: freeze in place, fixed-speed play, exact resume ----
       var DUR = 3900; // ms - his 3.9s keyframe timing, same both directions
       var secTop = 0, secBot = 1, vh = 1;
-      var state = "before";          // before | past (relative to the section)
+      var state = "before";          // before | past | idleAfterForward | idleAfterReverse
       var playing = false, suppress = false, dir = 1, t0 = 0, rafId = 0, lockY = 0;
+      var lastY = window.scrollY || window.pageYOffset || 0;
       var lastRendered = -1;
 
       var contC = 0; // doc-y of the logo container's vertical center
@@ -246,24 +247,29 @@ window.PrismSecureLogo = (function () {
         var p = dir === 1 ? k : 1 - k;
         render(p); lastRendered = p;
       }
+      // After a play completes the section stays on screen, so BOTH trigger
+      // lines are crossed at the release point. The opposite direction must
+      // stay disarmed ("idleAfter*") until the user has fully left the
+      // section; otherwise the very next swipe re-locks into a replay.
       function finish() {
         playing = false;
         if (rafId) { clearInterval(rafId); rafId = 0; }
         render(dir === 1 ? 1 : 0); lastRendered = dir === 1 ? 1 : 0;
-        state = dir === 1 ? "past" : "before";
+        state = dir === 1 ? "idleAfterForward" : "idleAfterReverse";
         unlockScroll();
       }
 
       function onScroll() {
+        var y = window.scrollY || window.pageYOffset || 0;
+        var down = y > lastY; lastY = y;
         if (playing || suppress || !svg) return;
         measure();
-        var y = window.scrollY || window.pageYOffset || 0;
-        if (y + vh < secTop) { state = "before"; renderOnce(0); return; }
-        if (y > secBot) { state = "past"; renderOnce(1); return; }
-        // one nudge is enough: engage as soon as the logo's center crosses
-        // mid-viewport, freeze exactly there, play, release in place.
-        if (state === "before" && y + 0.62 * vh >= contC) start(1);
-        else if (state === "past" && y + 0.38 * vh <= contC) start(-1);
+        if (y + vh < secTop) { state = "before"; renderOnce(0); return; }  // left upward: forward armed
+        if (y > secBot) { state = "past"; renderOnce(1); return; }         // left downward: reverse armed
+        // Section on screen. Triggers fire only from an armed state and
+        // only in their own direction; idleAfter* states never trigger.
+        if (state === "before" && down && y + 0.62 * vh >= contC) start(1);
+        else if (state === "past" && !down && y + 0.38 * vh <= contC) start(-1);
       }
 
       ready.then(function () {
