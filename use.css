@@ -36,3 +36,6 @@ input[type=file]{width:100%;background:#f4efec;border-radius:14px;padding:12px;b
 .usehead h1,.usehead p{text-wrap:balance}
 .viewer .empty,#scanEmpty{width:100%;text-align:center;padding:24px;color:#585254}
 .bigActions{margin:14px 0 6px}.preview{margin-top:6px}
+
+/* Sliding pill matches the dark selected state */
+nav[role=tablist]{--segpill-bg:#1b1b1b;--segpill-r:14px;--segpill-shadow:none}
