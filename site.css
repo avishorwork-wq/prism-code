@@ -67,6 +67,12 @@ nav[role=tablist].seg-on>.segpill{position:absolute;top:0;left:0;border-radius:v
 .meter i{transition:background-color .3s cubic-bezier(.4,0,.2,1)}
 .status,.capacity{transition:color .3s cubic-bezier(.4,0,.2,1)}
 
+/* In-page anchor navigation scrolls smoothly instead of jumping (same pattern as index.html);
+   the global reduced-motion guard above resets it to auto. */
+html{scroll-behavior:smooth}
+/* Generated part cards (prism-parts) get the standard entrance instead of popping in */
+.pp-cell{animation:pcfade .25s cubic-bezier(0,0,.2,1) both}
+
 /* Motion layer batch 2: page entrance + scroll reveals */
 @keyframes pcpage{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 body{animation:pcpage .28s cubic-bezier(0,0,.2,1) both}
