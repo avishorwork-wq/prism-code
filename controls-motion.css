@@ -3,14 +3,17 @@
    Owns: press/active states, disabled states, focus cues, tap size, tap highlight,
    double-tap zoom and one consistent check/press motion across every page. */
 
+/* Shared motion language: one natural ease-out curve everywhere, transform/opacity first. */
+:root{--cm-ease:cubic-bezier(.2,.8,.2,1);--cm-spring:cubic-bezier(.34,1.4,.64,1)}
+
 /* 1. No tap-highlight boxes and no double-tap zoom anywhere (pinch zoom still works). */
 html{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 canvas{touch-action:pan-y}
 
 /* 2. Every control state change animates, nothing snaps. */
 a,button,[role="button"],summary,input,select,textarea,label{
-  transition:color .18s ease,background-color .18s ease,border-color .18s ease,
-             opacity .18s ease,filter .18s ease,box-shadow .18s ease,transform .12s ease}
+  transition:color .18s var(--cm-ease),background-color .18s var(--cm-ease),border-color .18s var(--cm-ease),
+             opacity .18s var(--cm-ease),filter .18s var(--cm-ease),box-shadow .18s var(--cm-ease),transform .14s var(--cm-ease)}
 
 /* 3. One consistent press feel on every tappable control. */
 button:not(:disabled):not([disabled]):active,
@@ -18,7 +21,7 @@ button:not(:disabled):not([disabled]):active,
 [role="button"]:active,
 summary:active,
 a.scanpill:active{transform:scale(.97)}
-label.opt:active{filter:brightness(.97)}
+label.opt:active{transform:scale(.99)}
 
 /* 4. Tap targets: a finger always gets at least 44px. */
 button,.btn,[role="button"],a.scanpill{min-height:44px}
@@ -43,13 +46,13 @@ input[type=checkbox]{
   border:1.5px solid #c7c2c4;border-radius:7px;background:#fff;
   position:relative;display:inline-block;vertical-align:-5px;
   cursor:pointer;flex:none}
-input[type=checkbox]:checked{background:#2E5BFF;border-color:#2E5BFF;animation:cm-pop .22s ease}
+input[type=checkbox]:checked{background:#2E5BFF;border-color:#2E5BFF;animation:cm-pop .24s var(--cm-ease)}
 input[type=checkbox]::after{
   content:"";position:absolute;left:50%;top:44%;
   width:10px;height:5px;
   border-left:2.4px solid #fff;border-bottom:2.4px solid #fff;
   transform:translate(-50%,-62%) rotate(-45deg) scale(0);
-  transition:transform .16s cubic-bezier(.34,1.4,.64,1)}
+  transition:transform .18s var(--cm-spring)}
 input[type=checkbox]:checked::after{transform:translate(-50%,-62%) rotate(-45deg) scale(1)}
 input[type=checkbox]:not(:disabled):active{transform:scale(.86)}
 input[type=checkbox]:disabled{opacity:.4;cursor:default}
@@ -73,6 +76,6 @@ input[type=checkbox]:focus-visible{box-shadow:0 0 0 3px rgba(0,0,0,.18)}
 
 /* 7. Native file-picker button gets the same press feel and motion. */
 ::file-selector-button{
-  transition:filter .18s ease,background-color .18s ease,border-color .18s ease,transform .12s ease;
+  transition:filter .18s var(--cm-ease),background-color .18s var(--cm-ease),border-color .18s var(--cm-ease),transform .14s var(--cm-ease);
   cursor:pointer}
 input[type=file]:active::file-selector-button{transform:scale(.97);filter:brightness(.94)}
