@@ -143,3 +143,7 @@ input[type=file]{min-height:44px}
 summary{transition:opacity .15s ease}
 @media(hover:hover) and (pointer:fine){summary:hover{opacity:.72}}
 .pager{display:flex;flex-wrap:wrap;gap:0 22px;font-size:0}.pager a{display:inline-flex;align-items:center;min-height:44px;font-size:16px}
+/* Keyboard focus is always visible, never a box: links underline and dim, summaries dim, controls dim. */
+a:focus-visible{text-decoration:underline!important;text-underline-offset:3px;text-decoration-thickness:2px;opacity:.6}
+summary:focus-visible,[role=tab]:focus-visible{opacity:.6}
+button:focus-visible,[role=button]:focus-visible,label:focus-visible{filter:brightness(.93)}

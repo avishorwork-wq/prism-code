@@ -28,6 +28,7 @@ details>:not(summary){animation:pcfade .22s ease both}
 /* Standing rule: no tap/focus boxes anywhere; keyboard focus keeps a subtle cue */
 *:focus-visible{outline:none!important}
 a:focus-visible{text-decoration:underline!important;text-underline-offset:3px;text-decoration-thickness:2px}
+a:focus-visible{opacity:.6}
 button:focus-visible,[role="button"]:focus-visible,summary:focus-visible,label:focus-visible{filter:brightness(.93)}
 input:focus-visible,select:focus-visible,textarea:focus-visible{filter:brightness(.96)}
 
