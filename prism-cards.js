@@ -273,7 +273,10 @@ function hookCreate(){
   const bar=el('div','pcbar');bar.setAttribute('role','group');bar.setAttribute('aria-label','Code template');
   let formEl=null,current='text';
   const buttons={};
+  let textDraft=ta.value;
   const select=(id)=>{
+    const prev=current;
+    if(prev==='text'&&id!=='text')textDraft=ta.value;
     current=id;
     Object.entries(buttons).forEach(([k,b])=>b.setAttribute('aria-pressed',k===id?'true':'false'));
     if(formEl){formEl.remove();formEl=null;}
@@ -282,7 +285,9 @@ function hookCreate(){
       ta.before(formEl);
       ta.value=compose(id,{});
       ta.dispatchEvent(new Event('input',{bubbles:true}));
-      const first=formEl.querySelector('input');if(first){first.focus();first.dispatchEvent(new Event('input',{bubbles:true}));}
+      const first=formEl.querySelector('input');if(first){first.focus();first.dispatchEvent(new Event('input',{bubbles:true}));}    }else if(prev!=='text'){
+      ta.value=textDraft;
+      ta.dispatchEvent(new Event('input',{bubbles:true}));
     }
   };
   TEMPLATES.forEach(t=>{
