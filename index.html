@@ -38,7 +38,6 @@ section.b{padding:clamp(80px,10vw,140px) 22px}.tint{background:var(--gray)}.cent
 .plan{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:44px;text-align:left}
 .plan div{background:var(--gray);border-radius:24px;padding:24px}.plan span{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7a7476}.plan h3{font-size:19px;margin:8px 0 6px}.plan p{font-size:15px;margin:0;color:var(--muted)}
 .js .rv{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.8,.2,1)}.js .rv.on{opacity:1;transform:none}
-@media(max-width:760px) and (pointer:coarse){.js .rv{opacity:1;transform:none;transition:none}}
 #secure{opacity:1!important;transform:none!important;transition:none!important}
 @media(max-width:760px){.hero{padding-top:52px}.hv{margin-top:40px;border-radius:24px}.steps,.stats,.plan{grid-template-columns:1fr;gap:12px;margin-top:36px}.split{grid-template-columns:1fr;text-align:center}.split .lede{margin-left:auto;margin-right:auto}.split img{width:min(170px,50%);order:-1}.cmp td,.cmp th{padding:11px 12px;font-size:14px}section.b{padding:72px 20px}.btn{padding:14px 26px}.cta-row .btn-pri{width:100%;max-width:340px;text-align:center}}
 @media(prefers-reduced-motion:reduce){.js .rv{opacity:1!important;transform:none!important;transition:none!important}html{scroll-behavior:auto}}
@@ -282,9 +281,8 @@ function frame(t,dt,st){
 /* ---- run loop: starts in view, pauses off-screen, never touches scroll ---- */
 let t=0,last=0,raf=0,vis=false,began=false;
 function tick(now){raf=requestAnimationFrame(tick);const dt=Math.min(.05,(now-last)/1000);last=now;t=(t+dt)%LOOP;frame(t,dt,false)}
-const PH=matchMedia('(max-width:760px) and (pointer:coarse)');
-function go(){if(vis&&!document.hidden&&!RM.matches&&!PH.matches){if(!raf){last=performance.now();raf=requestAnimationFrame(tick)}}else{cancelAnimationFrame(raf);raf=0}}
-function still(){if(RM.matches||PH.matches)frame(0,0,true);else if(!raf)frame(t,0,false)}
+function go(){if(vis&&!document.hidden&&!RM.matches){if(!raf){last=performance.now();raf=requestAnimationFrame(tick)}}else{cancelAnimationFrame(raf);raf=0}}
+function still(){if(RM.matches)frame(0,0,true);else if(!raf)frame(t,0,false)}
 new IntersectionObserver(es=>{vis=es[es.length-1].isIntersecting;if(vis&&!began){began=true;t=0}go()},{threshold:.2}).observe(cv);
 document.addEventListener('visibilitychange',go);
 RM.addEventListener&&RM.addEventListener('change',()=>{go();still()});

@@ -432,7 +432,7 @@ window.PrismSecureLogo = (function () {
       // ---- auto: play once on view, hold; click toggles direction ----
       // rests at p=0 (readable "Secured"); on view it plays once from the
       // masked state (dots, locked) into the revealed one and holds.
-      var pcur = 1, target = 1, raf = 0, last = 0, SWEEP = 3.2; // seconds for a full run
+      var pcur = 0, target = 0, raf = 0, last = 0, SWEEP = 3.2; // seconds for a full run
       function frame(now) {
         var dt = (now - last) / 1000; last = now;
         if (dt > 0.1) dt = 0.1;
@@ -447,11 +447,11 @@ window.PrismSecureLogo = (function () {
 
       ready.then(function () {
         svg = buildDom();
-        render(1);
+        render(0);
         var io = new IntersectionObserver(function (entries) {
           for (var i = 0; i < entries.length; i++) {
-            if (entries[i].intersectionRatio >= 0.6 && target === 1 && pcur === 1) {
-              target = 0; start(); io.disconnect(); break;
+            if (entries[i].intersectionRatio >= 0.6 && target === 0 && pcur === 0) {
+              target = 1; start(); io.disconnect(); break;
             }
           }
         }, { threshold: [0.6] });

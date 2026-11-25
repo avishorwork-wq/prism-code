@@ -3,7 +3,6 @@
 @font-face{font-family:Poppins;font-weight:700;src:url(brand/fonts/Poppins-Bold.ttf)}
 .sbstrip{display:flex;height:4px}.sbstrip i{flex:1}
 .sitebar{position:sticky;top:0;z-index:1000;background:rgba(255,255,255,.82);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid rgba(0,0,0,.07);font-family:Poppins,system-ui,sans-serif}
-@media(max-width:760px) and (pointer:coarse){.sitebar{background:rgba(255,255,255,.97);-webkit-backdrop-filter:none;backdrop-filter:none}}
 .sb-in{max-width:1024px;margin:0 auto;height:56px;display:flex;align-items:center;gap:14px;padding:0 22px}
 .sitebar .brand{display:flex;align-items:center;text-decoration:none;flex:0 0 auto;min-height:44px}.sitebar .brand img{height:34px;display:block}.sitebar .brand .ic{display:none;height:32px;width:32px}
 .sitebar .sl{display:flex;gap:2px;margin-left:auto}
