@@ -44,7 +44,7 @@ box.innerHTML = '<label for="logoFile" style="display:block;font-weight:600">Log
   '<div id="logoControls" hidden style="margin-top:8px"><label for="logoSize">Logo size</label> ' +
   '<select id="logoSize"><option value="10">Small</option><option value="15" selected>Medium</option><option value="20">Large</option><option value="25">Largest</option></select> ' +
   '<button type="button" id="logoClear">Remove logo</button></div>' +
-  '<div id="logoNote" style="margin-top:8px;font-size:.92em;opacity:.85">The code keeps its repair data under the logo. Damage repair is set to the highest level while a logo is on. Keep the logo small and the text short, and check the result below.</div>';
+  '<div id="logoNote" style="margin-top:8px;font-size:.92em;opacity:.85">The repair data sits under the logo, so the code stays readable. Damage repair is set to the highest level while a logo is on.</div>';
 const anchor = downloadBtn.closest('.actions') || downloadBtn.parentElement;
 anchor.parentElement.insertBefore(box, anchor);
 const note = box.querySelector('#logoNote'), controls = box.querySelector('#logoControls');
@@ -65,10 +65,10 @@ function check() {
       const ok = res.bytes.length === code.bytes.length && res.bytes.every((x, i) => x === code.bytes[i]);
       note.style.color = ok ? '#1a7f37' : '#b35900';
       note.textContent = ok ? 'Checked: this code reads back with the logo in place.'
-        : 'The code did not read back. A smaller logo or shorter text will read.';
+        : 'Make the logo a little smaller or the text a little shorter.';
     } catch (e) {
       note.style.color = '#b35900';
-      note.textContent = 'The code did not read back. A smaller logo or shorter text will read.';
+      note.textContent = 'Make the logo a little smaller or the text a little shorter.';
     }
   }, 30);
 }
