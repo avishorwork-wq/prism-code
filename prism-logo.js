@@ -64,11 +64,11 @@ function check() {
       const res = PrismReader.read(img);
       const ok = res.bytes.length === code.bytes.length && res.bytes.every((x, i) => x === code.bytes[i]);
       note.style.color = ok ? '#1a7f37' : '#b35900';
-      note.textContent = ok ? 'Checked: this code reads back with the logo in place. Test it with your own phone before you print it.'
-        : 'This code did not read back. Make the logo smaller or the text shorter.';
+      note.textContent = ok ? 'Checked: this code reads back with the logo in place.'
+        : 'The code did not read back. A smaller logo or shorter text will read.';
     } catch (e) {
       note.style.color = '#b35900';
-      note.textContent = 'This code did not read back. Make the logo smaller or the text shorter.';
+      note.textContent = 'The code did not read back. A smaller logo or shorter text will read.';
     }
   }, 30);
 }
@@ -80,7 +80,7 @@ box.querySelector('#logoFile').addEventListener('change', e => {
   state.url = URL.createObjectURL(f);
   const im = new Image();
   im.onload = () => { state.img = im; controls.hidden = false; ecc.value = '3'; ecc.disabled = true; regenerate(); };
-  im.onerror = () => { note.textContent = 'That file could not be opened as an image.'; };
+  im.onerror = () => { note.textContent = 'Choose an image file (PNG, JPG or WebP).'; };
   im.src = state.url;
 });
 box.querySelector('#logoSize').addEventListener('change', e => { state.pct = +e.target.value; regenerate(); });
