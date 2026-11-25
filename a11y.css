@@ -32,7 +32,7 @@ button:focus-visible,[role="button"]:focus-visible,summary:focus-visible,label:f
 input:focus-visible,select:focus-visible,textarea:focus-visible{filter:brightness(.96)}
 
 /* Pointer cursor on every interactive control */
-select{cursor:pointer}
+button,[role="button"],select{cursor:pointer}
 input[type=checkbox],input[type=radio]{cursor:pointer}
 label:has(input[type=checkbox]),label:has(input[type=radio]){cursor:pointer}
 /* Subtle link hover cue, same language as keyboard focus */
