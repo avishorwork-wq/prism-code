@@ -37,3 +37,6 @@ input[type=checkbox],input[type=radio]{cursor:pointer}
 label:has(input[type=checkbox]),label:has(input[type=radio]){cursor:pointer}
 /* Subtle link hover cue, same language as keyboard focus */
 a:hover{text-decoration-thickness:2px;text-underline-offset:3px}
+
+/* Tiny phones (<=380px): nav links size to their text so labels never overlap */
+@media(max-width:380px){.sitebar .sl a{min-width:0}}
