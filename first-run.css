@@ -1,7 +1,7 @@
-#firstRun{margin:0 0 22px;padding:20px;border-radius:22px;background:#f5f5f7;color:#1d1d1f;font:15px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif}
+#firstRun{margin:0 0 22px;padding:20px;border-radius:22px;background:#f5f5f7;color:#1d1d1f;font:15px/1.45 Poppins,system-ui,sans-serif}
 #firstRun[hidden]{display:none}
 #firstRun .frHead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
-#firstRun h2{margin:0;font:600 21px/1.2 -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",system-ui,sans-serif;letter-spacing:-.01em}
+#firstRun h2{margin:0;font:600 21px/1.2 Poppins,system-ui,sans-serif;letter-spacing:-.01em}
 #firstRun .frSkip{background:none;border:0;color:#0066cc;font:inherit;min-height:44px;padding:0 6px;cursor:pointer}
 #firstRun ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 #firstRun li{background:#fff;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0;opacity:.55;transition:opacity .35s,transform .35s;transform:translateY(4px)}
