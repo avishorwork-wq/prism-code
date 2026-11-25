@@ -59,8 +59,10 @@ nav[role=tablist].seg-on>.segpill{position:absolute;top:0;left:0;border-radius:v
 /* Reveal fades for collapsible extra blocks */
 #expertOnly:not([hidden]),#expertInfo:not([hidden]),#encodeFileWrap:not([hidden]){animation:pcfade .22s ease both}
 
-/* Motion layer: messages and results fade/slide in, bars and states change smoothly */
-.chip,.verdict,.msgbox,.testrow{animation:pcfade .25s ease both}
-.meter i{transition:background-color .3s ease}
-#meter>*{animation:pcfade .25s ease both}
-.status,.capacity{transition:color .3s ease}
+/* Motion layer: messages and results fade/slide in, bars and states change smoothly.
+   Shared easing: entrances decelerate cubic-bezier(0,0,.2,1), steady changes cubic-bezier(.4,0,.2,1). */
+.chip,.verdict,.msgbox,.testrow{animation:pcfade .25s cubic-bezier(0,0,.2,1) both}
+#meter>*{animation:pcfade .25s cubic-bezier(0,0,.2,1) both}
+[role="tabpanel"]:not([hidden]),details>:not(summary){animation-timing-function:cubic-bezier(0,0,.2,1)}
+.meter i{transition:background-color .3s cubic-bezier(.4,0,.2,1)}
+.status,.capacity{transition:color .3s cubic-bezier(.4,0,.2,1)}
