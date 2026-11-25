@@ -20,3 +20,17 @@
 .sitefoot a{color:#1b1b1b;font-weight:600;text-decoration:none;margin:0 8px;white-space:nowrap}
 @media(max-width:600px){.sb-in{padding:0 10px;gap:4px;height:52px}.sitebar .brand img.full{display:none}.sitebar .brand .ic{display:block}.sitebar .sl{gap:0;margin-left:2px}.sitebar .sl a{padding:7px 8px;font-size:12.5px}.scanpill .l{display:none}.scanpill .s{display:inline}.sitebar .scanpill{padding:8px 13px;margin-left:auto}.scanban{padding:0 12px;margin-top:10px}.sbi{padding:14px 16px;border-radius:18px}.sbi b{font-size:15px}}
 @media(max-width:350px){.sitebar .sl a{padding:7px 5px;font-size:12px}.sitebar .scanpill{padding:8px 10px}}
+
+/* Mobile header balance fix (0.2.8 preview): even link spacing, centered cluster, equal side insets */
+@media(max-width:600px){
+ .sb-in{padding:0 14px;gap:6px}
+ .sitebar .sl{flex:1 1 auto;justify-content:center;gap:4px;margin-left:0;min-width:0}
+ .sitebar .sl a{padding:7px 8px;font-size:12.5px;white-space:nowrap}
+ .sitebar .scanpill{margin-left:0;flex:0 0 auto}
+}
+@media(max-width:380px){
+ .sb-in{padding:0 12px;gap:4px}
+ .sitebar .sl{gap:2px}
+ .sitebar .sl a{padding:7px 6px;font-size:12px}
+ .sitebar .scanpill{padding:8px 11px}
+}
