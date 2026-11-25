@@ -147,3 +147,4 @@ summary{transition:opacity .15s ease}
 a:focus-visible{text-decoration:underline!important;text-underline-offset:3px;text-decoration-thickness:2px;opacity:.6}
 summary:focus-visible,[role=tab]:focus-visible{opacity:.6}
 button:focus-visible,[role=button]:focus-visible,label:focus-visible{filter:brightness(.93)}
+select:focus-visible,input:focus-visible,textarea:focus-visible,[role=button]:focus-visible{filter:brightness(.93)}
