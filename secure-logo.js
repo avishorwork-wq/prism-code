@@ -183,27 +183,67 @@ window.PrismSecureLogo = (function () {
       track.appendChild(pin);
       var col = track.parentElement;
       var split = col && col.parentElement;
-      if (split && split.classList && split.classList.contains("split")) {
-        split.style.alignItems = "start";
-        var textCol = split.children[0];
-        if (textCol && textCol !== col) {
-          textCol.style.position = "sticky";
-          textCol.style.zIndex = "2";
-          var stacked = textCol.getBoundingClientRect().width >= col.getBoundingClientRect().width - 1;
-          if (stacked) {
-            // phone layout: pin the text below the site bar and park the logo at
-            // the bottom of the frame so it clears the heading, paragraph and link
-            var bar = document.querySelector(".sitebar");
-            var topPad = Math.round(((bar && bar.offsetHeight) || 64) + 10);
-            textCol.style.top = topPad + "px";
-            pin.style.boxSizing = "border-box";
-            // center the logo in the space left below the pinned text
-            var pad = Math.min(topPad + textCol.offsetHeight + 24, Math.round(window.innerHeight * 0.45));
-            pin.style.paddingTop = pad + "px";
-          } else {
-            textCol.style.top = "18vh";
+      var hasSplit = !!(split && split.classList && split.classList.contains("split"));
+      var textCol = hasSplit ? split.children[0] : null;
+      if (hasSplit) split.style.alignItems = "start";
+
+      // ---- responsive phone layout: black stage hugs text+logo, no overlap, ever ----
+      // Stacked mode (the site's own <=760px single-column breakpoint) moves the text
+      // column INTO the pin: one flex column, 48px between link and logo, 40px black
+      // padding around the group, strip centered in the visible area. Everything is
+      // measured from live element heights and recomputed on resize / orientation /
+      // toolbar show-hide / font load, so any viewport size composes correctly.
+      var PIN_BASE = pin.style.cssText, TRACK_BASE = track.style.cssText;
+      var mqPhone = window.matchMedia ? window.matchMedia("(max-width: 760px)") : { matches: false, addEventListener: null };
+      var stackedOn = false, origParent = null, origNext = null;
+      var PAD = 40, GAP = 48, LOGO_MIN_H = 56;
+      function relayout() {
+        if (!hasSplit || !textCol || !svg) return;
+        var bar = document.querySelector(".sitebar");
+        var barH = Math.round((bar && bar.offsetHeight) || 64);
+        var vh = window.innerHeight || 700;
+        if (mqPhone.matches) {
+          if (!stackedOn) {
+            if (origParent === null) { origParent = textCol.parentNode; origNext = textCol.nextSibling; }
+            pin.insertBefore(textCol, container);
+            stackedOn = true;
           }
+          section.style.background = "transparent";
+          textCol.style.position = ""; textCol.style.top = ""; textCol.style.zIndex = "";
+          var textH = textCol.offsetHeight;
+          var natLogoH = container.offsetHeight || 200;
+          var compactRow = vh < 520 && window.innerWidth > vh; // short landscape: text left, logo right
+          var pinH;
+          if (compactRow) {
+            pin.style.cssText = "position:sticky;top:0;display:flex;flex-direction:row;align-items:center;justify-content:center;column-gap:24px;width:100%;box-sizing:border-box;background:#000;z-index:2;padding:16px 20px";
+            textCol.style.maxWidth = "55%";
+            textH = textCol.offsetHeight;
+            var logoH2 = Math.min(natLogoH, vh - barH - 8 - 32);
+            var logoW = Math.round(logoH2 * 1060 / 600);
+            var maxLogoW = window.innerWidth - textCol.offsetWidth - 24 - 40;
+            if (logoW > maxLogoW) { logoW = Math.max(140, maxLogoW); logoH2 = Math.round(logoW * 600 / 1060); }
+            container.style.maxWidth = logoW + "px";
+            pinH = Math.max(textH, logoH2) + 32;
+          } else {
+            pin.style.cssText = "position:sticky;top:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;width:100%;box-sizing:border-box;background:#000;z-index:2";
+            pin.style.padding = PAD + "px 16px";
+            pin.style.rowGap = GAP + "px";
+            textCol.style.maxWidth = "";
+            var logoH = Math.max(LOGO_MIN_H, Math.min(natLogoH, vh - barH - 8 - 2 * PAD - GAP - textH));
+            container.style.maxWidth = logoH < natLogoH ? Math.round(logoH * 1060 / 600) + "px" : "";
+            pinH = textH + logoH + GAP + 2 * PAD;
+          }
+          pin.style.top = Math.max(barH + 8, Math.round((vh - pinH) / 2)) + "px";
+          track.style.height = (pinH + Math.round(vh * 0.7)) + "px";
+        } else {
+          if (stackedOn && origParent) { origParent.insertBefore(textCol, origNext); stackedOn = false; }
+          section.style.background = "";
+          pin.style.cssText = PIN_BASE;
+          container.style.maxWidth = "";
+          track.style.cssText = TRACK_BASE;
+          if (textCol) { textCol.style.position = "sticky"; textCol.style.top = "18vh"; textCol.style.zIndex = "2"; textCol.style.maxWidth = ""; }
         }
+        measure();
       }
 
       var DUR = 3900; // ms - his 3.9s keyframe timing, same both directions
@@ -332,8 +372,12 @@ window.PrismSecureLogo = (function () {
         settled = y0 > trackBot ? 1 : 0;
         renderOnce(settled);
         window.addEventListener("scroll", onScroll, { passive: true });
-        window.addEventListener("resize", measure);
-        if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+        relayout();
+        window.addEventListener("resize", relayout);
+        window.addEventListener("orientationchange", relayout);
+        if (window.visualViewport && window.visualViewport.addEventListener) window.visualViewport.addEventListener("resize", relayout);
+        if (mqPhone.addEventListener) mqPhone.addEventListener("change", relayout);
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(relayout);
         // Page opened (or reloaded) with the pin already active: play it now instead of waiting.
         if (y0 >= trackTop && y0 <= trackBot) start(1, y0);
         container.__psl = { get p() { return lastRendered; },
