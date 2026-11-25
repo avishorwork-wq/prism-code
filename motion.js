@@ -259,7 +259,7 @@ window.pcSetText=function(el,txt){
     if(s){s.textContent='Build '+n;return;}
     s=document.createElement('div');s.id='pcBuild';s.textContent='Build '+n;
     s.style.cssText='text-align:center;font:500 12px/1.4 Poppins,system-ui,sans-serif;color:#8a8a90;opacity:.8;padding:2px 12px 14px';
-    var host=document.querySelector('.sitefoot,.pcredit,footer');
+    var hs=document.querySelectorAll('.sitefoot,.pcredit,footer'),host=hs.length?hs[hs.length-1]:null;
     if(host&&host.parentNode)host.parentNode.insertBefore(s,host.nextSibling);else document.body.appendChild(s);
   }
   function fromSW(){
