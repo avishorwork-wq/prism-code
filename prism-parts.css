@@ -1,0 +1,21 @@
+/* Prism Code, Copyright (c) 2026 Avi Shor. Free to use, with or without credit. See LICENSE.md. No warranty. */
+.pp-card{margin-top:26px;padding:20px;border:1.5px solid #e6dfdb;border-radius:20px;background:#fff}
+.pp-card h3{font:700 20px/1.25 Poppins,system-ui,sans-serif;margin:0 0 6px;letter-spacing:-.01em}
+.pp-sub{margin:0 0 14px;color:#585254;font-size:15px}
+.pp-card select,.pp-card input[type=file]{max-width:100%}
+.pp-info{margin:10px 0;font-size:15px;color:#585254;min-height:1.4em}
+.pp-ok{color:#0a7a4a}.pp-err{color:#b3261e}.pp-warn{color:#8a5a00}
+.pp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin-top:16px}
+.pp-cell{margin:0;padding:10px;border:1px solid #e6dfdb;border-radius:14px;text-align:center}
+.pp-code{width:100%;height:auto;display:block;border-radius:6px;image-rendering:pixelated}
+.pp-cell figcaption{font:600 14px Poppins,system-ui,sans-serif;margin:8px 0 6px}
+.pp-cell button{font-size:14px!important;border:1px solid #d9d1cc!important;background:#fff;color:#1b1b1b}
+.pp-count{font:700 22px/1.2 Poppins,system-ui,sans-serif;margin-bottom:8px;overflow-wrap:anywhere}
+.pp-bar{height:10px;border-radius:6px;background:#efe9e5;overflow:hidden}
+.pp-bar i{display:block;height:100%;width:0;background:#1b1b1b;border-radius:6px;transition:width .25s cubic-bezier(.2,.8,.2,1)}
+.pp-chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.pp-chip{min-width:34px;padding:4px 6px;text-align:center;border:1.5px dashed #c9bfb9;border-radius:9px;font:600 13px Poppins,system-ui,sans-serif;color:#6f666a;transition:background-color .2s,border-color .2s,color .2s}
+.pp-chip.on{border-style:solid;border-color:#0a7a4a;background:#e7f6ee;color:#0a7a4a}
+.pp-msg{font-size:15px;margin:4px 0 12px;min-height:1.4em}
+.pp-msg.ok{color:#0a7a4a}.pp-msg.warn{color:#8a5a00}.pp-msg.err{color:#b3261e}
+@media(prefers-reduced-motion:reduce){.pp-bar i,.pp-chip{transition:none}}
