@@ -139,8 +139,15 @@ $('start').onclick=start;$('stop').onclick=()=>stop();$('switch').onclick=()=>{f
         const t = el.textContent;
         if (el.__wbr === t) return;
         el.__wbr = t;
-        const esc = t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        el.innerHTML = esc.replace(/([\/.:\?\-\u2013\u2014_&=]+)/g, '$1<wbr>');
+        const parts = t.split(/([\/.:\?\-\u2013\u2014_&=]+)/);
+        const frag = document.createDocumentFragment();
+        parts.forEach((p, i) => {
+            if (!p) return;
+            frag.appendChild(document.createTextNode(p));
+            if (i % 2 === 1) frag.appendChild(document.createElement('wbr'));
+        });
+        el.replaceChildren(frag);
+        el.__wbr = el.textContent;
     }
 
     /* one-euro filter: adaptive low-pass with derivative estimate */
