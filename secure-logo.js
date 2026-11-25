@@ -2,14 +2,10 @@
    Mounts Avi's animation into a container on a page.
 
    mode "scrub" (home band, test page): the container is wrapped in a tall
-   track (~300svh) with a sticky, viewport-high inner frame, so the logo
-   pins to the screen when the section is reached. Playback is TIME-BASED
-   at Avi's original keyframe timing (3.9s sweep), so everyone sees the
-   same speed regardless of how fast they scroll: crossing the pin point
-   downward plays the sequence forward once and holds; crossing back up
-   plays it once in reverse and holds. Fast scrolling cannot skip it - the
-   pin holds through the track and the sequence always plays to the end.
-   No loop.
+   track (~250svh) with a sticky, viewport-high inner frame, so the logo
+   stays pinned while the user scrolls through the track. Scroll position
+   inside the track drives the animation as a pure function of progress
+   (scroll-scrubbed), no timers and no loop.
 
    mode "auto" (prism-secure.html hero): plays once when scrolled into view
    (masked dots -> revealed "Secured") and holds; click/tap toggles.
@@ -187,7 +183,7 @@ window.PrismSecureLogo = (function () {
       var pin = document.createElement("div");
       track.className = "psl-track";
       pin.className = "psl-pin";
-      track.style.cssText = "position:relative;height:300vh;height:300svh";
+      track.style.cssText = "position:relative;height:250vh;height:250svh";
       pin.style.cssText = "position:sticky;top:0;height:100vh;height:100svh;display:flex;align-items:center;justify-content:center;width:100%";
       var parent = container.parentNode;
       parent.insertBefore(track, container);
@@ -205,48 +201,36 @@ window.PrismSecureLogo = (function () {
         }
       }
 
-      // time-based playback: crossing the pin point starts one play-through
-      // at Avi's keyframe speed; reversing direction mid-play resumes from
-      // the current frame. Progress never depends on scroll speed.
-      var trackTop = 0, raf = 0, last = 0;
-      var SWEEP = T_LOCK; // seconds for a full play-through (his 0-3.9s timeline)
-      var pcur = 0, target = 0;
+      var trackTop = 0, travel = 1, lastP = -1, raf = 0;
       function measure() {
         var rect = track.getBoundingClientRect();
+        var vh = window.innerHeight || document.documentElement.clientHeight || 1;
         trackTop = rect.top + (window.scrollY || window.pageYOffset || 0);
+        travel = Math.max(1, track.offsetHeight - vh);
       }
-      function frame(now) {
-        var dt = (now - last) / 1000; last = now;
-        if (dt > 0.1) dt = 0.1;
-        var step = dt / SWEEP;
-        if (pcur < target) pcur = Math.min(target, pcur + step);
-        else pcur = Math.max(target, pcur - step);
-        render(pcur);
-        if (pcur !== target) raf = requestAnimationFrame(frame);
-        else raf = 0;
-      }
-      function start() { if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); } }
-      function onScroll() {
+      function apply() {
+        raf = 0;
         var y = window.scrollY || window.pageYOffset || 0;
-        if (y > trackTop + 4 && target !== 1) { target = 1; start(); }
-        else if (y < trackTop - 4 && target !== 0) { target = 0; start(); }
+        var p = clamp((y - trackTop) / travel, 0, 1);
+        if (Math.abs(p - lastP) < 0.0005) return;
+        lastP = p;
+        render(p);
       }
+      function onScroll() { if (!raf) raf = requestAnimationFrame(apply); }
 
       ready.then(function () {
         svg = buildDom();
         measure();
-        var y = window.scrollY || window.pageYOffset || 0;
-        pcur = target = y > trackTop ? 1 : 0;
-        render(pcur);
         window.addEventListener("scroll", onScroll, { passive: true });
-        window.addEventListener("resize", function () { measure(); });
-        container.__psl = { get p() { return pcur; }, render: render, mode: "scrub" };
+        window.addEventListener("resize", function () { measure(); onScroll(); });
+        apply();
+        container.__psl = { get p() { return lastP; }, render: render, mode: "scrub" };
       }, function () {});
     } else {
       // ---- auto: play once on view, hold; click toggles direction ----
       // rests at p=0 (readable "Secured"); on view it plays once from the
       // masked state (dots, locked) into the revealed one and holds.
-      var pcur = 1, target = 1, raf = 0, last = 0, SWEEP = T_LOCK; // seconds for a full run (his 3.9s)
+      var pcur = 1, target = 1, raf = 0, last = 0, SWEEP = 3.2; // seconds for a full run
       function frame(now) {
         var dt = (now - last) / 1000; last = now;
         if (dt > 0.1) dt = 0.1;
