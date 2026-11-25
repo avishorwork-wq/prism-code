@@ -1,9 +1,9 @@
 /* Prism Code, Copyright (c) 2026 Avi Shor. Free to use, with or without credit. See LICENSE.md. No warranty. */
 // Prism Code offline cache. Same-origin GET only. Bump VERSION to refresh.
-const VERSION='prism-shell-105';
+const VERSION='prism-shell-106';
 const SHELL=[
   './','index.html','landing.html','use.html','prism.html','docs.html','print.html','progress.html','install.html','prism-secure.html','boarding.html',
-  'fast-camera.html','fast-reader.html','slow-reader.html','simulator.html','offline.html',
+  'fast-camera.html','fast-reader.html','slow-reader.html','simulator.html','offline.html','404.html',
   'site.css','controls-motion.css','motion.js','use.css','common.css','site-reader.css','site-camera.css','site-install.css','site-secure.css','lab.html','a11y.css','reader-flow.css','reader-flow.js','first-run.css','first-run.js','prism-qrlink.js','camera-ux-overrides.css','prism-creator.css','prism-parts.js','prism-parts.css','prism-demos.js','prism-creator.js','prism-logo.js','prism-share.js','prism-issuers.js',
   'prism-cards.js','issuers.json','prism-pwa.js','manifest.webmanifest',  'brand/favicon.ico','brand/icon-32.png','brand/icon-180.png','brand/icon-192.png','brand/icon-512.png','brand/icon-maskable-512.png',
   'license.html','camera-beta.html','secure-logo.js','phone-fit-overrides.css','site-camera-app.css','site-reader-overrides.css','test-report.json','brand/prism-secure-lock-locked-on-dark.svg','brand/sample-signed-code.png','brand/prism-mark-on-dark.svg','brand/logo-stacked.png',
