@@ -1,0 +1,75 @@
+/* Prism Code controls motion layer: buttons, links, checkboxes, inputs and tap targets.
+   Additive only. Load LAST on the page so it settles conflicts between page styles.
+   Owns: press/active states, disabled states, focus cues, tap size, tap highlight,
+   double-tap zoom and one consistent check/press motion across every page. */
+
+/* 1. No tap-highlight boxes and no double-tap zoom anywhere (pinch zoom still works). */
+html{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+canvas{touch-action:pan-y}
+
+/* 2. Every control state change animates, nothing snaps. */
+a,button,[role="button"],summary,input,select,textarea,label{
+  transition:color .18s ease,background-color .18s ease,border-color .18s ease,
+             opacity .18s ease,filter .18s ease,box-shadow .18s ease,transform .12s ease}
+
+/* 3. One consistent press feel on every tappable control. */
+button:not(:disabled):not([disabled]):active,
+.btn:not([disabled]):active,
+[role="button"]:active,
+summary:active,
+a.scanpill:active{transform:scale(.97)}
+label.opt:active{filter:brightness(.97)}
+
+/* 4. Tap targets: a finger always gets at least 44px. */
+button,.btn,[role="button"],a.scanpill{min-height:44px}
+.sitebar .scanpill{min-height:44px;align-items:center}
+select{min-height:44px}
+main .result .controls button{min-height:44px}
+
+/* 5. Focus is a soft neutral ring on fields and a subtle dim on controls.
+      Never an outline box. */
+:focus-visible{outline:none!important}
+textarea:focus,select:focus,input:focus{outline:none!important}
+textarea:focus,select:focus,
+input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=range]):focus{
+  border-color:#9a9597;box-shadow:0 0 0 3px rgba(0,0,0,.12)}
+.rf-zone:focus-visible{box-shadow:0 0 0 4px rgba(0,0,0,.14)}
+
+/* 6. Checkboxes: one design on every page, with an animated tick and a tap pop. */
+input[type=checkbox]{
+  appearance:none;-webkit-appearance:none;
+  width:22px;height:22px;min-width:22px;min-height:22px;margin:0;
+  border:1.5px solid #c7c2c4;border-radius:7px;background:#fff;
+  position:relative;display:inline-block;vertical-align:-5px;
+  cursor:pointer;flex:none}
+input[type=checkbox]:checked{background:#2E5BFF;border-color:#2E5BFF;animation:cm-pop .22s ease}
+input[type=checkbox]::after{
+  content:"";position:absolute;left:50%;top:44%;
+  width:10px;height:5px;
+  border-left:2.4px solid #fff;border-bottom:2.4px solid #fff;
+  transform:translate(-50%,-62%) rotate(-45deg) scale(0);
+  transition:transform .16s cubic-bezier(.34,1.4,.64,1)}
+input[type=checkbox]:checked::after{transform:translate(-50%,-62%) rotate(-45deg) scale(1)}
+input[type=checkbox]:not(:disabled):active{transform:scale(.86)}
+input[type=checkbox]:disabled{opacity:.4;cursor:default}
+input[type=checkbox]:focus-visible{box-shadow:0 0 0 3px rgba(0,0,0,.18)}
+@keyframes cm-pop{0%{transform:scale(1)}45%{transform:scale(1.14)}100%{transform:scale(1)}}
+
+/* Spacing where a checkbox sits inside a text label. */
+.inline input[type=checkbox],
+.traceToggle input[type=checkbox],
+.expertSwitch input[type=checkbox],
+.options label input[type=checkbox]{margin-right:8px}
+
+/* Option cards keep their checkbox aligned with the first line. */
+.opt input[type=checkbox]{margin:4px 0 0}
+
+/* Checkboxes on dark camera pages stay dark-theme. */
+main .options input[type=checkbox]{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.45)}
+main .options input[type=checkbox]:checked{background:var(--mint,#0a84ff);border-color:var(--mint,#0a84ff)}
+main .options input[type=checkbox]:focus-visible{box-shadow:0 0 0 3px rgba(255,255,255,.3)}
+
+@media (prefers-reduced-motion:reduce){
+  input[type=checkbox]:checked{animation:none}
+  input[type=checkbox]::after{transition:none}
+}
