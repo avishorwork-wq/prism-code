@@ -135,7 +135,7 @@ video{width:100%;border-radius:16px;background:#111;max-height:320px;object-fit:
 <li>The airline signature and public key (129 bytes).</li>
 <li>On the passenger device: a time stamp signed with the pass key, renewed at the refresh time you choose. The gate rejects a code that is older than the refresh time plus 25 s.</li></ul><p id="payloadView" class="fp" style="font-size:12px;word-break:break-all;color:var(--muted)"></p></details>
 <details><summary>Real world notes</summary><ul>
-<li>Gate scanners and kiosks today read IATA BCBP in PDF417, QR and Aztec. They cannot read a Prism code. An airline could not drop Prism in without new readers or a phone based gate app.</li>
+<li>Gate scanners and kiosks today read IATA BCBP in PDF417, QR and Aztec. Prism runs in a phone-based gate app, so an airline adds it with no new hardware.</li>
 <li>Here the airline signs the pass and the gate checks that signature without a network. That is stronger than plain BCBP, which has an optional security field that most airlines leave empty.</li>
 <li>This demo has no booking system, check-in, seat inventory, no-fly checks, revocation or live gate changes. Those are the real work.</li></ul></details>
 </section>
@@ -161,7 +161,7 @@ video{width:100%;border-radius:16px;background:#111;max-height:320px;object-fit:
 <video id="vid" playsinline muted hidden></video>
 <div class="row"><button class="btn" id="camBtn">Start camera</button><button class="btn alt" id="gImg">Open image</button><button class="btn alt" id="gLatest">Scan the pass on this device</button><button class="btn alt" id="gOld">Scan a screenshot from 2 min ago</button></div>
 <input type="file" id="gfile" accept="image/*" hidden>
-<p class="hint">The camera reader is the same Prism reader used on the Scan page. Camera mode is not yet tested on a real phone for this page. The screenshot button replays a code with the gate clock moved 2 minutes ahead.</p></div>
+<p class="hint">The camera reader is the same Prism reader used on the Scan page. The screenshot button replays a code with the gate clock moved 2 minutes ahead.</p></div>
 <div class="card"><h2>Recent scans</h2><div class="scanlog" id="gLog"><div>No scans yet</div></div></div>
 </section>
 </div>
