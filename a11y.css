@@ -1,5 +1,6 @@
 /* Prism Code accessibility layer. Additive only: no layout rules except tap-target minimums. */
-:where(a,button,input,select,textarea,summary,[tabindex]):focus-visible{outline:3px solid #367464;outline-offset:3px;border-radius:4px}
+:where(a,button,input,select,textarea,summary,[tabindex]):focus-visible{outline:none;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:2px}
+:where(button,input,select,textarea,summary):focus-visible{text-decoration:none;filter:brightness(.93)}
 .sitebar .sl a{min-height:44px}
 .sitefoot a,footer a{display:inline-flex;align-items:center;min-height:44px;padding:0 4px}
 .sidenav a,.toc a,aside a{min-height:44px;display:flex;align-items:center}
@@ -14,3 +15,11 @@ summary{min-height:44px;display:flex;align-items:center}
 .sitebar .brand{min-width:44px;min-height:44px;justify-content:center}
 .sitebar .sl a{min-width:44px;justify-content:center}
 td a,th a{display:inline-flex;align-items:center;min-height:44px}
+
+/* Fluid interactions, no tap boxes */
+a,button,[role="button"],summary,input,select,textarea,label{-webkit-tap-highlight-color:transparent}
+a,button,[role="button"],summary,select,label{transition:color .18s ease,background-color .18s ease,border-color .18s ease,opacity .18s ease,filter .18s ease,box-shadow .18s ease,transform .12s ease}
+button:active,[role="button"]:active,a:active{filter:brightness(.94)}
+[role="tabpanel"]:not([hidden]){animation:pcfade .22s ease both}
+details>:not(summary){animation:pcfade .22s ease both}
+@keyframes pcfade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
