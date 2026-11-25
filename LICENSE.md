@@ -2,7 +2,7 @@
 
 Copyright (c) 2026 Avi Shor. All rights reserved.
 
-This license gives everyone broad, free permission to use Prism Code, in exchange for one thing: clear, visible credit to its creator. Please read it in full. By downloading, using, copying, modifying or distributing Prism Code, you accept every term below, both as the conditions of a copyright license and as a binding contract between you and Avi Shor.
+This license gives everyone broad, free permission to use Prism Code, with no credit required. Please read it in full. By downloading, using, copying, modifying or distributing Prism Code, you accept every term below, both as the conditions of a copyright license and as a binding contract between you and Avi Shor.
 
 ## 1. What this license covers
 
@@ -30,18 +30,9 @@ Your rights are personal to you: you may not sublicense or transfer them. Anyone
 
 This permission does not transfer ownership. No rights are granted by implication; only the rights stated in this license are granted.
 
-## 3. The one condition: visible credit
+## 3. Credit
 
-Every product, website, app, service, publication or material that uses Prism Code must carry a clearly visible credit. "Uses" means building on, incorporating, running, displaying, generating or reading codes with, or distributing Prism Code or anything derived from it. A person who merely scans or reads a Prism code someone else made owes no credit.
-
-The credit must appear on every page or screen where Prism Code functionality is used or displayed, and, for a website or app that includes Prism Code, also in its footer or an equivalent standard location. It must meet all of these requirements:
-
-1. It reads exactly: **"Prism Code by Avi Shor"**.
-2. The name "Avi Shor" is a working hyperlink to https://avishorwork-wq.github.io/prism-code/ wherever the medium supports links. In a medium that cannot link (such as print), that URL must appear in full, next to the credit. If the URL ever moves, the credit must link to its successor address as announced on the project.
-3. It is clearly visible to an ordinary user or reader: not hidden in code comments, metadata, files the user never sees, off-screen areas, tiny or low-contrast text, or behind interactions such as clicks, taps, logins or scrolling that a reasonable person would not perform. A footer credit in normal body text size is acceptable; anything less prominent is not.
-4. It remains in place for as long as the use continues. You may not show it once and then remove it, and you may not make it harder to see over time.
-
-If you cannot or do not wish to provide this credit, you may not use Prism Code.
+You may use Prism Code with or without giving credit. No visible credit, link or attribution is required in any product, website, app, service, publication or material that uses Prism Code. If you choose to give credit, "Prism Code by Avi Shor" with a link to https://avishorwork-wq.github.io/prism-code/ is appreciated.
 
 ## 4. The Prism Code method
 
@@ -49,19 +40,18 @@ The "Prism Code method" means the specific combination described in the Prism Co
 
 Copyright protects the code and the specification text. The Prism Code method is protected through this contract, which you accept by using Prism Code:
 
-1. The credit condition in Section 3 applies in full to anything you make that implements the Prism Code method, in whole or in substantial part, even if you wrote your own code rather than copying Avi Shor's, and even if you adjusted or extended the method.
-2. You may modify Prism Code and distribute your modifications under this license with the required credit. You may not take Prism Code, its specification or its method and rebrand or relicense them, or a substantially similar system built from them, as your own format or under different terms, with or without credit, without Avi Shor's prior written permission.
-3. This section binds only you and others who accept this license. It does not restrict anyone who has never used Prism Code.
+1. You may modify Prism Code and distribute your modifications under this license. You may not take Prism Code, its specification or its method and rebrand or relicense them, or a substantially similar system built from them, as your own format or under different terms, without Avi Shor's prior written permission.
+2. This section binds only you and others who accept this license. It does not restrict anyone who has never used Prism Code.
 
 ## 5. Keep the notices
 
 You must keep this license text and the copyright line "Copyright (c) 2026 Avi Shor" intact and unaltered in every copy or substantial portion of the software and in every derivative work you distribute. You may not remove, alter, obscure or misrepresent the origin of Prism Code, and you may not claim that you or anyone else created it.
 
-The credit required by Section 3, the copyright line and this license text are copyright management information within the meaning of 17 U.S.C. § 1202. Removing or altering them, or distributing or publicly performing Prism Code knowing they were removed or altered, may create separate liability under United States federal law, in addition to liability for copyright infringement or breach of this license.
+The copyright line and this license text are copyright management information within the meaning of 17 U.S.C. § 1202. Removing or altering them, or distributing or publicly performing Prism Code knowing they were removed or altered, may create separate liability under United States federal law, in addition to liability for copyright infringement or breach of this license.
 
 ## 6. Names, trademarks and endorsement
 
-The names "Prism Code" and "Avi Shor", and any associated logos, are reserved to Avi Shor. This license does not grant you any right to use them as a name, brand, trademark, domain name or identifier for your own product, service or organization, and it does not grant permission to register any of them as a trademark anywhere. You may use the names only to give the credit required by Section 3 and to refer accurately and factually to Prism Code (for example, "compatible with Prism Code").
+The names "Prism Code" and "Avi Shor", and any associated logos, are reserved to Avi Shor. This license does not grant you any right to use them as a name, brand, trademark, domain name or identifier for your own product, service or organization, and it does not grant permission to register any of them as a trademark anywhere. You may use the names only to refer accurately and factually to Prism Code (for example, "compatible with Prism Code").
 
 You may not state or imply that Avi Shor endorses, sponsors or approves of you, your product or your modifications, or that your version is the official Prism Code, without his prior written permission. If you distribute a modified version, you must make clear that it is modified and not the original.
 
