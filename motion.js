@@ -69,12 +69,12 @@ document.addEventListener('click',function(e){
 /* ---- Smooth reveals: elements shown/hidden through the hidden attribute ---- */
 var REVEAL='[data-reveal],#pwbox,#keybox,#resultbox,#expertOnly,#expertInfo,#encodeFileWrap,.prismTrace,#savewarn,#cpw';
 function runReveal(el,hide){
-  var from,to,fromO,toO,ease,base;
+  var from,to,fromO,toO,ease;
   var had=!!el.__animA;
   if(had){from=boxH(el);var o=parseFloat(getComputedStyle(el).opacity);fromO=isNaN(o)?(hide?1:0):o;}
   stopAnim(el);
   if(hide){
-    el.hidden=false; /* keep it on screen for the closing run */
+    el.__self=false;el.hidden=false; /* own write: keep it on screen for the closing run */
     if(!had){from=el.offsetHeight;fromO=1;}
     to=0;toO=0;ease=had?STD:EXT;
   }else{
@@ -84,19 +84,19 @@ function runReveal(el,hide){
     el.style.overflow=ov;
     toO=1;ease=had?STD:ENT;
   }
-  if(rm()||Math.abs(from-to)<1){
-    if(hide){el.__appliedHidden=true;el.hidden=true;}
+  if(Math.abs(from-to)<1){
+    if(hide){el.__self=true;el.hidden=true;}
     return;
   }
   el.style.overflow='hidden';
   var a;
   try{a=el.animate([{height:from+'px',opacity:String(fromO)},{height:to+'px',opacity:String(toO)}],{duration:durFor(Math.abs(to-from)),easing:ease});}
-  catch(err){el.style.overflow='';if(hide){el.__appliedHidden=true;el.hidden=true;}return;}
+  catch(err){el.style.overflow='';if(hide){el.__self=true;el.hidden=true;}return;}
   el.__animA=a;
   a.onfinish=a.oncancel=function(){
     if(el.__animA===a)el.__animA=null;
     el.style.overflow='';
-    if(hide){el.__appliedHidden=true;el.hidden=true;}
+    if(hide){el.__self=true;el.hidden=true;}
   };
 }
 function watch(el){
@@ -105,16 +105,12 @@ function watch(el){
   el.__appliedHidden=el.hidden;
   new MutationObserver(function(){
     var h=el.hidden;
+    /* swallow only our own writes; every app write starts or reverses a run */
+    if(el.__self===h){el.__self=undefined;return;}
     if(h===el.__appliedHidden)return;
     el.__appliedHidden=h;
     if(rm())return;
-    if(h){
-      /* app just hid it: bring back for the closing slide */
-      el.__appliedHidden=false;
-      runReveal(el,true);
-    }else{
-      runReveal(el,false);
-    }
+    runReveal(el,h);
   }).observe(el,{attributes:true,attributeFilter:['hidden']});
 }
 function scanReveals(root){
