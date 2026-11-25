@@ -6,7 +6,7 @@ h1{font-family:Poppins,system-ui,sans-serif;font-weight:700;letter-spacing:-.025
 .tabs{border-radius:980px}
 .tabs button{font-family:inherit;border-radius:980px;font-weight:500}
 textarea,input[type=text]{font-family:inherit}
-textarea:focus,input[type=text]:focus{border-color:#2E5BFF;box-shadow:0 0 0 3px rgba(46,91,255,.18)}
+textarea:focus,input[type=text]:focus{border-color:#86868b;box-shadow:0 0 0 3px rgba(0,0,0,.08)}
 .opt.on{background:#eef2ff}
 .btn{font-family:inherit;font-weight:500;border-radius:980px;background:#2E5BFF;color:#fff;transition:background .18s ease}
 .btn:hover:not([disabled]){background:#2250ec}
