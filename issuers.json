@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "updated": "2026-11-25",
+  "about": "Public list of Prism Code signing keys this site can name. A valid signature proves a code was made by one key and was not changed. This list only says which name this site attaches to that key's fingerprint. Check a fingerprint through a channel you trust before relying on a name.",
+  "issuers": [
+    {
+      "name": "Prism Code demo",
+      "fingerprint": "7537-35E7-2A9E-E614",
+      "url": "https://avishorwork-wq.github.io/prism-code/",
+      "added": "2026-11-25",
+      "note": "Project demo key. Signs the sample code in the docs so you can see issuer lookup work."
+    }
+  ]
+}
