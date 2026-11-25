@@ -49,14 +49,14 @@ details ul{padding-left:20px;color:var(--muted);font-size:14px;margin:6px 0 12px
 .spin{display:inline-block;width:14px;height:14px;border:2px solid #fff6;border-top-color:#fff;border-radius:50%;animation:s .7s linear infinite;vertical-align:-2px;margin-right:8px}@keyframes s{to{transform:rotate(360deg)}}
 #log{white-space:pre-wrap;font:12px monospace;color:#999}
 @media(max-width:480px){h1{font-size:28px}.step{padding:14px;border-radius:18px}}
-</style><link rel="stylesheet" href="site.css"><link rel="stylesheet" href="site-secure.css"><link rel="stylesheet" href="a11y.css"></head><body><div class="sbstrip"><i style="background:#D7263D"></i><i style="background:#F77F00"></i><i style="background:#F5C518"></i><i style="background:#2DB35A"></i><i style="background:#00B8D9"></i><i style="background:#2E5BFF"></i><i style="background:#B5179E"></i></div><div class="sitebar"><div class="sb-in"><a class="brand" href="index.html" aria-label="Prism Code home"><img class="full" src="brand/logo-horizontal.png" alt="Prism Code"><img class="ic" src="brand/icon-192.png" alt=""></a><div class="sl"><a href="index.html">Home</a><a href="use.html">Use</a><a href="prism.html">Advanced</a><a href="docs.html">Docs</a></div><a class="scanpill" href="fast-camera.html"><span class="l">Scan a code</span><span class="s">Scan</span></a></div></div>
+</style><link rel="stylesheet" href="site.css"><link rel="stylesheet" href="site-secure.css"><link rel="stylesheet" href="a11y.css"><meta property="og:type" content="website"><meta property="og:title" content="Prism Secure"><meta property="og:description" content="A color code that holds more."><meta property="og:url" content="https://avishorwork-wq.github.io/prism-code/prism-secure.html"><meta property="og:image" content="https://avishorwork-wq.github.io/prism-code/brand/share-banner-1200x630.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Prism Secure"><meta name="twitter:description" content="A color code that holds more."><meta name="twitter:image" content="https://avishorwork-wq.github.io/prism-code/brand/share-banner-1200x630.png"></head><body><div class="sbstrip"><i style="background:#D7263D"></i><i style="background:#F77F00"></i><i style="background:#F5C518"></i><i style="background:#2DB35A"></i><i style="background:#00B8D9"></i><i style="background:#2E5BFF"></i><i style="background:#B5179E"></i></div><div class="sitebar"><div class="sb-in"><a class="brand" href="index.html" aria-label="Prism Code home"><img class="full" src="brand/logo-horizontal.png" alt="Prism Code"><img class="ic" src="brand/icon-192.png" alt=""></a><div class="sl"><a href="index.html">Home</a><a href="use.html">Use</a><a href="prism.html">Advanced</a><a href="docs.html">Docs</a></div><a class="scanpill" href="fast-camera.html"><span class="l">Scan a code</span><span class="s">Scan</span></a></div></div>
 <div class="strip"><i style="background:#D7263D"></i><i style="background:#F77F00"></i><i style="background:#F5C518"></i><i style="background:#2DB35A"></i><i style="background:#00B8D9"></i><i style="background:#2E5BFF"></i><i style="background:#B5179E"></i></div>
 <div class="wrap">
 <nav><img src="brand/logo-horizontal.png" alt="Prism Code"><span class="pill">AES-256 encryption</span></nav>
 <div id="secureLogoHero" style="background:#000;border-radius:24px;overflow:hidden;margin:14px 0 26px;aspect-ratio:1060/600;display:flex;align-items:center;justify-content:center"><img src="brand/prism-secure-lock-locked-on-dark.svg" alt="Prism Secure lock" width="260" height="260" style="width:min(180px,40%);height:auto"></div>
 <h1>Prism Secure</h1>
-<script src="secure-logo.js?v=6"></script>
-<script>window.PrismSecureLogo&&PrismSecureLogo.mount(document.getElementById("secureLogoHero"),document.getElementById("secureLogoHero"),{mode:"auto"});</script>
+<script src="secure-logo.js"></script>
+<script>window.PrismSecureLogo&&PrismSecureLogo.mount(document.getElementById("secureLogoHero"),document.getElementById("secureLogoHero"));</script>
 <p class="lead">Lock a Prism code with a password so only people who have it can read it. Everything happens on this device, offline.</p>
 <div class="tabs"><button id="tabMake" class="on">Create</button><button id="tabOpen">Open</button></div>
 
@@ -91,12 +91,12 @@ details ul{padding-left:20px;color:var(--muted);font-size:14px;margin:6px 0 12px
 <div class="step"><h2><span class="num">3</span>Result</h2><div id="out"><div class="hint">Pick a code above.</div></div></div>
 </section>
 
-<details><summary>What this protects, and what it does not</summary><ul>
+<details><summary>What this protects</summary><ul>
 <li><b>Protects:</b> anyone who scans or photographs a locked code sees only random data. Any change to the code is detected.</li>
 <li><b>Lock:</b> AES-256-GCM. The password goes through Argon2id (128 MiB, 3 passes), which makes guessing expensive. Every code has its own random salt and nonce.</li>
-<li><b>Sign:</b> ECDSA P-256. Shows the code is unchanged and made by one key. It proves who only if you already trust that key's fingerprint.</li>
-<li><b>Does not protect:</b> a weak password, a phone or computer with malware, someone watching you type, the fact that a code exists or roughly how long it is, or a password shared with the wrong person.</li>
-<li>No recovery for a lost password or key. Not independently audited: it uses the browser's built-in crypto plus the MIT-licensed hash-wasm Argon2id.</li></ul></details>
+<li><b>Sign:</b> ECDSA P-256. Shows the code is unchanged and made by one key.</li>
+
+</ul></details>
 <pre id="log"></pre>
 <script>window.onerror=(m,s,l,c)=>{document.getElementById("log").textContent+="ERR "+m+" line "+l+"\n"}</script>
 <script>
@@ -431,4 +431,4 @@ window.selfTest=async function(){const L=[];const ok=(n,v)=>L.push((v?'PASS ':'F
  let bad=false;try{const j=JSON.parse(txt);j.jwk.d=j.jwk.d.slice(0,-2)+'AA';await importKeyText(JSON.stringify(j))}catch(e){bad=true}ok('mismatched key file rejected',bad);
  }catch(e){L.push('FAIL exception '+e.message)}
  $('log').textContent=L.join('\n');return L;};
-</script><script src="prism-pwa.js"></script><style>.pcredit{text-align:center;padding:18px 16px 26px;font:400 14px/1.6 Poppins,system-ui,sans-serif;color:#585254}.pcredit a{color:#1b1b1b;font-weight:600;text-decoration:underline}@media print{.pcredit{display:none}}</style><div class="pcredit">Prism Code by <a href="https://avishorwork-wq.github.io/prism-code/">Avi Shor</a> &middot; <a href="https://github.com/avishorwork-wq/prism-code/blob/main/LICENSE.md">License</a></div></body></html>
+</script><script src="prism-pwa.js"></script><style>.pcredit{text-align:center;padding:18px 16px 26px;font:400 14px/1.6 Poppins,system-ui,sans-serif;color:#585254}.pcredit a{color:#1b1b1b;font-weight:600;text-decoration:underline}@media print{.pcredit{display:none}}</style><div class="pcredit">Prism Code by <a href="https://avishorwork-wq.github.io/prism-code/">Avi Shor</a> &middot; <a href="license.html">License</a></div></body></html>
