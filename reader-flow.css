@@ -8,7 +8,7 @@
 .rf-row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
 .rf-btn{appearance:none;border:0;border-radius:980px;padding:10px 18px;min-height:44px;font:600 15px/1 inherit;font-family:inherit;background:var(--rf-card);color:var(--rf-ink);cursor:pointer;transition:background .2s,transform .1s}
 .rf-btn:hover{background:#e8e8ed}.rf-btn:active{transform:scale(.97)}.rf-btn.pri{background:var(--rf-blue);color:#fff}.rf-btn.pri:hover{background:#0077ed}
-.rf-btn:focus-visible{outline:none;box-shadow:0 0 0 4px rgba(0,113,227,.3)}
+.rf-btn:focus-visible{outline:none;box-shadow:none;filter:brightness(.93)}
 .rf-hint{font-size:13px;color:var(--rf-mute);margin:0 0 6px}
 #scan #upload,#scan label[for=upload]{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .rf-bar{height:3px;border-radius:3px;background:transparent;overflow:hidden;margin:6px 0 0;position:relative}
