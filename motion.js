@@ -250,4 +250,31 @@ window.pcSetText=function(el,txt){
   setInterval(function(){if(!document.hidden)sweep();},500);
   sweep();
 })();
+/* Build stamp on every page: shows which app version this device is running (active service-worker
+   cache number, e.g. "Build 79"). Updates Home's #buildStamp so it never goes stale; other pages get one under the footer. */
+(function(){
+  function put(n){
+    if(!n)return;
+    var s=document.getElementById('buildStamp')||document.getElementById('pcBuild');
+    if(s){s.textContent='Build '+n;return;}
+    s=document.createElement('div');s.id='pcBuild';s.textContent='Build '+n;
+    s.style.cssText='text-align:center;font:500 12px/1.4 Poppins,system-ui,sans-serif;color:#8a8a90;opacity:.8;padding:2px 12px 14px';
+    var host=document.querySelector('.sitefoot,.pcredit,footer');
+    if(host&&host.parentNode)host.parentNode.insertBefore(s,host.nextSibling);else document.body.appendChild(s);
+  }
+  function fromSW(){
+    fetch('prism-sw.js',{cache:'no-cache'}).then(function(r){return r.text()}).then(function(t){
+      var x=/prism-shell-(\d+)/.exec(t);if(x)put(x[1]);
+    }).catch(function(){});
+  }
+  function run(){
+    try{
+      if(window.caches&&caches.keys){caches.keys().then(function(k){
+        var best=0;k.forEach(function(x){var v=x.indexOf('prism-shell-')===0?parseInt(x.slice(12),10):0;if(v>best)best=v;});
+        if(best)put(best);else fromSW();
+      }).catch(fromSW);}else fromSW();
+    }catch(e){fromSW();}
+  }
+  if(document.readyState==='complete')run();else window.addEventListener('load',run);
+})();
 })();
