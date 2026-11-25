@@ -22,17 +22,31 @@ Prism.encode = function (bytes, opts) {
 };
 
 Prism.render = function (code, r, canvas) {
-  const c = origRender.call(Prism, code, r, canvas);
-  if (!code || !code.logo || !state.img) return c;
-  const l = code.layout, rr = r, Q = Prism.Q, ctx = c.getContext('2d');
-  const side = Math.sqrt(state.pct / 100 * l.W * l.H) * rr;
-  const cx = (l.W / 2 + Q) * rr, cy = (l.H / 2 + Q) * rr;
-  ctx.fillStyle = '#fff';
-  ctx.fillRect(cx - side / 2, cy - side / 2, side, side);
+  if (!code || !code.logo || !state.img) return origRender.call(Prism, code, r, canvas);
+  const l = code.layout, Q = Prism.Q;
+  const W = Math.ceil((l.W + 2 * Q) * r), H = Math.ceil((l.H + 2 * Q) * r);
+  const side = Math.sqrt(state.pct / 100 * l.W * l.H) * r;
+  const cx = (l.W / 2 + Q) * r, cy = (l.H / 2 + Q) * r;
   const iw = state.img.naturalWidth || state.img.width, ih = state.img.naturalHeight || state.img.height;
-  const box = side * .86, k = Math.min(box / iw, box / ih);
-  ctx.drawImage(state.img, cx - iw * k / 2, cy - ih * k / 2, iw * k, ih * k);
-  return c;
+  const k = Math.min(side / iw, side / ih);
+  const lg = document.createElement('canvas'); lg.width = W; lg.height = H;
+  const g = lg.getContext('2d', { willReadFrequently: true });
+  g.drawImage(state.img, cx - iw * k / 2, cy - ih * k / 2, iw * k, ih * k);
+  const a = g.getImageData(0, 0, W, H).data, syms = code.symbols.slice();
+  let d = 1e9; const c0 = l.cells[0];
+  for (const c of l.cells) { const q = Math.hypot(c.x - c0.x, c.y - c0.y); if (q > 0 && q < d) d = q; }
+  const rr = d / Math.sqrt(3) * (window.__PLK || 1.4) * r, offs = [[0, 0]];
+  for (let i = 0; i < 6; i++) offs.push([rr * Math.cos(i * Math.PI / 3), rr * Math.sin(i * Math.PI / 3)]);
+  for (const c of l.cells) {
+    const px = (c.x + Q) * r, py = (c.y + Q) * r;
+    for (const o of offs) {
+      const x = Math.round(px + o[0]), y = Math.round(py + o[1]);
+      if (x >= 0 && y >= 0 && x < W && y < H && a[(y * W + x) * 4 + 3] > 20) { syms[c.index] = 8; break; }
+    }
+  }
+  const c2 = origRender.call(Prism, Object.assign({}, code, { symbols: syms }), r, canvas);
+  c2.getContext('2d').drawImage(lg, 0, 0);
+  return c2;
 };
 
 /* ---------- controls ---------- */
@@ -53,6 +67,11 @@ let timer = 0;
 function regenerate() { generate.dispatchEvent(new Event('input', { bubbles: true })); ($('payload') || generate).dispatchEvent(new Event('input', { bubbles: true })); scheduleCheck(); }
 function scheduleCheck() { clearTimeout(timer); timer = setTimeout(check, 400); }
 
+function stepDown() {
+  const sel = box.querySelector('#logoSize'), opts = [10, 15, 20, 25], i = opts.indexOf(state.pct);
+  state.pct = opts[Math.max(0, i - 1)]; state.auto = true; sel.value = String(state.pct); regenerate();
+}
+
 function check() {
   const code = UI.getCode();
   if (!state.img || !code || !code.logo) { note.style.color = ''; return; }
@@ -63,10 +82,12 @@ function check() {
       const prev = $('preview'), img = prev.getContext('2d').getImageData(0, 0, prev.width, prev.height);
       const res = PrismReader.read(img);
       const ok = res.bytes.length === code.bytes.length && res.bytes.every((x, i) => x === code.bytes[i]);
+      if (!ok && state.pct > 10) { stepDown(); return; }
       note.style.color = ok ? '#1a7f37' : '#b35900';
-      note.textContent = ok ? 'Checked: this code reads back with the logo in place.'
+      note.textContent = ok ? 'Checked: this code reads back with the logo in place.' + (state.auto ? ' The logo size was adjusted to fit.' : '')
         : 'Make the logo a little smaller or the text a little shorter.';
     } catch (e) {
+      if (state.pct > 10) { stepDown(); return; }
       note.style.color = '#b35900';
       note.textContent = 'Make the logo a little smaller or the text a little shorter.';
     }
@@ -77,13 +98,13 @@ box.querySelector('#logoFile').addEventListener('change', e => {
   const f = e.target.files && e.target.files[0];
   if (!f) return;
   if (state.url) URL.revokeObjectURL(state.url);
-  state.url = URL.createObjectURL(f);
+  state.auto = false; state.url = URL.createObjectURL(f);
   const im = new Image();
   im.onload = () => { state.img = im; controls.hidden = false; ecc.value = '3'; ecc.disabled = true; regenerate(); };
   im.onerror = () => { note.textContent = 'Choose an image file (PNG, JPG or WebP).'; };
   im.src = state.url;
 });
-box.querySelector('#logoSize').addEventListener('change', e => { state.pct = +e.target.value; regenerate(); });
+box.querySelector('#logoSize').addEventListener('change', e => { state.auto = false; state.pct = +e.target.value; regenerate(); });
 box.querySelector('#logoClear').addEventListener('click', () => {
   state.img = null; controls.hidden = true; ecc.disabled = false; box.querySelector('#logoFile').value = '';
   note.style.color = ''; note.textContent = 'Logo removed.'; regenerate();
