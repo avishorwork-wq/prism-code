@@ -127,3 +127,7 @@ input[type=file]:active::file-selector-button{transform:scale(.97);filter:bright
 /* 12. Page-to-page moves cross-fade on browsers that support it (Chrome/Android). */
 @view-transition{navigation:auto}
 @media(prefers-reduced-motion:reduce){@view-transition{navigation:none}}
+
+/* 6b. Tickets/cards injected UI (prism-cards.js appends its own <style> after this sheet): keep the 44px tap floor with higher specificity. */
+body .pccard button,body .pcbar button{min-height:44px}
+body .pcform input,body .pcform select{min-height:44px}
