@@ -72,6 +72,8 @@ nav[role=tablist].seg-on>.segpill{position:absolute;top:0;left:0;border-radius:v
 html{scroll-behavior:smooth}
 /* Generated part cards (prism-parts) get the standard entrance instead of popping in */
 .pp-cell{animation:pcfade .25s cubic-bezier(0,0,.2,1) both}
+/* Verified-result cards (camera page toggles [hidden]) get the standard entrance */
+.result:not([hidden]){animation:pcfade .25s cubic-bezier(0,0,.2,1) both}
 
 /* Motion layer batch 2: page entrance + scroll reveals */
 @keyframes pcpage{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
