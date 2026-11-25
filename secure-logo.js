@@ -210,6 +210,7 @@ window.PrismSecureLogo = (function () {
             stackedOn = true;
           }
           section.style.background = "transparent";
+          section.style.paddingLeft = "0"; section.style.paddingRight = "0"; // black stage runs edge to edge
           textCol.style.position = ""; textCol.style.top = ""; textCol.style.zIndex = "";
           var textH = textCol.offsetHeight;
           var natLogoH = container.offsetHeight || 200;
@@ -240,6 +241,7 @@ window.PrismSecureLogo = (function () {
         } else {
           if (stackedOn && origParent) { origParent.insertBefore(textCol, origNext); stackedOn = false; }
           section.style.background = "";
+          section.style.paddingLeft = ""; section.style.paddingRight = "";
           pin.style.cssText = PIN_BASE;
           container.style.maxWidth = "";
           track.style.cssText = TRACK_BASE;
