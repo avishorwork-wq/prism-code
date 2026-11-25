@@ -83,12 +83,12 @@ function check() {
       const res = PrismReader.read(img);
       const ok = res.bytes.length === code.bytes.length && res.bytes.every((x, i) => x === code.bytes[i]);
       if (!ok && state.pct > 10) { stepDown(); return; }
-      note.style.color = ok ? '#1a7f37' : '#b35900';
+      note.style.color = ok ? '#1a7f37' : '#A65200';
       note.textContent = ok ? 'Checked: this code reads back with the logo in place.' + (state.auto ? ' The logo size was adjusted to fit.' : '')
         : 'Make the logo a little smaller or the text a little shorter.';
     } catch (e) {
       if (state.pct > 10) { stepDown(); return; }
-      note.style.color = '#b35900';
+      note.style.color = '#A65200';
       note.textContent = 'Make the logo a little smaller or the text a little shorter.';
     }
   }, 30);

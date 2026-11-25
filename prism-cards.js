@@ -94,7 +94,7 @@ function detect(text){
 
 const CSS=`
 .pccard{border-radius:16px;padding:16px 18px;margin-top:12px;text-align:left;font:15px/1.5 system-ui,-apple-system,sans-serif;border:1px solid rgba(128,128,128,.25)}
-.pccard.light{background:#f4efec;color:#251f21}
+.pccard.light{background:#F4F4F6;color:#251f21}
 .pccard.dark{background:rgba(255,255,255,.08);color:#f5f5f7}
 .pccard h4{margin:0 0 2px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.65;font-weight:700}
 .pccard .pcbig{font-size:19px;font-weight:650;margin:4px 0 8px;word-break:break-word}
@@ -114,7 +114,7 @@ const CSS=`
 .pcbar{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
 .pcbar button{border-radius:999px;border:1px solid #eae9ea;background:#fff;color:#585254;font:600 13px system-ui;padding:8px 14px;cursor:pointer;min-height:36px}
 .pcbar button[aria-pressed=true]{background:#251f21;border-color:#251f21;color:#fff}
-.pcform{background:#f4efec;border-radius:14px;padding:14px 16px;margin:0 0 14px;display:grid;gap:8px}
+.pcform{background:#F4F4F6;border-radius:14px;padding:14px 16px;margin:0 0 14px;display:grid;gap:8px}
 .pcform label{font-size:12.5px;font-weight:600;color:#585254;display:grid;gap:3px}
 .pcform input,.pcform select{border:1px solid #eae9ea;border-radius:8px;padding:9px 10px;font:15px system-ui;background:#fff;min-height:40px}
 .pcform .pcnote{font-size:12.5px;color:#585254;margin:2px 0 0}

@@ -1,9 +1,9 @@
-<!doctype html><!-- Prism Code, Copyright (c) 2026 Avi Shor. Free to use, with or without credit. See LICENSE.md. No warranty. --><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f4efec"><link rel="icon" href="brand/icon-32.png"><link rel="apple-touch-icon" href="brand/icon-180.png"><title>Prism Secure</title>
+<!doctype html><!-- Prism Code, Copyright (c) 2026 Avi Shor. Free to use, with or without credit. See LICENSE.md. No warranty. --><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#F4F4F6"><link rel="icon" href="brand/icon-32.png"><link rel="apple-touch-icon" href="brand/icon-180.png"><title>Prism Secure</title>
 <style>
 @font-face{font-family:Poppins;font-weight:400;src:url(brand/fonts/Poppins-Regular.ttf)}
 @font-face{font-family:Poppins;font-weight:600;src:url(brand/fonts/Poppins-SemiBold.ttf)}
 @font-face{font-family:Poppins;font-weight:700;src:url(brand/fonts/Poppins-Bold.ttf)}
-:root{--ink:#1b1b1b;--muted:#585254;--ground:#f4efec;--green:#367464;--line:#e2dad5;--red:#D7263D;--orange:#F77F00;--yellow:#F5C518;--ok:#2DB35A;--blue:#2E5BFF}
+:root{--ink:#1b1b1b;--muted:#585254;--ground:#F4F4F6;--green:#367464;--line:#E2E2E7;--red:#D7263D;--orange:#F77F00;--yellow:#F5C518;--ok:#2DB35A;--blue:#2E5BFF}
 *{box-sizing:border-box}[hidden]{display:none!important}
 body{margin:0;font:400 16px/1.55 Poppins,system-ui,sans-serif;color:var(--ink);background:#fff}
 .strip{display:flex;height:8px}.strip i{flex:1}
@@ -35,7 +35,7 @@ textarea{min-height:84px;resize:vertical}textarea:focus,input[type=text]:focus{b
 canvas#code{width:100%;max-width:420px;height:auto;border:1px solid var(--line);border-radius:16px;margin:6px auto 12px;display:block}
 .chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:6px 0}
 .chip{font-size:13px;font-weight:600;border-radius:99px;padding:5px 12px;background:var(--ground)}
-.chip.ok{background:#dff3e6;color:#17663a}.chip.warn{background:#fdecc8;color:#8a5200}.chip.bad{background:#fbd9de;color:#9b1226}.chip.info{background:var(--ground);color:var(--muted)}
+.chip.ok{background:#dff3e6;color:#17663a}.chip.warn{background:#fdecc8;color:#A65200}.chip.bad{background:#fbd9de;color:#9b1226}.chip.info{background:var(--ground);color:var(--muted)}
 .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px}
 .verdict{border-radius:16px;padding:14px 16px;margin:10px 0;display:flex;gap:12px;align-items:flex-start}
 .verdict.ok{background:#e9f6ee}.verdict.warn{background:#fff4d9}.verdict.bad{background:#fde8eb}
@@ -376,7 +376,7 @@ $('dolock').onchange=syncOpts;$('dosign').onchange=()=>{syncOpts();if($('dosign'
 const COLS=['#D7263D','#F77F00','#F5C518','#2DB35A','#2DB35A'];
 function meter(){const v=$('pw').value,s=PrismSecure.strength(v),bars=$('bars').children;
  for(let i=0;i<4;i++)bars[i].style.background=v&&i<Math.max(1,s.level)?COLS[s.level]:'';
- $('meter').innerHTML=v?`<span class="mtext" style="color:${s.level<2?'#9b1226':s.level==2?'#8a5200':'#17663a'}">Password strength: ${s.label} (about ${s.bits} bits)</span>`+s.warnings.slice(0,2).map(w=>`<div class="mw">${esc(w)}</div>`).join(''):'';}
+ $('meter').innerHTML=v?`<span class="mtext" style="color:${s.level<2?'#9b1226':s.level==2?'#A65200':'#17663a'}">Password strength: ${s.label} (about ${s.bits} bits)</span>`+s.warnings.slice(0,2).map(w=>`<div class="mw">${esc(w)}</div>`).join(''):'';}
 $('pw').addEventListener('input',meter);
 $('genpw').onclick=()=>{$('pw').value=PrismSecure.generatePassphrase();$('pw2').value=$('pw').value;meter()};
 $('cpw').onclick=async()=>{try{await navigator.clipboard.writeText(lastPw);$('cpw').textContent='Copied'}catch(e){$('cpw').textContent='Copy failed'}setTimeout(()=>$('cpw').textContent='Copy password',1500)};

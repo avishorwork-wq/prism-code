@@ -70,7 +70,7 @@ main>.controls button:not(:disabled):active{transform:scale(.97)}
 
 /* ---------- status + meta ---------- */
 main .status{font-size:12.5px;color:#8a8a90;text-align:center;padding:0 6px;min-height:20px}
-main .status.error{color:#b3541e;background:#fdf3ec;border:1px solid #f5d9c4}
+main .status.error{color:#9B1226;background:#FDE8EB;border:1px solid #F2C4CD}
 main .status.error::before{background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23b3541e" stroke-width="2" stroke-linecap="round"><path d="M12 8v5"/><circle cx="12" cy="16.6" r=".6" fill="%23b3541e"/><path d="M10.3 3.9 2.6 17.2A2 2 0 0 0 4.3 20.2h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>')}
 main .meta{border-top:none;color:#6e6e73;font-size:11px;justify-content:center;gap:12px;padding-top:10px}
 

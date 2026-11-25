@@ -83,7 +83,7 @@
       '.prism-issuer .pi-note{display:block;opacity:.75;font-size:12px;margin-top:2px}',
       '.prism-issuer a{color:inherit;text-underline-offset:3px}',
       '.prism-issuer.pi-ok{border-color:#2e7d52;background:color-mix(in srgb,#2e7d52 10%,transparent)}',
-      '.prism-issuer.pi-warn{border-color:#a3650d;background:color-mix(in srgb,#a3650d 10%,transparent)}',
+      '.prism-issuer.pi-warn{border-color:#A65200;background:color-mix(in srgb,#A65200 10%,transparent)}',
       '.prism-issuer.pi-bad{border-color:#b3261e;background:color-mix(in srgb,#b3261e 10%,transparent)}',
       '@media (prefers-reduced-motion: no-preference){.prism-issuer{opacity:0;transform:translateY(4px);transition:opacity .18s ease-out,transform .18s ease-out}.prism-issuer.pi-in{opacity:1;transform:none}}'
     ].join('\n');

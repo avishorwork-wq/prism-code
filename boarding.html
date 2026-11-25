@@ -1,10 +1,10 @@
 <!doctype html><!-- Prism Code, Copyright (c) 2026 Avi Shor. Free to use, with or without credit. See LICENSE.md. No warranty. -->
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f4efec"><link rel="icon" href="brand/icon-32.png"><link rel="apple-touch-icon" href="brand/icon-180.png"><title>Prism Boarding Pass (demo)</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#F4F4F6"><link rel="icon" href="brand/icon-32.png"><link rel="apple-touch-icon" href="brand/icon-180.png"><title>Prism Boarding Pass (demo)</title>
 <style>
 @font-face{font-family:Poppins;font-weight:400;src:url(brand/fonts/Poppins-Regular.ttf)}
 @font-face{font-family:Poppins;font-weight:600;src:url(brand/fonts/Poppins-SemiBold.ttf)}
 @font-face{font-family:Poppins;font-weight:700;src:url(brand/fonts/Poppins-Bold.ttf)}
-:root{--ink:#1b1b1b;--muted:#585254;--ground:#f4efec;--green:#367464;--line:#e2dad5;--red:#D7263D;--ok:#2DB35A;--blue:#2E5BFF;--ease:cubic-bezier(.22,.8,.3,1)}
+:root{--ink:#1b1b1b;--muted:#585254;--ground:#F4F4F6;--green:#367464;--line:#E2E2E7;--red:#D7263D;--ok:#2DB35A;--blue:#2E5BFF;--ease:cubic-bezier(.22,.8,.3,1)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}[hidden]{display:none!important}
 button,a,input,select,summary{outline:none}
 body{margin:0;font:400 16px/1.55 Poppins,system-ui,sans-serif;color:var(--ink);background:#fff;-webkit-text-size-adjust:100%}
@@ -33,7 +33,7 @@ input:focus,select:focus{border-color:var(--green)}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .hint{font-size:13px;color:var(--muted);margin:6px 2px 0}
 .chip{font-size:12.5px;font-weight:600;border-radius:99px;padding:4px 11px;background:var(--ground);display:inline-block}
-.chip.ok{background:#dff3e6;color:#17663a}.chip.warn{background:#fdecc8;color:#8a5200}.chip.bad{background:#fbd9de;color:#9b1226}
+.chip.ok{background:#dff3e6;color:#17663a}.chip.warn{background:#fdecc8;color:#A65200}.chip.bad{background:#fbd9de;color:#9b1226}
 .fp{font-family:ui-monospace,Menlo,monospace;font-weight:700}
 details{border:1px solid var(--line);border-radius:16px;padding:4px 16px;margin:0 0 12px;transition:background-color .3s ease}
 details[open]{background:#fcfaf9}
@@ -61,8 +61,8 @@ details p,details li{color:var(--muted);font-size:14px}details ul{padding-left:2
 .pf small{display:block;font-size:10.5px;font-weight:600;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
 .pf b{display:block;font-size:19px;font-weight:700;line-height:1.2}
 .pf.w2{grid-column:span 2}.pf.hl b{font-size:26px}.pf.nm b{font-size:17px}
-.perf{position:relative;height:0;border-top:2px dashed #d9d2cd;margin:0 20px}
-.perf:before,.perf:after{content:"";position:absolute;top:-13px;width:24px;height:24px;border-radius:50%;background:#f4efec;box-shadow:inset 0 0 0 1px rgba(27,27,27,.06)}
+.perf{position:relative;height:0;border-top:2px dashed #D7D7DC;margin:0 20px}
+.perf:before,.perf:after{content:"";position:absolute;top:-13px;width:24px;height:24px;border-radius:50%;background:#F4F4F6;box-shadow:inset 0 0 0 1px rgba(27,27,27,.06)}
 .perf:before{left:-32px}.perf:after{right:-32px}
 .stub{padding:16px 22px 18px;text-align:center;background:#fff}
 .stub canvas{width:100%;max-width:300px;height:auto;display:block;margin:0 auto 10px;image-rendering:pixelated;border-radius:6px}
@@ -72,7 +72,7 @@ details p,details li{color:var(--muted);font-size:14px}details ul{padding-left:2
 .pulse{display:inline-block;width:8px;height:8px;border-radius:50%;background:#2DB35A;margin-right:6px}
 .pass.dim{opacity:.55}
 .status{max-width:400px;margin:0 auto 10px;border-radius:14px;padding:9px 14px;display:flex;justify-content:space-between;align-items:center;font-size:13.5px;font-weight:600;background:#e9f6ee;color:#17663a;animation:vin .4s var(--ease)}
-.status.bad{background:#fde8eb;color:#9b1226}.status.warn{background:#fff4d9;color:#8a5200}
+.status.bad{background:#fde8eb;color:#9b1226}.status.warn{background:#fff4d9;color:#A65200}
 .plist{max-width:400px;margin:0 auto 12px;display:flex;gap:8px;overflow-x:auto;padding:2px 0}
 .plist button{flex:none;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:8px 12px;font:600 13px Poppins,system-ui;cursor:pointer;transition:border-color .25s ease,background-color .25s ease}
 .plist button.on{border-color:var(--green);background:#f1f7f5}
@@ -83,7 +83,7 @@ details p,details li{color:var(--muted);font-size:14px}details ul{padding-left:2
 video{width:100%;border-radius:16px;background:#111;max-height:320px;object-fit:cover;margin-bottom:10px}
 .result{border-radius:24px;padding:22px 20px;margin:12px 0;text-align:center;color:#fff;animation:rin .45s var(--ease)}
 @keyframes rin{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
-.result.ok{background:#1f9a4c}.result.bad{background:#d7263d}.result.warn{background:#d98a00}
+.result.ok{background:#1f9a4c}.result.bad{background:#d7263d}.result.warn{background:#E8710A}
 .result .big{font-size:64px;line-height:1}.result h3{margin:4px 0 2px;font-size:28px;letter-spacing:-.01em}
 .result p{margin:2px 0;opacity:.95}.result .who{font-size:22px;font-weight:700;margin-top:8px}
 .result .meta{display:flex;justify-content:center;gap:22px;margin-top:10px;font-size:15px}.result .meta b{display:block;font-size:26px}
@@ -485,7 +485,7 @@ async function mountPass(host,env,small,d){
  host.innerHTML=passHTML(p,{sg,dim:p.unverified});
  const stub=host.querySelector('.stub'),cvh=host.querySelector('.cv');
  if(live){
-  const info=document.createElement('div');info.className='live';info.innerHTML='<svg class="ring" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="none" stroke="#e2dad5" stroke-width="4"/><circle class="arc" cx="18" cy="18" r="15" fill="none" stroke="#2DB35A" stroke-width="4" stroke-linecap="round" transform="rotate(-90 18 18)" stroke-dasharray="94.25" stroke-dashoffset="0"/></svg><div><b><span class="pulse"></span>Live code</b><span class="lt"></span><span class="lt" style="display:block">Refreshes every '+p.ref+' s</span></div>';
+  const info=document.createElement('div');info.className='live';info.innerHTML='<svg class="ring" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="none" stroke="#E2E2E7" stroke-width="4"/><circle class="arc" cx="18" cy="18" r="15" fill="none" stroke="#2DB35A" stroke-width="4" stroke-linecap="round" transform="rotate(-90 18 18)" stroke-dasharray="94.25" stroke-dashoffset="0"/></svg><div><b><span class="pulse"></span>Live code</b><span class="lt"></span><span class="lt" style="display:block">Refreshes every '+p.ref+' s</span></div>';
   stub.insertBefore(info,stub.querySelector('.sg'));
   const arc=info.querySelector('.arc'),lt=info.querySelector('.lt'),RF=p.ref;let born=0,cvs=null,busy=false,n=0;
   const draw=async()=>{busy=true;const t0=Date.now();const bytes=await makeLive(env,d);const {c}=codeCanvas(bytes,small?5:10);born=t0;n++;
