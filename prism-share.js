@@ -1,4 +1,4 @@
-/* Prism Code, Copyright (c) 2026 Avi Shor. Use requires a visible credit "Prism Code by Avi Shor" linking to https://avishorwork-wq.github.io/prism-code/ . See LICENSE.md. No warranty. */
+/* Prism Code, Copyright (c) 2026 Avi Shor. Free to use, with or without credit. See LICENSE.md. No warranty. */
 // Include on reader pages: <script src="prism-share.js"></script>
 // When opened via Android Share (?shared=1), loads the shared image into the page's #upload input.
 // If the input sits inside a hidden tab panel, the matching tab is selected first so the user sees the image.
