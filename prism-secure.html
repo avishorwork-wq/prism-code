@@ -404,9 +404,9 @@ async function show(bytes,pw,trusted){const o=await PrismSecure.open(bytes,{pass
   if(o.encrypted){if(o.bytes)h+=verdict('ok','🔓','Unlocked','');else if(o.needsPassword)h+=verdict('warn','🔒','Locked','Enter the password above.');else if(o.signatureValid!==false)h+=verdict('bad','✕','Could not unlock',esc(o.error||'Wrong password, or the code was changed.'));}
   if(o.bytes)h+='<div class="msgbox">'+esc(new TextDecoder().decode(o.bytes))+'</div>';}
  $('out').innerHTML=h;const tb=$('trustbtn');if(tb)tb.onclick=()=>{const l=trustedList();l.push(tb.dataset.fp);localStorage.setItem('prismSecureTrusted',JSON.stringify(l));tb.textContent='Trusted';tb.disabled=true};return o;}
-$('scan').onclick=async()=>{try{if(!lastCode)throw Error('Create a code first');$('picked').textContent='Using the code you just made.';await scanCanvas($('code'),$('pw2').value||undefined,await myTrusted())}catch(e){$('out').innerHTML=verdict('bad','✕','Could not read',esc(e.message))}};
+$('scan').onclick=async()=>{try{if(!lastCode)throw Error('Create a code first');if(window.pcSetText)pcSetText($('picked'),'Using the code you just made.');else $('picked').textContent='Using the code you just made.';await scanCanvas($('code'),$('pw2').value||undefined,await myTrusted())}catch(e){$('out').innerHTML=verdict('bad','✕','Could not read',esc(e.message))}};
 $('pick').onclick=()=>$('codefile').click();
-$('codefile').onchange=async e=>{const f=e.target.files[0];if(!f)return;$('picked').textContent=f.name;try{const bm=await createImageBitmap(f),c=document.createElement('canvas');c.width=bm.width;c.height=bm.height;c.getContext('2d').drawImage(bm,0,0);await scanCanvas(c,$('pw2').value||undefined,await myTrusted())}catch(x){$('out').innerHTML=verdict('bad','✕','Could not read this image',esc(x.message))}};
+$('codefile').onchange=async e=>{const f=e.target.files[0];if(!f)return;if(window.pcSetText)pcSetText($('picked'),f.name);else $('picked').textContent=f.name;try{const bm=await createImageBitmap(f),c=document.createElement('canvas');c.width=bm.width;c.height=bm.height;c.getContext('2d').drawImage(bm,0,0);await scanCanvas(c,$('pw2').value||undefined,await myTrusted())}catch(x){$('out').innerHTML=verdict('bad','✕','Could not read this image',esc(x.message))}};
 $('pw2').addEventListener('change',()=>{if(lastCode&&$('picked').textContent.startsWith('Using'))$('scan').onclick()});
 window.exportKeyText=async()=>{const k=await getKey();return JSON.stringify({type:'prism-secure-key',v:1,pub:[...k.publicKey],jwk:k.privateJwk,fingerprint:await PrismSecure.fingerprint(k.publicKey)})};
 window.importKeyText=async t=>{const o=JSON.parse(t);if(o.type!=='prism-secure-key'||!o.jwk||!o.pub)throw Error('Not a Prism key file');const pub=Uint8Array.from(o.pub);
@@ -444,4 +444,4 @@ nav.classList.add('seg-on');p.style.transition='none';mv();requestAnimationFrame
 new MutationObserver(mv).observe(nav,{attributes:true,subtree:true,attributeFilter:['class']});
 addEventListener('resize',mv);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(mv);setTimeout(mv,250);})();
 </script>
-</body></html>
+<script src="motion.js"></script></body></html>

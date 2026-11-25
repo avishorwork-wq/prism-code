@@ -58,3 +58,9 @@ nav[role=tablist].seg-on>[role=tab]{position:relative;z-index:1;background:trans
 nav[role=tablist].seg-on>.segpill{position:absolute;top:0;left:0;border-radius:var(--segpill-r,980px);background:var(--segpill-bg,#fff);box-shadow:var(--segpill-shadow,0 1px 4px rgba(0,0,0,.12));transition:transform .25s ease,width .25s ease,height .25s ease;pointer-events:none;z-index:0}
 /* Reveal fades for collapsible extra blocks */
 #expertOnly:not([hidden]),#expertInfo:not([hidden]),#encodeFileWrap:not([hidden]){animation:pcfade .22s ease both}
+
+/* Motion layer: messages and results fade/slide in, bars and states change smoothly */
+.chip,.verdict,.msgbox,.testrow{animation:pcfade .25s ease both}
+.meter i{transition:background-color .3s ease}
+#meter>*{animation:pcfade .25s ease both}
+.status,.capacity{transition:color .3s ease}
