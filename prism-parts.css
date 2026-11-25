@@ -19,3 +19,15 @@
 .pp-msg{font-size:15px;margin:4px 0 12px;min-height:1.4em}
 .pp-msg.ok{color:#0a7a4a}.pp-msg.warn{color:#8a5a00}.pp-msg.err{color:#b3261e}
 @media(prefers-reduced-motion:reduce){.pp-bar i,.pp-chip{transition:none}}
+body.pp-has-parts #result:not(#ppScan){display:none!important}
+.pp-dark{background:#172120;border-color:#344;color:#f7f5ee}.pp-dark .pp-sub{color:#b9c4c0}
+.pp-dark .pp-bar{background:#2a3634}.pp-dark .pp-bar i{background:#2DB35A}
+.pp-dark .pp-chip{border-color:#4a5a56;color:#9fb0ab}.pp-dark .pp-chip.on{background:#123a24;border-color:#2DB35A;color:#7be0a0}
+.pp-dark .pp-msg.ok{color:#7be0a0}.pp-dark .pp-msg.warn{color:#f5c518}.pp-dark .pp-msg.err{color:#ff8a8a}
+.pp-dark button{background:#222e2c;color:#f7f5ee}.pp-dark button.primary{background:#2E5BFF;color:#fff}
+body.pp-has-parts #chip{display:none!important}
+.pp-dark{margin:0 0 12px;padding:12px 14px;border-radius:16px}
+.pp-dark h3{font-size:15px;margin:0 0 4px}.pp-dark .pp-sub{display:none}
+.pp-dark .pp-count{font-size:18px;margin-bottom:6px}.pp-dark .pp-chips{margin:8px 0}.pp-dark .pp-chip{min-width:30px;padding:2px 5px;font-size:12px}
+.pp-dark .pp-msg{font-size:14px;margin:2px 0 6px}.pp-dark .actions{margin:0}.pp-dark .actions button{min-height:44px;font-size:15px}
+.pp-card [hidden]{display:none!important}

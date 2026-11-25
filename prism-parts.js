@@ -5,9 +5,9 @@
    Uses only the page's own Prism.encode, Prism.render, Prism.crc32 and UI.readFile. Nothing leaves the device. */
 (()=>{
 'use strict';
-if(typeof Prism==='undefined'||typeof UI==='undefined')return;
+const HAVE=typeof Prism!=='undefined'&&typeof UI!=='undefined';
 const MAGIC=[0x50,0x50,0x54,0x31],TE=new TextEncoder(),TD=new TextDecoder();
-const crc=b=>Prism.crc32(b)>>>0;
+let T=null;const crc=b=>{if(!T){T=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;T[n]=c>>>0;}}let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=T[(c^b[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;};
 const SIZES={ '2':'Easy to scan · 41 × 47 cells','3':'Balanced · 57 × 66 cells','4':'Dense · 81 × 94 cells','5':'Densest · 113 × 130 cells'};
 const ECC=2,MODE=0;
 const u16=(a,i)=>(a[i]<<8)|a[i+1],u32=(a,i)=>((a[i]<<24)|(a[i+1]<<16)|(a[i+2]<<8)|a[i+3])>>>0;
@@ -66,7 +66,7 @@ const el=(t,c,txt)=>{const e=document.createElement(t);if(c)e.className=c;if(txt
 const fmt=n=>n<1024?n+' bytes':n<1048576?(n/1024).toFixed(n<10240?1:0)+' KB':(n/1048576).toFixed(1)+' MB';
 function dl(blob,name){const a=document.createElement('a'),u=URL.createObjectURL(blob);a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),20000);}
 
-const gen=$('generate');
+const gen=HAVE?$('generate'):null;
 if(gen){
   const card=el('section','pp-card');card.id='ppMake';
   card.innerHTML='<h3>Big file? Split it across codes</h3><p class="pp-sub">One code holds up to about 3.5 KB. Pick a file and Prism makes as many codes as it needs, numbered so they can be scanned in any order.</p>'+
@@ -95,32 +95,37 @@ if(gen){
     dl(zip(files),'prism-parts-'+cleanName(file.name).replace(/\.[^.]*$/,'').slice(0,40)+'.zip');};
 }
 
-const sc=$('scan');
-if(sc){
+const sc=HAVE?$('scan'):null,camVal=$('value'),camRes=$('result');
+const camPage=!sc&&camVal&&camRes&&$('start');
+if(sc||camPage){
   const asm=new Assembler(),tally={};
-  const card=el('section','pp-card');card.id='ppScan';
+  const card=el('section','pp-card'+(camPage?' pp-dark':''));card.id='ppScan';
   card.innerHTML='<h3>Scanning a file in parts?</h3><p class="pp-sub">Scan any part first, in any order. Parts are recognised automatically and counted here.</p>'+
    '<div class="pp-prog" id="ppProg" hidden><div class="pp-count" id="ppCount"></div><div class="pp-bar"><i id="ppFill"></i></div><div class="pp-chips" id="ppChips"></div><div class="pp-msg" id="ppMsg" role="status" aria-live="polite"></div></div>'+
-   '<label for="ppMulti">Or choose several part photos at once</label><input id="ppMulti" type="file" accept="image/*" multiple>'+
+   (sc?'<label for="ppMulti">Or choose several part photos at once</label><input id="ppMulti" type="file" accept="image/*" multiple>':'')+
    '<div class="actions"><button class="primary" id="ppSave" hidden>Save the file</button><button id="ppReset" hidden>Start over</button></div>';
-  (sc.querySelector('.columns')||sc).append(card);
+  if(sc)(sc.querySelector('.columns')||sc).append(card);else $('stage').before(card);
   const msg=(t,cls)=>{$('ppMsg').textContent=t;$('ppMsg').className='pp-msg'+(cls?' '+cls:'');};
   function listMissing(){const m=asm.missing();return m.length>12?m.slice(0,12).join(', ')+' and '+(m.length-12)+' more':m.join(', ');}
   function draw(){const on=asm.id!==null;$('ppProg').hidden=!on;$('ppReset').hidden=!on;if(!on)return;
     $('ppCount').textContent=asm.have+' of '+asm.total+' parts'+(asm.name?' · '+asm.name:'');$('ppFill').style.width=(100*asm.have/asm.total)+'%';
     const ch=$('ppChips');ch.replaceChildren();for(let i=1;i<=asm.total&&i<=400;i++){const c=el('span','pp-chip'+(asm.parts.has(i)?' on':''),String(i));c.title=asm.parts.has(i)?'Part '+i+' scanned':'Part '+i+' still needed';ch.append(c);}
-    $('ppSave').hidden=!asm.result;}
+    $('ppSave').hidden=!asm.result;if(camPage)document.body.classList.toggle('pp-has-parts',on);}
   function handle(bytes){const r=asm.add(bytes);if(r.status==='notpart')return r;tally[r.status]=(tally[r.status]||0)+1;
     if(r.status==='new')msg('Got part '+r.n+'. '+(asm.total-asm.have)+' to go. Still needed: '+listMissing()+'.','ok');
-    else if(r.status==='duplicate')msg('Already have part '+r.n+'. Scan a different one. Still needed: '+listMissing()+'.','warn');
+    else if(r.status==='duplicate'){if(!asm.result&&asm.missing().length)msg('Already have part '+r.n+'. Scan a different one. Still needed: '+listMissing()+'.','warn');}
     else if(r.status==='complete'){msg(r.ok?'All '+asm.total+' parts scanned. File rebuilt and verified ('+fmt(asm.len)+', checksum matches).':r.reason,r.ok?'ok':'err');}
     else msg(r.message,'err');
     draw();return r;}
+  if(camPage){let lastT='';/* the camera page shows non-text reads as hex; every verified frame refreshes #value */
+    new MutationObserver(()=>{const t=camVal.textContent.trim();if(t===lastT||t.slice(0,12)!=='50 50 54 31 ')return;lastT=t;
+      const bytes=Uint8Array.from(t.split(' '),h=>parseInt(h,16));handle(bytes);}).observe(camVal,{childList:true,characterData:true,subtree:true});
+    $('ppReset').addEventListener('click',()=>{lastT='';});}
   document.addEventListener('prism:read',e=>{const res=e.detail;if(!res||!res.bytes)return;const fromCam=!$('stopCamera').disabled;
     const r=handle(res.bytes);if(r.status==='notpart')return;
     $('result').textContent='Part of a bigger file. See the progress below.';$('copyResult').disabled=true;$('saveResult').disabled=true;
-    if(fromCam&&!asm.result)setTimeout(()=>{if(!$('camera').disabled)return;$('camera').click();},1400);});
-  $('ppMulti').onchange=async()=>{const fs=[...$('ppMulti').files];$('ppMulti').value='';let fail=0;for(const k in tally)delete tally[k];
+    if(fromCam&&!asm.result)setTimeout(()=>{if($('camera').disabled||asm.result)return;$('camera').click();},1400);});
+  if(sc)$('ppMulti').onchange=async()=>{const fs=[...$('ppMulti').files];$('ppMulti').value='';let fail=0;for(const k in tally)delete tally[k];
     for(let i=0;i<fs.length;i++){msg('Reading photo '+(i+1)+' of '+fs.length+'…');const res=await UI.readFile(fs[i]);if(!(res&&res.bytes&&parse(res.bytes)))fail++;}
     const tail=(tally.duplicate?' '+tally.duplicate+' duplicate'+(tally.duplicate>1?'s':'')+' ignored.':'')+(tally.other?' '+tally.other+' from a different file ignored.':'')+(fail?' '+fail+' photo'+(fail>1?'s':'')+' could not be read as a part.':'');
     if(asm.result)msg('All '+asm.total+' parts scanned. File rebuilt and verified ('+fmt(asm.len)+', checksum matches).'+tail,'ok');
