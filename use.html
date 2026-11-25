@@ -210,4 +210,37 @@ $('runTests').onclick=async()=>{stopCamera();testCanceled=false;testRunning=true
 $('cancelTests').onclick=()=>{testCanceled=true;};$('saveReport').onclick=()=>{if(testReport)download(new Blob([JSON.stringify(testReport,null,2)],{type:'application/json'}),'prism-test-report.json');};
 window.addEventListener('pagehide',stopCamera);document.addEventListener('visibilitychange',()=>{if(document.hidden&&cameraStream){stopCamera();status('scanStatus','Camera stopped because this tab was hidden.');}});$('scanDebug').textContent=JSON.stringify(Prism.CFG,null,2);generate();try{let saved=JSON.parse(localStorage.getItem('prismLastTest'));if(['0.1.0','0.1.2'].includes(saved?.version)){testReport=saved;reportView(saved);$('saveReport').disabled=false;status('testStatus','Previous run on this device: '+new Date(saved.started).toLocaleString()+'.');}}catch(e){}return {generate,readFile,process,stopCamera,getCode:()=>code,getReport:()=>testReport};})();
 
-</script><script>if('serviceWorker'in navigator&&(location.protocol==='https:'||location.hostname==='localhost'))navigator.serviceWorker.register('prism-sw.js').catch(()=>{})</script><script src="prism-qrlink.js"></script><script src="first-run.js"></script><script src="prism-share.js"></script></body></html>
+</script><script>if('serviceWorker'in navigator&&(location.protocol==='https:'||location.hostname==='localhost'))navigator.serviceWorker.register('prism-sw.js').catch(()=>{})</script><script src="prism-qrlink.js"></script><script src="first-run.js"></script><script src="prism-share.js"></script><script>
+/* Sliding selection pill for segmented tab controls (nav[role=tablist] + aria-selected).
+   The pill physically slides to the selected tab (.25s ease); reduced-motion users get
+   instant changes via the global prefers-reduced-motion block in site.css/a11y.css. */
+(function(){
+function setup(nav){
+  if(nav.dataset.segpill)return;
+  nav.dataset.segpill='1';
+  var p=document.createElement('i');
+  p.className='segpill';
+  p.setAttribute('aria-hidden','true');
+  nav.insertBefore(p,nav.firstChild);
+  function mv(){
+    var b=nav.querySelector('[aria-selected="true"]');
+    if(!b)return;
+    p.style.width=b.offsetWidth+'px';
+    p.style.height=b.offsetHeight+'px';
+    p.style.transform='translate('+b.offsetLeft+'px,'+b.offsetTop+'px)';
+  }
+  nav.classList.add('seg-on');
+  p.style.transition='none';
+  mv();
+  requestAnimationFrame(function(){requestAnimationFrame(function(){p.style.transition='';});});
+  new MutationObserver(mv).observe(nav,{attributes:true,subtree:true,attributeFilter:['aria-selected']});
+  addEventListener('resize',mv);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(mv);
+  setTimeout(mv,250);
+}
+function all(){document.querySelectorAll('nav[role=tablist]').forEach(setup);}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',all);
+else all();
+})();
+</script>
+</body></html>
