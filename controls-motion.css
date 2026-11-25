@@ -140,3 +140,6 @@ body .pcform input,body .pcform select{min-height:44px}
 .toc a,.ds table td a,header > a,.split a.more,p > a[href$=".json"]:only-child{display:inline-flex;align-items:center;min-height:44px}
 input[type=file]{min-height:44px}
 @media(hover:hover) and (pointer:fine){.split a.more:hover{text-decoration:underline;text-underline-offset:3px}}
+summary{transition:opacity .15s ease}
+@media(hover:hover) and (pointer:fine){summary:hover{opacity:.72}}
+.pager{display:flex;flex-wrap:wrap;gap:0 22px;font-size:0}.pager a{display:inline-flex;align-items:center;min-height:44px;font-size:16px}
