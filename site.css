@@ -10,7 +10,7 @@
 .sitebar .sl a:hover{opacity:1;background:rgba(0,0,0,.05)}.sitebar .sl a[aria-current=page]{opacity:1;font-weight:700}
 .sitebar .scanpill{flex:0 0 auto;background:#2E5BFF;color:#fff;border-radius:999px;padding:8px 18px;font:600 13.5px/1.2 Poppins,system-ui,sans-serif;text-decoration:none;display:inline-flex;align-items:center;min-height:36px;transition:background .18s}
 .sitebar .scanpill:hover{background:#2250ec}.scanpill .s{display:none}
-.sitebar a:focus-visible{outline:3px solid #9ac8bb;outline-offset:2px}
+.sitebar a:focus-visible{outline:none;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:2px}
 .sitebar.sb-dark{background:rgba(16,22,21,.8);border-bottom-color:rgba(255,255,255,.12)}.sb-dark .sl a{color:#f5f5f7}.sb-dark .sl a:hover{background:rgba(255,255,255,.1)}
 .scanban{display:block;max-width:1024px;margin:14px auto 0;padding:0 22px;text-decoration:none}
 .sbi{display:flex;align-items:center;justify-content:space-between;gap:14px;background:#1b1b1b;color:#fff;border-radius:20px;padding:16px 20px;font-family:Poppins,system-ui,sans-serif}
@@ -34,3 +34,13 @@
  .sitebar .sl a{padding:7px 6px;font-size:12px}
  .sitebar .scanpill{padding:8px 11px}
 }
+
+/* Fluid interactions, no tap boxes */
+a,button,[role="button"],summary,input,select,textarea,label{-webkit-tap-highlight-color:transparent}
+a,button,[role="button"],summary,select,label{transition:color .18s ease,background-color .18s ease,border-color .18s ease,opacity .18s ease,filter .18s ease,box-shadow .18s ease,transform .12s ease}
+button:active,[role="button"]:active,a:active{filter:brightness(.94)}
+[role="tabpanel"]:not([hidden]){animation:pcfade .22s ease both}
+details>:not(summary){animation:pcfade .22s ease both}
+@keyframes pcfade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
