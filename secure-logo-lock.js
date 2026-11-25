@@ -3,14 +3,19 @@
    secure-logo.js (v6 scrub) is untouched.
 
    Same visuals and keyframes as v6 (Avi's original 3.9s timeline, spin,
-   click bounce, scramble -> dots, closed shackle at the end). Difference
-   is the driver: when the pinned section is reached scrolling down, page
-   scroll LOCKS, the sequence plays forward once at a fixed 3.9s, then the
-   page advances past the section and scroll resumes. Reaching it from
-   below plays the same sequence in reverse at the same fixed speed, then
-   releases above the section. No loop; both end states hold. Scroll speed
-   cannot change playback speed or skip it: user scroll is prevented while
-   a play is running (non-passive touchmove/wheel/keydown guards).
+   click bounce, scramble -> dots, closed shackle at the end). Driver:
+   scrolling down, when the section reaches the top of the viewport the
+   page FREEZES in place (no scroll possible, even mid-fling), the sequence
+   plays forward once at a fixed 3.9s, and the page resumes from the exact
+   same scroll position - no jump, no snap, no programmatic scrolling.
+   Scrolling up, when the section re-enters the viewport, the same thing
+   plays in reverse at the same fixed speed. No loop; end states hold.
+
+   The freeze is the body-scroll-lock pattern (body position:fixed): it is
+   the only approach that also stops in-progress momentum flings on Android
+   Chrome, where an active fling's touchmove events are non-cancelable.
+   Unlock restores the exact pre-lock scroll position with an instant
+   (non-smooth) scroll restoration, which is visually seamless.
 
    Honors prefers-reduced-motion and no-rAF by leaving the static lock
    fallback in the markup untouched. */
@@ -165,51 +170,33 @@ window.PrismSecureLogo = (function () {
       : Promise.resolve();
 
     if (mode === "lock") {
-      // ---- scroll-locked playback: pin, lock page scroll, fixed-speed play ----
-      var track = document.createElement("div");
-      var pin = document.createElement("div");
-      track.className = "psl-track";
-      pin.className = "psl-pin";
-      track.style.cssText = "position:relative;height:250vh;height:250svh";
-      pin.style.cssText = "position:sticky;top:0;height:100vh;height:100svh;display:flex;align-items:center;justify-content:center;width:100%";
-      var parent = container.parentNode;
-      parent.insertBefore(track, container);
-      pin.appendChild(container);
-      track.appendChild(pin);
-      var col = track.parentElement;
-      var split = col && col.parentElement;
-      if (split && split.classList && split.classList.contains("split")) {
-        split.style.alignItems = "start";
-        var textCol = split.children[0];
-        if (textCol && textCol !== col) {
-          textCol.style.position = "sticky";
-          textCol.style.top = "18vh";
-        }
-      }
-
+      // ---- scroll-locked playback: freeze in place, fixed-speed play, exact resume ----
       var DUR = 3900; // ms - his 3.9s keyframe timing, same both directions
-      var trackTop = 0, travel = 1;
-      var state = "above";           // above | below (idle sides)
-      var playing = false, suppress = false, dir = 1, t0 = 0, rafId = 0;
-      var lastY = window.scrollY || window.pageYOffset || 0;
+      var secTop = 0, secBot = 1, vh = 1;
+      var state = "before";          // before | past (relative to the section)
+      var playing = false, suppress = false, dir = 1, t0 = 0, rafId = 0, lockY = 0;
+      var lastRendered = -1;
 
+      var contC = 0; // doc-y of the logo container's vertical center
       function measure() {
-        var rect = track.getBoundingClientRect();
-        trackTop = rect.top + (window.scrollY || window.pageYOffset || 0);
-        travel = Math.max(1, track.offsetHeight - pin.offsetHeight);
+        var y = window.scrollY || window.pageYOffset || 0;
+        vh = window.innerHeight || document.documentElement.clientHeight || 1;
+        var rs = section.getBoundingClientRect();
+        secTop = rs.top + y;
+        secBot = secTop + section.offsetHeight;
+        var rc = container.getBoundingClientRect();
+        contC = rc.top + y + rc.height / 2;
       }
+      function renderOnce(p) { if (p !== lastRendered) { lastRendered = p; render(p); } }
 
       function prevent(e) { e.preventDefault(); }
       function preventKey(e) {
         var k = e.keyCode;
         if (k === 32 || k === 33 || k === 34 || k === 35 || k === 36 || k === 38 || k === 40) e.preventDefault();
       }
-      // body position:fixed kills in-progress momentum flings (a cancelable=false
-      // touchmove cannot be preventDefaulted on Android Chrome; removing the
-      // scrollable body stops the compositor scroll outright).
       var bodyStash = null;
       function lockScroll(y) {
-        window.scrollTo(0, y);
+        lockY = y;
         bodyStash = { position: document.body.style.position, top: document.body.style.top,
                       left: document.body.style.left, right: document.body.style.right, width: document.body.style.width };
         document.body.style.position = "fixed";
@@ -235,59 +222,59 @@ window.PrismSecureLogo = (function () {
           document.body.style.width = bodyStash.width;
           bodyStash = null;
         }
+        // exact restore of the pre-lock position; 'instant' beats any CSS smooth
+        // scrolling. The scroll event this fires must not retrigger a play.
+        suppress = true;
+        try { window.scrollTo({ top: lockY, left: 0, behavior: "instant" }); }
+        catch (e) { window.scrollTo(0, lockY); }
+        setTimeout(function () { suppress = false; }, 150);
       }
 
+      // setInterval, not rAF: on Android Chrome, while the scroll controller
+      // considers a scroll active, rAF only fires on scroll frames - which made
+      // the play advance only while the user kept scrolling. Timers always fire.
       function start(d) {
         dir = d; playing = true;
-        lockScroll(d === 1 ? trackTop : trackTop + travel);
-        render(d === 1 ? 0 : 1);
+        lockScroll(window.scrollY || window.pageYOffset || 0);
+        renderOnce(d === 1 ? 0 : 1);
         t0 = performance.now();
-        rafId = requestAnimationFrame(step);
+        rafId = setInterval(step, 16);
       }
-      function step(now) {
-        var k = (now - t0) / DUR;
+      function step() {
+        var k = (performance.now() - t0) / DUR;
         if (k >= 1) { finish(); return; }
-        render(dir === 1 ? k : 1 - k);
-        rafId = requestAnimationFrame(step);
+        var p = dir === 1 ? k : 1 - k;
+        render(p); lastRendered = p;
       }
       function finish() {
         playing = false;
-        if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
-        render(dir === 1 ? 1 : 0);
-        state = dir === 1 ? "below" : "above";
-        suppress = true;
+        if (rafId) { clearInterval(rafId); rafId = 0; }
+        render(dir === 1 ? 1 : 0); lastRendered = dir === 1 ? 1 : 0;
+        state = dir === 1 ? "past" : "before";
         unlockScroll();
-        window.scrollTo(0, dir === 1 ? trackTop + travel + 2 : Math.max(0, trackTop - 2));
-        setTimeout(function () { suppress = false; lastY = window.scrollY || window.pageYOffset || 0; }, 120);
       }
 
       function onScroll() {
         if (playing || suppress || !svg) return;
-        measure(); // cheap for one section; self-corrects late font/layout shifts
+        measure();
         var y = window.scrollY || window.pageYOffset || 0;
-        var down = y > lastY; lastY = y;
-        if (y < trackTop - 1) {
-          if (state !== "above") { state = "above"; render(0); }
-          return;
-        }
-        if (y > trackTop + travel + 1) {
-          if (state !== "below") { state = "below"; render(1); }
-          return;
-        }
-        if (state === "above" || down) start(1);
-        else start(-1);
+        if (y + vh < secTop) { state = "before"; renderOnce(0); return; }
+        if (y > secBot) { state = "past"; renderOnce(1); return; }
+        // one nudge is enough: engage as soon as the logo's center crosses
+        // mid-viewport, freeze exactly there, play, release in place.
+        if (state === "before" && y + 0.62 * vh >= contC) start(1);
+        else if (state === "past" && y + 0.38 * vh <= contC) start(-1);
       }
 
       ready.then(function () {
         svg = buildDom();
         measure();
         var y0 = window.scrollY || window.pageYOffset || 0;
-        if (y0 > trackTop + travel + 1) { state = "below"; render(1); }
-        else render(0);
+        if (y0 > secBot) { state = "past"; renderOnce(1); } else renderOnce(0);
         window.addEventListener("scroll", onScroll, { passive: true });
         window.addEventListener("resize", function () { measure(); });
         if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { if (!playing) measure(); });
-        container.__psl = { get p() { return -1; }, get state() { return playing ? "playing" : state; }, render: render, mode: "lock" };
+        container.__psl = { get p() { return lastRendered; }, get state() { return playing ? "playing" : state; }, render: render, mode: "lock" };
       }, function () {});
     } else {
       // ---- auto: play once on view, hold; click toggles direction ----
