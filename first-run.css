@@ -19,7 +19,6 @@
 #firstRun .frOut{font-weight:600;color:#1d1d1f;overflow-wrap:anywhere}
 #firstRun .frOk{color:#1d7a3a}
 #firstRun .frNote{font-size:12.5px;color:#6e6e73}
-#firstRun button:focus-visible,#firstRun a:focus-visible{outline:3px solid rgba(0,113,227,.5);outline-offset:2px}
 @media(max-width:720px){#firstRun{padding:16px;border-radius:18px}#firstRun ol{grid-template-columns:1fr}#firstRun .frDesktop{display:none}}
 @media(min-width:721px){#firstRun .frPhoneOnly{display:none}}
 @media(prefers-reduced-motion:reduce){#firstRun li{transition:none;transform:none}}
