@@ -63,3 +63,32 @@ As a library: `encode(_:size:ecc:mode:type:logo:)` → `Code`,
 - `--logo 1` (centre-out data order) is a dormant upstream flag: the live UI
   never emits it and the live readers reject it. This port encodes and decodes
   it for completeness.
+
+## Prism Secure (password lock + maker signatures)
+
+`secure/PrismSecure.swift` + `secure/seccli_main.swift` port the live site's Prism
+Secure module (`prism-secure.html`). No CryptoKit needed — works on Linux and Apple
+platforms alike: SHA-256, Blake2b (RFC 7693), Argon2id (RFC 9106), AES-256
+(FIPS-197), GCM (SP 800-38D), PBKDF2 (RFC 2898) and ECDSA P-256 (FIPS 186-5, with a
+small fixed-width 256-bit field implementation) are all implemented from scratch.
+Wire-compatible v2 and legacy v1.
+
+```bash
+swiftc -O -o seccli PrismSecure.swift seccli_main.swift
+./seccli keygen --out maker.json
+./seccli seal --in file --out file.psc --password 'S3cret' [--kdf argon2id|pbkdf2] [--signkey maker.json]
+./seccli open --in file.psc --out file --password 'S3cret' [--trusted FING-ERPR-INTS,...]
+./seccli passphrase
+./seccli strength --password '...'
+```
+
+### Compatibility with the live JS module (verified)
+
+- 18/18 cross-compat checks against the unmodified JS module in Node, both
+  directions, all at the site's full Argon2id parameters (128 MiB / t=3):
+  argon2id, pbkdf2, sign-only, encrypt+sign, wrong-password/tamper/forgery
+  rejection, keygen interchange both ways, empty payload, non-ASCII passwords
+  (NFKC via Foundation), v1 legacy, passphrase format.
+- Primitives verified against independent vectors: SHA-256, Blake2b (RFC 7693),
+  Argon2id vs hash-wasm, AES-GCM vs NIST, PBKDF2 vs hashlib, ECDSA cross-verified
+  with WebCrypto both ways.
