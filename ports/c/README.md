@@ -101,11 +101,31 @@ website runs) on empty, text-with-`&`-and-Unicode, and 1 KB payloads:
   signature; a JS-sealed code decodes and opens here; wrong passwords are
   rejected. Signing keys are interchangeable with the C# port's key files.
 
+## Features: verified issuers, big files in parts, tickets and cards
+
+Byte-compatible with prism-issuers.js, prism-parts.js and prism-cards.js:
+
+- `prism issuer IN.png|IN.bin [--list issuers.json]` verifies the ECDSA
+  signature of a signed Prism Secure payload, prints the signer fingerprint,
+  looks it up in an issuer list (normalized match), and prints the decoded
+  message for valid unencrypted payloads (strict UTF-8, like the site's
+  fatal TextDecoder). Tampered and unsigned payloads follow the site's
+  semantics exactly.
+- `prism parts-split IN -o OUTDIR [--name NAME] [--size 2-5]` splits a big
+  file into PPT1 part payloads (encode each at `--ecc 2`, color mode);
+  `prism parts-join PART.bin... [-o OUT]` reassembles them with the site's
+  duplicate / other-file / damaged-part messages and the whole-file CRC-32
+  check. Part geometry (room, total, name cleaning, 40-byte UTF-8 trim)
+  matches the JS bit-for-bit.
+- `prism card-build wifi|vcard|ticket ...` and `prism card-parse IN.txt`
+  build and read the site's Wi-Fi, vCard 3.0 contact-card and expiring
+  PRISM-TICKET/1 payloads; built payloads are byte-identical to the JS
+  builders (escaping included).
+
 ## Not in this port (yet)
 
 The phone-camera reading pipeline (glare, blur, perspective — that stays on
-the website's reader pages), file splitting into parts, tickets/cards, and
-the contact-card input types. Those are being ported next.
+the website's reader pages) is being ported next.
 
 ## License
 
