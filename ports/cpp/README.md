@@ -102,11 +102,22 @@ website runs) on empty, text-with-`&`-and-Unicode, and 1 KB payloads:
   signature; a JS-sealed code decodes and opens here; wrong passwords are
   rejected. Signing keys are interchangeable with the C# port's key files.
 
+## Features: verified issuers, big files in parts, tickets and cards
+
+Same C core as the C port, wrapped in C++ (`prism_issuers.hpp`,
+`prism_parts.hpp`, `prism_cards.hpp`), byte-compatible with
+prism-issuers.js, prism-parts.js and prism-cards.js. CLI verbs:
+`issuer IN.png|IN.bin [--list issuers.json]`,
+`parts-split IN -o OUTDIR [--name NAME] [--size 2-5]`,
+`parts-join PART.bin... [-o OUT]`, `card-build wifi|vcard|ticket ...`,
+`card-parse IN.txt`. Part geometry and card payloads match the JS
+bit-for-bit; splits and joins interoperate with the C and C# ports and with
+the live JS module.
+
 ## Not in this port (yet)
 
 The phone-camera reading pipeline (glare, blur, perspective — that stays on
-the website's reader pages), file splitting into parts, tickets/cards, and
-the contact-card input types. Those are being ported next.
+the website's reader pages) is being ported next.
 
 ## License
 
