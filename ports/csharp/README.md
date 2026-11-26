@@ -22,6 +22,13 @@ checksum. A scan only shows a message when its checksum matches.
   are for), verifies the header checksum, repairs with Reed-Solomon, verifies
   the payload CRC32, and returns the payload. Never shows a wrong result:
   if the checksum does not pass, it reports an error instead.
+- **Prism Secure** (envelope v2, reads v1): AES-256-GCM payload locking with
+  Argon2id (128 MiB, 3 passes — implemented from RFC 9106 in Argon2id.cs, no
+  packages) or PBKDF2-SHA256 (600,000 rounds, built-in), and ECDSA P-256 /
+  SHA-256 signing with the site's raw public key + JWK private key format and
+  XXXX-XXXX fingerprints. Password unlock, signing, sign+lock, trusted
+  fingerprints, passphrase generator, and the site's password strength meter.
+  Byte-compatible with the live JS both directions (below).
 - **CLI** and this README.
 
 ## Build
@@ -44,6 +51,9 @@ bin/prism encode --text "big" -o big.png --size 5 --scale 20
 bin/prism decode hello.png
 bin/prism decode data.png -o data.out
 bin/prism capacity
+bin/prism secure-genkey -o key.json
+bin/prism secure-seal data.bin -o locked.bin --password 'pw' --kdf argon2id --sign-key key.json
+bin/prism secure-open locked.bin -o data.out --password 'pw'
 ```
 
 Encode reads `--text` (UTF-8, stored as a text code) or `--file` (raw bytes,
@@ -70,12 +80,24 @@ processing budget in headless tests; the same PNG decodes through the
 reader's guided-geometry path (known size/position), and every other case
 passes through the normal page path.
 
+Prism Secure is verified against the live JS module (the same code the
+website runs) on empty, text-with-`&`-and-Unicode, and 1 KB payloads:
+
+- **68/68** C#-side checks: opens every JS-sealed envelope (PBKDF2, Argon2id,
+  sign-only, lock+sign), fingerprint match, wrong-password /
+  missing-password / tampered-ciphertext / tampered-signature rejection,
+  v1-envelope reading, passphrase shape, strength meter.
+- **24/24** JS-side checks: the live JS opens and trust-verifies every
+  C#-sealed envelope.
+- The Argon2id core matches the RFC 9106 test vector and 14 differential
+  vectors against the site's own hash-wasm build, including the production
+  128 MiB / 3-pass parameters.
+
 ## Not in this port (yet)
 
 The phone-camera reading pipeline (glare, blur, perspective — that stays on
-the website's reader pages), Prism Secure (password lock / signing), file
-splitting into parts, tickets/cards, and the contact-card input types. Those
-are being ported next.
+the website's reader pages), file splitting into parts, tickets/cards, and
+the contact-card input types. Those are being ported next.
 
 ## License
 
