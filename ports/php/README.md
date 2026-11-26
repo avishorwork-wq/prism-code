@@ -22,20 +22,35 @@ checksum. A scan only shows a message when its checksum matches.
   are for), verifies the header checksum, repairs with Reed-Solomon, verifies
   the payload CRC32, and returns the payload. Never shows a wrong result:
   if the checksum does not pass, it reports an error instead.
-- **CLI** and this README. Everything is in the single file `prism.php`.
-
-Prism Secure, big-file parts, tickets/cards and verified issuers are planned
-next (they already exist in the C, Go, Kotlin and Rust ports).
+- **Prism Secure** (`prism_secure.php`): AES-256-GCM payload locking with
+  Argon2id (128 MiB, 3 passes) or PBKDF2-SHA256 (600,000 rounds), ECDSA
+  P-256 / SHA-256 signing with deterministic RFC 6979 nonces, passphrase
+  generator and password-strength meter. Byte-compatible with the C, Go,
+  Kotlin and Rust ports (same envelope, byte-identical signatures).
+- **Big files in parts** (`prism_parts.php`): split a file of any size into
+  PPT1 parts (one Prism code each, ECC 30%) and reassemble them with
+  whole-file CRC-32 verification.
+- **Tickets and cards** (`prism_cards.php`): Wi-Fi, vCard 3.0 contact and
+  expiring-ticket payload builders and parsers.
+- **Verified issuers** (`prism_issuers.php`): identify a signed payload's
+  signer fingerprint and look it up in an issuer list.
+- **CLI** and this README. The core encoder/decoder is `prism.php`; the
+  feature commands load the other files from the same directory.
 
 ## Requirements
 
-PHP 8+ CLI with the zlib extension. Nothing else: no Composer packages, no
-GD or image extensions (the PNG writer/reader is built in, on top of zlib).
-For the largest codes run with a raised memory limit:
+PHP 8+ CLI with the zlib extension. No Composer packages, no GD or image
+extensions (the PNG writer/reader is built in, on top of zlib). For the
+largest codes run with a raised memory limit:
 
 ```
 php -d memory_limit=512M prism.php ...
 ```
+
+Prism Secure also needs: openssl (AES-256-GCM) and gmp (P-256 math), both
+in nearly every PHP build, and for Argon2id locks either ext-sodium or
+ext-argon2. Without Argon2id support, `--kdf pbkdf2` still works and
+Argon2id-locked payloads can still be opened once sodium is available.
 
 ## Use
 
@@ -46,6 +61,29 @@ php prism.php encode --text "big" --out big.png --size 5 --radius 20
 php prism.php decode hello.png
 php prism.php decode hello.png --out data.out
 php prism.php capacity
+
+# Prism Secure
+php prism.php secure-genkey -o key.json
+php prism.php secure-seal secret.txt --password "correct horse" -o locked.bin
+php prism.php secure-seal note.txt --sign-key key.json -o signed.bin
+php prism.php secure-seal doc.pdf --password "pw" --kdf pbkdf2 --sign-key key.json -o both.bin
+php prism.php secure-open locked.bin --password "correct horse" -o secret.out
+php prism.php secure-passphrase
+php prism.php secure-strength "my password"
+
+# Big files in parts
+php prism.php parts-split video.mp4 -o parts/ --name "video.mp4" --size 4
+# (encode each parts/part-NN.bin with: php prism.php encode --input ... --ecc 2 --mode 0)
+php prism.php parts-join parts/part-*.bin -o video.mp4
+
+# Tickets and cards
+php prism.php card-build wifi --ssid "My Cafe" --sec WPA --pass "coffee123" -o wifi.txt
+php prism.php card-build vcard --name "Ada Lovelace" --email ada@example.com -o card.txt
+php prism.php card-build ticket --expiry-ms 1767225600000 --text "Admit one" -o ticket.txt
+php prism.php card-parse wifi.txt
+
+# Verified issuers
+php prism.php issuer signed.bin --list issuers.json
 ```
 
 Flags: `--size -1..5` (-1 = auto grow to fit), `--ecc 0..3` (10/20/30/40%
