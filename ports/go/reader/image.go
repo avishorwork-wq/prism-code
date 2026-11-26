@@ -116,6 +116,7 @@ type Frame struct {
 	w, h    int
 	p       []float32 // 3*w*h linear
 	image   *ImageData
+	calmed  bool
 	texSrgb []float32 // lazy srgb downscale cache for detectTexture (JS WeakMap hA)
 }
 
@@ -128,7 +129,7 @@ func frameOf(img *ImageData) *Frame {
 		o[j+2] = float32(linTable[img.Data[i+2]])
 		j += 3
 	}
-	return &Frame{w: img.W, h: img.H, p: o, image: img}
+	return &Frame{w: img.W, h: img.H, p: o, image: img, calmed: isCalmed(img)}
 }
 
 // sample Z: bilinear in linear space; out of bounds -> [1,1,1]
