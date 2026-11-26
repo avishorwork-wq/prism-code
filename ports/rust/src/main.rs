@@ -3,6 +3,11 @@
 // https://github.com/avishorwork-wq/prism-code
 //
 // Only dependency: flate2 (pure-Rust miniz_oxide) for PNG zlib.
+
+mod cards;
+mod issuers;
+mod parts;
+mod secure;
 //
 // Format: pointy-top odd-row-offset hexagonal cells; 8-colour cyclic Gray
 // coding (3 bits/cell) or 1-bit black/white. Six grids from 21x24 to
@@ -311,7 +316,7 @@ struct Capacity { n: usize, blocks: Vec<BlockSpec>, k: usize, payload: usize }
 
 fn jsround(x: f64) -> f64 { (x + 0.5).floor() }
 
-fn capacity(size: usize, ecc: usize, mode: usize) -> Capacity {
+pub fn capacity(size: usize, ecc: usize, mode: usize) -> Capacity {
     let l = make_layout(size);
     let bpc = if mode != 0 { 1 } else { 3 };
     let n = l.data.len() * bpc / 8;
@@ -798,14 +803,95 @@ fn decode_png(buf: &[u8]) -> Result<(Vec<u8>, Header), String> {
 
 fn arg<'a>(a: &'a [String], name: &str, dflt: Option<&'a str>) -> Option<&'a str> {
     for i in 0..a.len().saturating_sub(1) {
-        if a[i] == format!("--{}", name) {
+        if a[i] == format!("--{}", name) || a[i] == format!("-{}", name) {
             return Some(&a[i + 1]);
         }
     }
     dflt
 }
 
+fn has_arg(a: &[String], name: &str) -> bool {
+    a.iter().any(|s| s == &format!("--{}", name))
+}
+
+fn positional(a: &[String]) -> Option<String> {
+    let mut skip = false;
+    for (i, s) in a.iter().enumerate() {
+        if i == 0 {
+            continue;
+        }
+        if skip {
+            skip = false;
+            continue;
+        }
+        if !s.is_empty() && s.starts_with('-') {
+            skip = true;
+            continue;
+        }
+        return Some(s.clone());
+    }
+    None
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct KeyFile {
+    #[serde(rename = "publicKeyHex")]
+    public_key_hex: String,
+    #[serde(rename = "privateJwk")]
+    private_jwk: Jwk,
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct Jwk {
+    crv: String,
+    d: String,
+    kty: String,
+    x: String,
+    y: String,
+}
+
+// save_key writes the key file in the same JSON shape the C/Go ports use.
+fn save_key(path: &str, priv_: &[u8], pub_: &[u8]) -> Result<(), String> {
+    use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine as _};
+    let kf = KeyFile {
+        public_key_hex: pub_.iter().map(|b| format!("{:02x}", b)).collect(),
+        private_jwk: Jwk {
+            crv: "P-256".into(),
+            d: URL_SAFE_NO_PAD.encode(priv_),
+            kty: "EC".into(),
+            x: URL_SAFE_NO_PAD.encode(&pub_[1..33]),
+            y: URL_SAFE_NO_PAD.encode(&pub_[33..65]),
+        },
+    };
+    let j = serde_json::to_string(&kf).map_err(|e| e.to_string())?;
+    std::fs::write(path, j).map_err(|e| e.to_string())
+}
+
+fn load_key(path: &str) -> Result<(Vec<u8>, Vec<u8>), String> {
+    use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine as _};
+    let data = std::fs::read(path).map_err(|e| e.to_string())?;
+    let kf: KeyFile = serde_json::from_slice(&data).map_err(|e| e.to_string())?;
+    let pub_ = (0..kf.public_key_hex.len())
+        .step_by(2)
+        .map(|i| u8::from_str_radix(&kf.public_key_hex[i..i + 2], 16))
+        .collect::<Result<Vec<u8>, _>>()
+        .map_err(|e| e.to_string())?;
+    if pub_.len() != 65 {
+        return Err("bad public key".into());
+    }
+    let priv_ = URL_SAFE_NO_PAD.decode(&kf.private_jwk.d).map_err(|e| e.to_string())?;
+    if priv_.len() != 32 {
+        return Err("bad private key".into());
+    }
+    Ok((priv_, pub_))
+}
+
 fn mode_name(m: usize) -> &'static str { if m == 0 { "color" } else { "bw" } }
+
+fn usage() -> ! {
+    eprintln!("usage: prism encode --text T | --input F --out O.png [--size -1..5] [--ecc 0..3] [--mode 0|1|color|bw] [--radius N] [--type 0|1] [--logo 0|1] [--symbols J]\n       prism decode I.png [--out O]\n       prism capacity\n       prism secure-genkey [-o key.json]\n       prism secure-seal IN --password P [--kdf argon2id|pbkdf2] [--sign-key key.json] [-o OUT]\n       prism secure-open IN [--password P] [-o OUT]\n       prism secure-passphrase\n       prism secure-strength [PASSWORD]\n       prism parts-split IN -o OUTDIR [--name NAME] [--size 0..5]\n       prism parts-join PART... [-o OUT]\n       prism card-build wifi|vcard|ticket [flags] [-o OUT]\n       prism card-parse IN\n       prism issuer IN [--list issuers.json]");
+    std::process::exit(2);
+}
 
 fn fail(msg: &str) -> ! {
     eprintln!("error: {}", msg);
@@ -870,6 +956,243 @@ fn main() {
             }
             eprintln!("header: size {}, ecc {}, mode {}, type {}, {} payload bytes, CRC-32 OK",
                 hdr.size, hdr.ecc, mode_name(hdr.mode), hdr.typ, hdr.length);
+        }
+        "secure-genkey" => {
+            let (priv_, pub_) = secure::generate_signing_key();
+            println!("fingerprint: {}", secure::fingerprint(&pub_));
+            if let Some(out) = arg(&a, "o", None) {
+                save_key(out, &priv_, &pub_).unwrap_or_else(|e| fail(&e));
+                println!("wrote {}", out);
+            }
+        }
+        "secure-seal" => {
+            let inp = positional(&a).unwrap_or_else(|| usage());
+            let data = std::fs::read(&inp).unwrap_or_else(|e| fail(&e.to_string()));
+            let mut priv_: Option<Vec<u8>> = None;
+            let mut pub_: Option<Vec<u8>> = None;
+            if let Some(keyf) = arg(&a, "sign-key", None) {
+                match load_key(keyf) {
+                    Ok((pr, pu)) => {
+                        priv_ = Some(pr);
+                        pub_ = Some(pu);
+                    }
+                    Err(_) => fail(&format!("bad key file {}", keyf)),
+                }
+            }
+            let sealed = secure::seal(
+                &data,
+                arg(&a, "password", Some("")).unwrap(),
+                arg(&a, "kdf", Some("argon2id")).unwrap(),
+                priv_.as_deref(),
+                pub_.as_deref(),
+            )
+            .unwrap_or_else(|_| fail("sealing failed (need --password and/or --sign-key)"));
+            match arg(&a, "o", None) {
+                Some(out) => {
+                    std::fs::write(out, &sealed).unwrap_or_else(|e| fail(&e.to_string()));
+                    println!("wrote {} ({} -> {} bytes)", out, data.len(), sealed.len());
+                }
+                None => {
+                    use std::io::Write;
+                    std::io::stdout().write_all(&sealed).unwrap();
+                }
+            }
+        }
+        "secure-open" => {
+            let inp = positional(&a).unwrap_or_else(|| usage());
+            let data = std::fs::read(&inp).unwrap_or_else(|e| fail(&e.to_string()));
+            let r = secure::open(&data, arg(&a, "password", Some("")).unwrap(), None);
+            if r.signature_valid == 0 {
+                fail(&r.err.unwrap_or_else(|| "bad signature".into()));
+            }
+            let bytes = match r.bytes {
+                Some(b) => b,
+                None => match r.err {
+                    Some(m) => fail(&m),
+                    None => fail("needs a password"),
+                },
+            };
+            if r.signed {
+                eprintln!("signature: valid, signer {}", r.signer_fingerprint);
+            }
+            match arg(&a, "o", None) {
+                Some(out) => {
+                    std::fs::write(out, &bytes).unwrap_or_else(|e| fail(&e.to_string()));
+                    println!("wrote {} ({} bytes)", out, bytes.len());
+                }
+                None => {
+                    use std::io::Write;
+                    std::io::stdout().write_all(&bytes).unwrap();
+                    println!();
+                }
+            }
+        }
+        "secure-passphrase" => println!("{}", secure::generate_passphrase()),
+        "secure-strength" => {
+            let pw = match arg(&a, "password", None) {
+                Some(p) => p.to_string(),
+                None => positional(&a).unwrap_or_default(),
+            };
+            let (bits, level, label) = secure::strength(&pw);
+            println!("{} bits, level {} ({})", bits, level, label);
+        }
+        "parts-split" => {
+            let inp = positional(&a).unwrap_or_else(|| usage());
+            let outdir = arg(&a, "o", None).unwrap_or_else(|| usage());
+            let name = arg(&a, "name", Some("file")).unwrap();
+            let size: usize = arg(&a, "size", Some("3")).unwrap().parse().unwrap_or(3);
+            let data = std::fs::read(&inp).unwrap_or_else(|e| fail(&e.to_string()));
+            let parts = parts::split_file(&data, name, size).unwrap_or_else(|e| fail(&e));
+            std::fs::create_dir_all(outdir).unwrap_or_else(|e| fail(&e.to_string()));
+            for (i, p) in parts.iter().enumerate() {
+                std::fs::write(format!("{}/part-{:02}.bin", outdir, i + 1), p)
+                    .unwrap_or_else(|e| fail(&e.to_string()));
+            }
+            println!("{} parts written to {} (encode each at --ecc 2, color mode)", parts.len(), outdir);
+        }
+        "parts-join" => {
+            let mut asm = parts::Assembler::default();
+            let mut out = arg(&a, "o", None).map(|s| s.to_string());
+            let mut nfiles = 0;
+            let mut i = 1;
+            while i < a.len() {
+                if a[i] == "-o" || a[i] == "--o" {
+                    i += 2;
+                    continue;
+                }
+                let data = std::fs::read(&a[i]).unwrap_or_else(|_| fail(&format!("cannot read {}", a[i])));
+                nfiles += 1;
+                let (st, pn, msg) = asm.add(&data);
+                match st {
+                    parts::NOT_PART => fail(&format!("{} is not a part", a[i])),
+                    parts::BAD | parts::OTHER => fail(&msg),
+                    parts::DUPLICATE => {}
+                    _ => println!("part {} of {} added ({}/{})", pn, asm.total, asm.have, asm.total),
+                }
+                i += 1;
+            }
+            if nfiles == 0 {
+                usage();
+            }
+            let (res, name) = asm.finish().unwrap_or_else(|e| fail(&e));
+            if out.is_none() {
+                out = Some(name);
+            }
+            let out = out.unwrap();
+            std::fs::write(&out, &res).unwrap_or_else(|e| fail(&e.to_string()));
+            println!("wrote {} ({} bytes, whole-file check passed)", out, res.len());
+        }
+        "card-build" => {
+            if a.len() < 2 {
+                usage();
+            }
+            let kind = a[1].as_str();
+            let hidden = has_arg(&a, "hidden");
+            let payload = match kind {
+                "wifi" => cards::wifi_build(
+                    arg(&a, "ssid", Some("")).unwrap(),
+                    arg(&a, "sec", Some("WPA")).unwrap(),
+                    arg(&a, "pass", Some("")).unwrap(),
+                    hidden,
+                ),
+                "vcard" => cards::vcard_build(
+                    arg(&a, "name", Some("")).unwrap(),
+                    arg(&a, "org", Some("")).unwrap(),
+                    arg(&a, "title", Some("")).unwrap(),
+                    arg(&a, "phone", Some("")).unwrap(),
+                    arg(&a, "email", Some("")).unwrap(),
+                    arg(&a, "url", Some("")).unwrap(),
+                    arg(&a, "addr", Some("")).unwrap(),
+                    arg(&a, "note", Some("")).unwrap(),
+                ),
+                "ticket" => cards::ticket_build(
+                    arg(&a, "expiry-ms", Some("0")).unwrap().parse().unwrap_or(0),
+                    arg(&a, "text", Some("")).unwrap(),
+                ),
+                _ => usage(),
+            };
+            match arg(&a, "o", None) {
+                Some(out) => {
+                    std::fs::write(out, &payload).unwrap_or_else(|e| fail(&e.to_string()));
+                    println!("wrote {} ({} bytes)", out, payload.len());
+                }
+                None => println!("{}", payload),
+            }
+        }
+        "card-parse" => {
+            if a.len() < 2 {
+                usage();
+            }
+            let data = std::fs::read(&a[1]).unwrap_or_else(|e| fail(&e.to_string()));
+            let text = String::from_utf8_lossy(&data).into_owned();
+            if let Some(t) = cards::ticket_parse(&text) {
+                println!("ticket: expires {}, body:\n{}", t.expiry_ms, t.body);
+            } else if let Some(w) = cards::wifi_parse(&text) {
+                println!(
+                    "wifi: ssid {:?} security {} password {:?}{}",
+                    w.ssid,
+                    w.sec,
+                    w.pass,
+                    if w.hidden { " hidden" } else { "" }
+                );
+            } else if let Some(v) = cards::vcard_parse(&text) {
+                print!("contact: {}", v.name);
+                if !v.org.is_empty() {
+                    print!(", {}", v.org);
+                }
+                if !v.title.is_empty() {
+                    print!(" ({})", v.title);
+                }
+                println!();
+                for p in &v.phones {
+                    println!("  phone: {}", p);
+                }
+                for e in &v.emails {
+                    println!("  email: {}", e);
+                }
+                for u in &v.urls {
+                    println!("  url: {}", u);
+                }
+                if !v.addr.is_empty() {
+                    println!("  address: {}", v.addr);
+                }
+                if !v.note.is_empty() {
+                    println!("  note: {}", v.note);
+                }
+            } else {
+                println!("not a card payload");
+            }
+        }
+        "issuer" => {
+            let inp = positional(&a).unwrap_or_else(|| usage());
+            let mut data = std::fs::read(&inp).unwrap_or_else(|e| fail(&e.to_string()));
+            if data.len() > 8 && data[0] == 0x89 && data[1] == b'P' && data[2] == b'N' && data[3] == b'G' {
+                let (dec, _) = decode_png(&data).unwrap_or_else(|e| fail(&e));
+                data = dec;
+            }
+            match issuers::identify(&data) {
+                None => println!("not a signed Prism Secure payload"),
+                Some(id) => {
+                    if !id.signature_valid {
+                        println!("Signature check failed. This code was changed after it was signed, or was not signed by the key it names.");
+                    } else {
+                        print!("signature: valid, signer {}", id.fingerprint);
+                        if let Some(lp) = arg(&a, "list", None) {
+                            let list = issuers::load(lp);
+                            match issuers::find_index(&list, &id.fingerprint) {
+                                Some(idx) => print!(", issuer: {}", list[idx].name),
+                                None => print!(" (not on the issuer list)"),
+                            }
+                        }
+                        println!();
+                        if id.has_message {
+                            println!("message: {}", id.message);
+                        } else if id.encrypted {
+                            println!("the content is locked with a password");
+                        }
+                    }
+                }
+            }
         }
         "capacity" => {
             for s in 0..6 {
