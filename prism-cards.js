@@ -271,10 +271,12 @@ function hookCreate(){
   let formEl=null,current='text';
   const buttons={};
   let textDraft=ta.value;
+  const FORM_LABELS={text:'Your message',wifi:'Wi-Fi details',vcard:'Contact details',ticket:'Ticket details'};
   const select=(id)=>{
     const prev=current;
     if(prev==='text'&&id!=='text')textDraft=ta.value;
     current=id;
+    label.textContent=FORM_LABELS[id]||'Your message';
     Object.entries(buttons).forEach(([k,b])=>b.setAttribute('aria-pressed',k===id?'true':'false'));
     if(formEl){formEl.remove();formEl=null;}
     if(id!=='text'){
