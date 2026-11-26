@@ -112,16 +112,13 @@ const CSS=`
 .pccard.dark .pcpill.ok{color:#4ade80}
 .pccard.dark .pcpill.bad{color:#ff6b7a}
 .pcbar{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
-.pcbar button{border-radius:999px;border:1px solid #eae9ea;background:#fff;color:#585254;font:600 13px system-ui;padding:8px 14px;cursor:pointer;min-height:36px}
+.pcbar button{border-radius:999px;border:1px solid #eae9ea;background:#fff;color:#585254;font:600 13px system-ui;padding:8px 14px;cursor:pointer;min-height:44px;-webkit-appearance:none;appearance:none}
 .pcbar button[aria-pressed=true]{background:#251f21;border-color:#251f21;color:#fff}
 .pcform{background:#F4F4F6;border-radius:14px;padding:14px 16px;margin:0 0 14px;display:grid;gap:8px}
 .pcform label{font-size:12.5px;font-weight:600;color:#585254;display:grid;gap:3px}
-.pcform input,.pcform select{border:1px solid #eae9ea;border-radius:8px;padding:9px 10px;font:15px system-ui;background:#fff;min-height:40px}
+.pcform input,.pcform select{border:1px solid #eae9ea;border-radius:8px;padding:9px 10px;font:16px system-ui;background:#fff;min-height:40px}
 .pcform .pcnote{font-size:12.5px;color:#585254;margin:2px 0 0}
-.pccard button:hover{border-color:#2E5BFF}
-.pccard button.pcpri:hover{background:#2250ec}
-.pcbar button:hover{border-color:#251f21;color:#251f21}
-.pcbar button[aria-pressed=true]:hover{background:#3a3234;color:#fff}
+@media(hover:hover){.pccard button:hover{border-color:#2E5BFF}.pccard button.pcpri:hover{background:#2250ec}.pcbar button:hover{border-color:#251f21;color:#251f21}.pcbar button[aria-pressed=true]:hover{background:#3a3234;color:#fff}}
 .pccard button:focus-visible,.pcbar button:focus-visible{outline:3px solid #9ac8bb;outline-offset:2px}
 `;
 let styleDone=false;
@@ -285,7 +282,7 @@ function hookCreate(){
       ta.before(formEl);
       ta.value=compose(id,{});
       ta.dispatchEvent(new Event('input',{bubbles:true}));
-      const first=formEl.querySelector('input');if(first){first.focus();first.dispatchEvent(new Event('input',{bubbles:true}));}    }else if(prev!=='text'){
+      const first=formEl.querySelector('input');if(first){if(window.matchMedia&&matchMedia('(pointer:fine)').matches)first.focus();first.dispatchEvent(new Event('input',{bubbles:true}));}    }else if(prev!=='text'){
       ta.value=textDraft;
       ta.dispatchEvent(new Event('input',{bubbles:true}));
     }
