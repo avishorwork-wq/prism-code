@@ -22,20 +22,39 @@ checksum. A scan only shows a message when its checksum matches.
   are for), verifies the header checksum, repairs with Reed-Solomon, verifies
   the payload CRC32, and returns the payload. Never shows a wrong result:
   if the checksum does not pass, it reports an error instead.
-- **CLI** and this README.
-
-Prism Secure, big-file parts, tickets/cards and verified issuers are planned
-next (they already exist in the C, Go, Kotlin and Rust ports).
+- **Prism Secure** (`secure.ts`): AES-256-GCM payload locking with Argon2id
+  (128 MiB, 3 passes, a pure-TypeScript implementation since Node ships no
+  Argon2) or PBKDF2-SHA256 (600,000 rounds), ECDSA P-256 / SHA-256 signing
+  with deterministic RFC 6979 nonces, passphrase generator and
+  password-strength meter. Byte-compatible with the C, Go, Kotlin, Rust, PHP
+  and Ruby ports (same envelope, byte-identical signatures).
+- **Big files in parts** (`parts.ts`): split a file of any size into PPT1
+  parts (one Prism code each, ECC 30%) and reassemble them with whole-file
+  CRC-32 verification.
+- **Tickets and cards** (`cards.ts`): Wi-Fi, vCard 3.0 contact and
+  expiring-ticket payload builders and parsers.
+- **Verified issuers** (`issuers.ts`): identify a signed payload's signer
+  fingerprint and look it up in an issuer list.
+- **CLI** and this README. The core encoder/decoder is `prism.ts`; the
+  feature commands load the other files from the same directory.
 
 ## Build
 
 Requires Node 18+ and the TypeScript compiler. No runtime dependencies: PNG
-zlib comes from node:zlib. @types/node is a build-time-only dev dependency.
+zlib comes from node:zlib, AES-GCM/PBKDF2/HMAC from node:crypto, and Argon2id
+is pure TypeScript (BigInt), so no native modules anywhere. @types/node is a
+build-time-only dev dependency. Pre-compiled .js files are included, so
+`tsc` is only needed after editing the sources.
 
 ```
 npm install          # fetches @types/node (build time only)
-tsc                  # produces prism.js
+tsc                  # produces prism.js, secure.js, parts.js, cards.js, issuers.js
 ```
+
+A note on speed: the pure-TypeScript Argon2id takes about a minute per
+128 MiB lock or unlock. That is normal for interpreted BigInt arithmetic;
+the other ports use native Argon2 libraries. `--kdf pbkdf2` is instant and
+fully compatible.
 
 ## Use
 
@@ -46,6 +65,29 @@ node prism.js encode --text "big" --out big.png --size 5 --radius 20
 node prism.js decode hello.png
 node prism.js decode data.png --out data.out
 node prism.js capacity
+
+# Prism Secure
+node prism.js secure-genkey -o key.json
+node prism.js secure-seal secret.txt --password "correct horse" -o locked.bin
+node prism.js secure-seal note.txt --sign-key key.json -o signed.bin
+node prism.js secure-seal doc.pdf --password "pw" --kdf pbkdf2 --sign-key key.json -o both.bin
+node prism.js secure-open locked.bin --password "correct horse" -o secret.out
+node prism.js secure-passphrase
+node prism.js secure-strength "my password"
+
+# Big files in parts
+node prism.js parts-split video.mp4 -o parts/ --name "video.mp4" --size 4
+# (encode each parts/part-NN.bin with: node prism.js encode --input ... --ecc 2 --mode 0)
+node prism.js parts-join parts/part-*.bin -o video.mp4
+
+# Tickets and cards
+node prism.js card-build wifi --ssid "My Cafe" --sec WPA --pass "coffee123" -o wifi.txt
+node prism.js card-build vcard --name "Ada Lovelace" --email ada@example.com -o card.txt
+node prism.js card-build ticket --expiry-ms 1767225600000 --text "Admit one" -o ticket.txt
+node prism.js card-parse wifi.txt
+
+# Verified issuers
+node prism.js issuer signed.bin --list issuers.json
 ```
 
 Flags: `--size -1..5` (-1 = auto grow to fit), `--ecc 0..3` (10/20/30/40%
@@ -69,6 +111,13 @@ compat suite (Node oracle + the live fast-reader worker):
   6 failures all being the documented ceiling where the live fast reader
   cannot read the largest perfectly-clean generator PNGs even when the JS
   encoder made them - not a port bug.
+- Prism Secure / parts / cards / issuers: the 51-check cross-language
+  feature battery passes against the C reference implementation (envelope
+  bytes, deterministic signatures byte-identical with C, Argon2id and
+  PBKDF2 locks opened both ways, part splits reassembled across
+  implementations, card payload round-trips, issuer fingerprint lookups).
+  The pure-TypeScript Argon2id is additionally verified byte-for-byte
+  against libargon2 (argon2-cffi) at multiple parameter sets.
 
 These are automated compatibility tests only: nothing here has been exercised
 against a live phone-camera reader.
