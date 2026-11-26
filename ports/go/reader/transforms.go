@@ -560,14 +560,17 @@ var chainOrder = []struct {
 	name string
 	fn   func(*ImageData) *ImageData
 }{
+	// Build 118 order (sha1 259e8f26 of fast-reader.html). Data table: re-order here on chain re-sync.
+	{"gl5", glmk(20, 2, 10)},
+	{"gl3", glmk(16, 2, 10)},
 	{"liftdn", trLiftdn},
 	{"crplain", trCrplain},
 	{"zoom", func(i *ImageData) *ImageData { return trZoomcrop(i, .45, 3) }},
 	{"zoomauto", trZoomauto},
 	{"zooman", trZooman},
-	{"gl5", glmk(20, 2, 10)},
-	{"gl3", glmk(16, 2, 10)},
 	{"gl6", glmk(12, 3, 10)},
+	{"gl7", glmk(8, 1, 20)},
+	{"calmedon", func(i *ImageData) *ImageData { return i }},
 	{"gs3a2", trGs3a2},
 	{"deblkS", trDeblkS},
 	{"zoomw", trZoomw},
@@ -579,7 +582,7 @@ var chainOrder = []struct {
 }
 
 // roiRead
-func roiRead(img *ImageData) (*ReadResult, error) {
+func roiRead(img *ImageData, calmed bool) (*ReadResult, error) {
 	var firstErr error
 	if img != nil && img.Data != nil {
 		if b := roiBBox(img); b != nil {
@@ -591,14 +594,22 @@ func roiRead(img *ImageData) (*ReadResult, error) {
 			if dumpDir != "" {
 				dumpStepPNG(dumpDir, curStep+"_roi", c)
 			}
+			if calmed {
+				markCalmed(c)
+			}
 			r, err := fastRead(c)
+			unmarkCalmed(c)
 			if err == nil {
 				return r, nil
 			}
 			firstErr = err
 		}
 	}
+	if calmed {
+		markCalmed(img)
+	}
 	r, err := fastRead(img)
+	unmarkCalmed(img)
 	if err != nil && firstErr != nil {
 		return nil, firstErr
 	}
@@ -609,7 +620,8 @@ func roiRead(img *ImageData) (*ReadResult, error) {
 func chainRead(img *ImageData) (*ReadResult, string, error) {
 	t0 := time.Now()
 	curStep = "direct"
-	r, err := roiRead(img)
+	calmed := false
+	r, err := roiRead(img, false)
 	if err == nil {
 		return r, "direct", nil
 	}
@@ -622,6 +634,9 @@ func chainRead(img *ImageData) (*ReadResult, string, error) {
 		}
 		ts := time.Now()
 		curStep = step.name
+		if step.name == "calmedon" {
+			calmed = true // flag stays on to the end of the read (reset only after AsyncPrismReader.read returns)
+		}
 		im2 := step.fn(img)
 		if im2 == nil {
 			continue
@@ -629,7 +644,7 @@ func chainRead(img *ImageData) (*ReadResult, string, error) {
 		if dumpDir != "" {
 			dumpStepPNG(dumpDir, step.name, im2)
 		}
-		if r, err := roiRead(im2); err == nil {
+		if r, err := roiRead(im2, calmed); err == nil {
 			return r, step.name, nil
 		} else if dbg {
 			fmt.Fprintf(os.Stderr, "chain %s: %v (%s)\n", step.name, err, time.Since(ts))
