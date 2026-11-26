@@ -17,6 +17,11 @@ static class Program
             "  prism decode IN.png [-o OUT.bin] [--password PW]\n" +
             "  prism secure-seal IN -o OUT [--password PW] [--kdf argon2id|pbkdf2] [--sign-key KEY.json]\n" +
             "  prism secure-open IN [-o OUT] [--password PW]\n" +
+            "  prism parts-split IN -o OUTDIR [--name NAME] [--size 2-5]   split a big file into parts\n" +
+            "  prism parts-join PART.bin... [-o OUT]                       reassemble parts\n" +
+            "  prism card-build wifi|vcard|ticket [fields] [-o OUT.txt]    build a card payload\n" +
+            "  prism card-parse IN.txt                                     read a card payload\n" +
+            "  prism issuer IN.png|IN.bin [--list issuers.json]            who signed this payload\n" +
             "  prism secure-genkey [-o KEY.json]\n" +
             "  prism capacity\n" +
             "\n" +
@@ -204,6 +209,148 @@ static class Program
                 else
                 {
                     Console.WriteLine($"({res.Bytes.Length} binary payload bytes; use -o OUT.bin to save)");
+                }
+                return 0;
+            }
+            if (args[0] == "parts-split")
+            {
+                string? inp = null, name = "file", outdir = null;
+                int size = 3;
+                for (int i = 1; i < args.Length; i++)
+                {
+                    string Next()
+                    {
+                        if (i + 1 >= args.Length) throw new PrismException("missing value for " + args[i]);
+                        return args[++i];
+                    }
+                    if (args[i] == "--name") name = Next();
+                    else if (args[i] == "--size") size = int.Parse(Next());
+                    else if (args[i] == "-o") outdir = Next();
+                    else if (inp == null) inp = args[i];
+                    else { Usage(); return 2; }
+                }
+                if (inp == null || outdir == null) { Usage(); return 2; }
+                var parts = PrismParts.Split(File.ReadAllBytes(inp), name, size);
+                Directory.CreateDirectory(outdir);
+                for (int i = 0; i < parts.Length; i++)
+                    File.WriteAllBytes(Path.Combine(outdir, $"part-{i + 1:00}.bin"), parts[i]);
+                Console.WriteLine($"{parts.Length} parts written to {outdir} (encode each at --ecc 2, color mode)");
+                return 0;
+            }
+            if (args[0] == "parts-join")
+            {
+                string? outp = null;
+                var asm = new PartsAssembler();
+                for (int i = 1; i < args.Length; i++)
+                {
+                    if (args[i] == "-o") { outp = args[++i]; continue; }
+                    var r = asm.Add(File.ReadAllBytes(args[i]));
+                    if (r.Status == PartAddStatus.NotPart) { Console.Error.WriteLine($"error: {args[i]} is not a part"); return 1; }
+                    if (r.Status == PartAddStatus.Bad || r.Status == PartAddStatus.OtherFile) { Console.Error.WriteLine("error: " + r.Message); return 1; }
+                    if (r.Status != PartAddStatus.Duplicate)
+                        Console.WriteLine($"part {r.N} of {asm.Total} added ({asm.Have}/{asm.Total})");
+                }
+                byte[] bytes;
+                try { bytes = asm.Finish(); }
+                catch (InvalidOperationException e) { Console.Error.WriteLine("error: " + e.Message); return 1; }
+                outp ??= asm.ResultName;
+                File.WriteAllBytes(outp, bytes);
+                Console.WriteLine($"wrote {outp} ({bytes.Length} bytes, whole-file check passed)");
+                return 0;
+            }
+            if (args[0] == "card-build")
+            {
+                if (args.Length < 2) { Usage(); return 2; }
+                string kind = args[1], outp = null!;
+                string ssid = "", sec = "WPA", pass = "", name = "", org = "", title = "",
+                       phone = "", email = "", url = "", addr = "", note = "", text = "";
+                long expiryMs = 0; bool hidden = false;
+                for (int i = 2; i < args.Length; i++)
+                {
+                    string Next()
+                    {
+                        if (i + 1 >= args.Length) throw new PrismException("missing value for " + args[i]);
+                        return args[++i];
+                    }
+                    switch (args[i])
+                    {
+                        case "-o": outp = Next(); break;
+                        case "--ssid": ssid = Next(); break;
+                        case "--sec": sec = Next(); break;
+                        case "--pass": pass = Next(); break;
+                        case "--hidden": hidden = true; break;
+                        case "--name": name = Next(); break;
+                        case "--org": org = Next(); break;
+                        case "--title": title = Next(); break;
+                        case "--phone": phone = Next(); break;
+                        case "--email": email = Next(); break;
+                        case "--url": url = Next(); break;
+                        case "--addr": addr = Next(); break;
+                        case "--note": note = Next(); break;
+                        case "--expiry-ms": expiryMs = long.Parse(Next()); break;
+                        case "--text": text = Next(); break;
+                        default: Usage(); return 2;
+                    }
+                }
+                string payload = kind switch
+                {
+                    "wifi" => PrismCards.WifiPayload(ssid, sec, pass, hidden),
+                    "vcard" => PrismCards.VCardPayload(name, org, title, phone, email, url, addr, note),
+                    "ticket" => PrismCards.TicketPayload(expiryMs, text),
+                    _ => throw new PrismException("unknown card kind " + kind),
+                };
+                if (outp != null) { File.WriteAllText(outp, payload); Console.WriteLine($"wrote {outp} ({payload.Length} chars)"); }
+                else Console.WriteLine(payload);
+                return 0;
+            }
+            if (args[0] == "card-parse")
+            {
+                if (args.Length < 2) { Usage(); return 2; }
+                string text = File.ReadAllText(args[1]);
+                if (PrismCards.TryParseTicket(text, out var t))
+                    Console.WriteLine($"ticket: expires {t.ExpiryMs}, body:\n{t.Body}");
+                else if (PrismCards.TryParseWifi(text, out var w))
+                    Console.WriteLine($"wifi: ssid \"{w.Ssid}\" security {w.Sec} password \"{w.Pass}\"{(w.Hidden ? " hidden" : "")}");
+                else if (PrismCards.TryParseVCard(text, out var v))
+                {
+                    Console.WriteLine($"contact: {v.Name}{(v.Org.Length > 0 ? ", " + v.Org : "")}{(v.Title.Length > 0 ? " (" + v.Title + ")" : "")}");
+                    foreach (var p in v.Phones) Console.WriteLine($"  phone: {p}");
+                    foreach (var e in v.Emails) Console.WriteLine($"  email: {e}");
+                    foreach (var u in v.Urls) Console.WriteLine($"  url: {u}");
+                    if (v.Addr.Length > 0) Console.WriteLine($"  address: {v.Addr}");
+                    if (v.Note.Length > 0) Console.WriteLine($"  note: {v.Note}");
+                }
+                else Console.WriteLine("not a card payload");
+                return 0;
+            }
+            if (args[0] == "issuer")
+            {
+                string? inp = null, listPath = null;
+                for (int i = 1; i < args.Length; i++)
+                {
+                    if (args[i] == "--list" && i + 1 < args.Length) listPath = args[++i];
+                    else if (inp == null) inp = args[i];
+                    else { Usage(); return 2; }
+                }
+                if (inp == null) { Usage(); return 2; }
+                byte[] bytes = inp.EndsWith(".png", StringComparison.OrdinalIgnoreCase)
+                    ? Prism.DecodePng(inp).Bytes
+                    : File.ReadAllBytes(inp);
+                var id = PrismIssuers.Identify(bytes);
+                if (id == null) { Console.WriteLine("not a signed Prism Secure payload"); return 0; }
+                if (!id.SignatureValid)
+                    Console.WriteLine("Signature check failed. This code was changed after it was signed, or was not signed by the key it names.");
+                else
+                {
+                    Console.Write($"signature: valid, signer {id.Fingerprint}");
+                    if (listPath != null)
+                    {
+                        var hit = PrismIssuers.Find(PrismIssuers.Load(listPath), id.Fingerprint);
+                        Console.Write(hit != null ? $", issuer: {hit.Name}" : " (not on the issuer list)");
+                    }
+                    Console.WriteLine();
+                    if (id.Message != null) Console.WriteLine($"message: {id.Message}");
+                    else if (id.Encrypted) Console.WriteLine("the content is locked with a password");
                 }
                 return 0;
             }
