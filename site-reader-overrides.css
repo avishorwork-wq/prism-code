@@ -36,3 +36,6 @@ footer a{color:#0071e3;text-decoration:none}
 /* packed pages (slow-reader, simulator) load their styles late; extra specificity wins there */
 html body .actions button.primary{background:#0071e3;color:#fff}
 html body .actions button.primary:hover:not(:disabled){background:#0077ed}
+
+/* Mobile: 16px inputs so iOS Safari does not zoom on focus */
+@media(max-width:600px){textarea,select,input[type=text],input[type=number]{font-size:16px}}
