@@ -2,10 +2,27 @@
  * Tiny CLI for the C11 Prism port. */
 #include "prism.h"
 #include "prism_secure.h"
+#include "prism_parts.h"
+#include "prism_cards.h"
+#include "prism_issuers.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+
+static uint8_t *slurp_file(const char *path, size_t *n) {
+    FILE *f = fopen(path, "rb");
+    if (!f) return NULL;
+    fseek(f, 0, SEEK_END); long s = ftell(f); fseek(f, 0, SEEK_SET);
+    if (s < 0) { fclose(f); return NULL; }
+    uint8_t *b = malloc((size_t)s + 1);
+    if (!b) { fclose(f); return NULL; }
+    if (fread(b, 1, (size_t)s, f) != (size_t)s) { fclose(f); free(b); return NULL; }
+    fclose(f);
+    b[s] = 0; *n = (size_t)s;
+    return b;
+}
 
 /* base64url (no padding) encode/decode for the site's JWK key files */
 static void b64u_enc(const uint8_t *in, size_t n, char *out) {
@@ -92,6 +109,11 @@ static void usage(const char *argv0) {
         "  %s encode (--text TEXT | --file PATH) -o OUT.png [options]\n"
         "  %s decode IN.png [-o OUT.bin] [--password PW]\n"
         "  %s secure-seal IN -o OUT [--password PW] [--kdf argon2id|pbkdf2] [--sign-key KEY.json]\n"
+        "  %s parts-split IN -o OUTDIR [--name NAME] [--size 2-5]   split a big file into parts\n"
+        "  %s parts-join PART.bin... [-o OUT]                       reassemble parts\n"
+        "  %s card-build wifi|vcard|ticket [fields] [-o OUT.txt]    build a card payload\n"
+        "  %s card-parse IN.txt                                     read a card payload\n"
+        "  %s issuer IN.png|IN.bin [--list issuers.json]            who signed this payload\n"
         "  %s secure-open IN [-o OUT] [--password PW]\n"
         "  %s secure-genkey [-o KEY.json]\n"
         "  %s capacity\n"
@@ -107,7 +129,7 @@ static void usage(const char *argv0) {
         "  --sign-key KF  sign the payload with a key from secure-genkey\n"
         "\n"
         "Decode prints text payloads to stdout; with -o it writes raw payload bytes.\n",
-        argv0, argv0, argv0, argv0, argv0, argv0);
+        argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0);
 }
 
 int main(int argc, char **argv) {
@@ -302,6 +324,179 @@ int main(int argc, char **argv) {
             printf("wrote %s (%zu bytes)\n", out, r.bytes_len);
         } else { fwrite(r.bytes, 1, r.bytes_len, stdout); fputc('\n', stdout); }
         free(r.bytes);
+        return 0;
+    }
+
+    if (!strcmp(argv[1], "parts-split")) {
+        const char *in = NULL, *name = "file", *outdir = NULL;
+        int size = 3;
+        for (int i = 2; i < argc; i++) {
+            if (!strcmp(argv[i], "--name") && i + 1 < argc) name = argv[++i];
+            else if (!strcmp(argv[i], "--size") && i + 1 < argc) size = atoi(argv[++i]);
+            else if (!strcmp(argv[i], "-o") && i + 1 < argc) outdir = argv[++i];
+            else if (!in) in = argv[i];
+            else { usage(argv[0]); return 2; }
+        }
+        if (!in || !outdir) { usage(argv[0]); return 2; }
+        size_t n; uint8_t *b = slurp_file(in, &n);
+        if (!b) { fprintf(stderr, "error: cannot read %s\n", in); return 1; }
+        prism_parts_split s;
+        int rc = prism_parts_split_file(b, n, name, size, &s);
+        free(b);
+        if (rc == -1) { fprintf(stderr, "error: Part size too small\n"); return 1; }
+        if (rc == -2) { fprintf(stderr, "error: File is too big for this part size\n"); return 1; }
+        if (rc) { fprintf(stderr, "error: split failed\n"); return 1; }
+        mkdir(outdir, 0755); /* ok if it already exists */
+        char p[1024];
+        for (int i = 0; i < s.total; i++) {
+            snprintf(p, sizeof p, "%s/part-%02d.bin", outdir, i + 1);
+            FILE *f = fopen(p, "wb");
+            if (!f) { fprintf(stderr, "error: cannot write %s\n", p); prism_parts_split_free(&s); return 1; }
+            fwrite(s.parts[i], 1, s.lens[i], f); fclose(f);
+        }
+        printf("%d parts written to %s (encode each at --ecc 2, color mode)\n", s.total, outdir);
+        prism_parts_split_free(&s);
+        return 0;
+    }
+
+    if (!strcmp(argv[1], "parts-join")) {
+        const char *out = NULL;
+        prism_assembler a; prism_assembler_init(&a);
+        for (int i = 2; i < argc; i++) {
+            if (!strcmp(argv[i], "-o") && i + 1 < argc) { out = argv[++i]; continue; }
+            size_t n; uint8_t *b = slurp_file(argv[i], &n);
+            if (!b) { fprintf(stderr, "error: cannot read %s\n", argv[i]); prism_assembler_reset(&a); return 1; }
+            int pn = 0; const char *msg = NULL;
+            int st = prism_assembler_add(&a, b, n, &pn, &msg);
+            free(b);
+            if (st == PRISM_PART_NOTPART) { fprintf(stderr, "error: %s is not a part\n", argv[i]); prism_assembler_reset(&a); return 1; }
+            if (st == PRISM_PART_BAD || st == PRISM_PART_OTHER) { fprintf(stderr, "error: %s\n", msg); prism_assembler_reset(&a); return 1; }
+            if (st != PRISM_PART_DUPLICATE)
+                printf("part %d of %d added (%d/%d)\n", pn, a.total, a.have, a.total);
+        }
+        uint8_t *res = NULL; size_t rlen = 0; const char *name = NULL, *reason = NULL;
+        if (prism_assembler_finish(&a, &res, &rlen, &name, &reason)) {
+            fprintf(stderr, "error: %s\n", reason);
+            prism_assembler_reset(&a);
+            return 1;
+        }
+        if (!out) out = name;
+        FILE *f = fopen(out, "wb");
+        if (!f) { fprintf(stderr, "error: cannot write %s\n", out); free(res); prism_assembler_reset(&a); return 1; }
+        fwrite(res, 1, rlen, f); fclose(f);
+        printf("wrote %s (%zu bytes, whole-file check passed)\n", out, rlen);
+        free(res);
+        prism_assembler_reset(&a);
+        return 0;
+    }
+
+    if (!strcmp(argv[1], "card-build")) {
+        if (argc < 3) { usage(argv[0]); return 2; }
+        const char *kind = argv[2], *out = NULL;
+        const char *ssid = "", *sec = "WPA", *pass = "", *name = "", *org = "", *title = "",
+                   *phone = "", *email = "", *url = "", *addr = "", *note = "", *text = "";
+        long long expiry_ms = 0; int hidden = 0;
+        for (int i = 3; i < argc; i++) {
+            if (!strcmp(argv[i], "-o") && i + 1 < argc) out = argv[++i];
+            else if (!strcmp(argv[i], "--ssid") && i + 1 < argc) ssid = argv[++i];
+            else if (!strcmp(argv[i], "--sec") && i + 1 < argc) sec = argv[++i];
+            else if (!strcmp(argv[i], "--pass") && i + 1 < argc) pass = argv[++i];
+            else if (!strcmp(argv[i], "--hidden")) hidden = 1;
+            else if (!strcmp(argv[i], "--name") && i + 1 < argc) name = argv[++i];
+            else if (!strcmp(argv[i], "--org") && i + 1 < argc) org = argv[++i];
+            else if (!strcmp(argv[i], "--title") && i + 1 < argc) title = argv[++i];
+            else if (!strcmp(argv[i], "--phone") && i + 1 < argc) phone = argv[++i];
+            else if (!strcmp(argv[i], "--email") && i + 1 < argc) email = argv[++i];
+            else if (!strcmp(argv[i], "--url") && i + 1 < argc) url = argv[++i];
+            else if (!strcmp(argv[i], "--addr") && i + 1 < argc) addr = argv[++i];
+            else if (!strcmp(argv[i], "--note") && i + 1 < argc) note = argv[++i];
+            else if (!strcmp(argv[i], "--expiry-ms") && i + 1 < argc) expiry_ms = atoll(argv[++i]);
+            else if (!strcmp(argv[i], "--text") && i + 1 < argc) text = argv[++i];
+            else { usage(argv[0]); return 2; }
+        }
+        static char buf[8192]; int n = -1;
+        if (!strcmp(kind, "wifi")) n = prism_wifi_build(buf, sizeof buf, ssid, sec, pass, hidden);
+        else if (!strcmp(kind, "vcard")) n = prism_vcard_build(buf, sizeof buf, name, org, title, phone, email, url, addr, note);
+        else if (!strcmp(kind, "ticket")) n = prism_ticket_build(buf, sizeof buf, expiry_ms, text);
+        else { usage(argv[0]); return 2; }
+        if (n < 0) { fprintf(stderr, "error: payload too long\n"); return 1; }
+        if (out) {
+            FILE *f = fopen(out, "wb");
+            if (!f) { fprintf(stderr, "error: cannot write %s\n", out); return 1; }
+            fwrite(buf, 1, (size_t)n, f); fclose(f);
+            printf("wrote %s (%d bytes)\n", out, n);
+        } else { fwrite(buf, 1, (size_t)n, stdout); fputc('\n', stdout); }
+        return 0;
+    }
+
+    if (!strcmp(argv[1], "card-parse")) {
+        if (argc < 3) { usage(argv[0]); return 2; }
+        size_t n; uint8_t *b = slurp_file(argv[2], &n);
+        if (!b) { fprintf(stderr, "error: cannot read %s\n", argv[2]); return 1; }
+        const char *text = (const char *)b;
+        prism_ticket t; prism_wifi w; prism_vcard v;
+        if (prism_ticket_parse(text, &t)) {
+            printf("ticket: expires %lld, body:\n%s\n", (long long)t.expiry_ms, t.body);
+        } else if (prism_wifi_parse(text, &w)) {
+            printf("wifi: ssid \"%s\" security %s password \"%s\"%s\n",
+                   w.ssid, w.sec, w.pass, w.hidden ? " hidden" : "");
+        } else if (prism_vcard_parse(text, &v)) {
+            printf("contact: %s", v.name);
+            if (v.org[0]) printf(", %s", v.org);
+            if (v.title[0]) printf(" (%s)", v.title);
+            printf("\n");
+            for (int i = 0; i < v.n_phones; i++) printf("  phone: %s\n", v.phones[i]);
+            for (int i = 0; i < v.n_emails; i++) printf("  email: %s\n", v.emails[i]);
+            for (int i = 0; i < v.n_urls; i++) printf("  url: %s\n", v.urls[i]);
+            if (v.addr[0]) printf("  address: %s\n", v.addr);
+            if (v.note[0]) printf("  note: %s\n", v.note);
+        } else {
+            printf("not a card payload\n");
+        }
+        free(b);
+        return 0;
+    }
+
+    if (!strcmp(argv[1], "issuer")) {
+        const char *in = NULL, *list_path = NULL;
+        for (int i = 2; i < argc; i++) {
+            if (!strcmp(argv[i], "--list") && i + 1 < argc) list_path = argv[++i];
+            else if (!in) in = argv[i];
+            else { usage(argv[0]); return 2; }
+        }
+        if (!in) { usage(argv[0]); return 2; }
+        size_t n; uint8_t *b = slurp_file(in, &n);
+        if (!b) { fprintf(stderr, "error: cannot read %s\n", in); return 1; }
+        if (n > 8 && !memcmp(b, "\x89PNG", 4)) {
+            uint8_t *dec = NULL; size_t dlen = 0; int type = 0;
+            if (prism_decode_png(in, &dec, &dlen, &type, err, sizeof(err))) {
+                fprintf(stderr, "error: %s\n", err); free(b); return 1;
+            }
+            free(b); b = dec; n = dlen;
+        }
+        prism_issuer_id id;
+        if (!prism_issuer_identify(b, n, &id)) {
+            printf("not a signed Prism Secure payload\n");
+            free(b); return 0;
+        }
+        free(b);
+        if (!id.signature_valid) {
+            printf("Signature check failed. This code was changed after it was signed, or was not signed by the key it names.\n");
+        } else {
+            printf("signature: valid, signer %s", id.fingerprint);
+            if (list_path) {
+                prism_issuer *list = NULL;
+                int cnt = prism_issuers_load(list_path, &list);
+                const prism_issuer *hit = prism_issuers_find(list, cnt, id.fingerprint);
+                if (hit) printf(", issuer: %s", hit->name);
+                else printf(" (not on the issuer list)");
+                prism_issuers_free(list, cnt);
+            }
+            printf("\n");
+            if (id.message) printf("message: %s\n", id.message);
+            else if (id.encrypted) printf("the content is locked with a password\n");
+        }
+        free(id.message);
         return 0;
     }
 
