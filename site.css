@@ -6,7 +6,7 @@
 .sb-in{max-width:1024px;margin:0 auto;height:56px;display:flex;align-items:center;gap:14px;padding:0 22px}
 .sitebar .brand{display:flex;align-items:center;text-decoration:none;flex:0 0 auto;min-height:44px}.sitebar .brand img{height:34px;display:block}.sitebar .brand .ic{display:none;height:32px;width:32px}
 .sitebar .sl{display:flex;gap:2px;margin-left:auto}
-.sitebar .sl a{display:inline-flex;align-items:center;min-height:44px;padding:7px 14px;border-radius:999px;font:500 13.5px/1.2 Poppins,system-ui,sans-serif;text-decoration:none;color:#1b1b1b;opacity:.85}
+.sitebar .sl a{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:7px 14px;border-radius:999px;font:500 13.5px/1.2 Poppins,system-ui,sans-serif;text-decoration:none;color:#1b1b1b;opacity:.85}
 .sitebar .sl a:hover{opacity:1;background:rgba(0,0,0,.05)}.sitebar .sl a[aria-current=page]{opacity:1;font-weight:700}
 .sitebar .scanpill{flex:0 0 auto;background:#2E5BFF;color:#fff;border-radius:999px;padding:8px 18px;font:600 13.5px/1.2 Poppins,system-ui,sans-serif;text-decoration:none;display:inline-flex;align-items:center;min-height:44px;transition:background .18s}
 .sitebar .scanpill:hover{background:#2250ec}.scanpill .s{display:none}
