@@ -1,10 +1,93 @@
 /* Prism Code, Copyright (c) 2026 Avi Shor. Free to use, with or without credit.
  * Tiny CLI for the C++17 Prism port. */
 #include "prism.hpp"
+#include "prism_secure.hpp"
+#include "prism_parts.hpp"
+#include "prism_cards.hpp"
+#include "prism_issuers.hpp"
 
+#include <array>
 #include <cstdio>
 #include <cstring>
 #include <string>
+#include <vector>
+#include <sys/stat.h>
+
+/* base64url (no padding) for the site's JWK key files */
+static std::string b64u_enc(const uint8_t *in, size_t n) {
+    static const char A[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+    std::string out;
+    for (size_t i = 0; i < n; i += 3) {
+        unsigned v = in[i] << 16 | (i+1 < n ? in[i+1] << 8 : 0) | (i+2 < n ? in[i+2] : 0);
+        out += A[v >> 18 & 63]; out += A[v >> 12 & 63];
+        if (i+1 < n) out += A[v >> 6 & 63];
+        if (i+2 < n) out += A[v & 63];
+    }
+    return out;
+}
+static bool b64u_dec(const std::string &in, uint8_t *out, size_t want) {
+    size_t p = 0;
+    for (size_t i = 0; i < in.size(); i += 4) {
+        unsigned v = 0; int cnt = 0;
+        for (int j = 0; j < 4 && i + j < in.size(); j++) {
+            char c = in[i+j]; int d = -1;
+            if (c >= 'A' && c <= 'Z') d = c - 'A';
+            else if (c >= 'a' && c <= 'z') d = c - 'a' + 26;
+            else if (c >= '0' && c <= '9') d = c - '0' + 52;
+            else if (c == '-' || c == '+') d = 62;
+            else if (c == '_' || c == '/') d = 63;
+            if (d < 0) return false;
+            v = v << 6 | (unsigned)d; cnt++;
+        }
+        v <<= (4 - cnt) * 6;
+        if (p < want) out[p++] = (uint8_t)(v >> 16);
+        if (cnt > 2 && p < want) out[p++] = (uint8_t)(v >> 8);
+        if (cnt > 3 && p < want) out[p++] = (uint8_t)v;
+    }
+    return p == want;
+}
+static std::string json_str(const std::string &json, const std::string &name) {
+    for (const char *sep : { "\":\"", "\": \"" }) {
+        std::string needle = "\"" + name + sep;
+        size_t i = json.find(needle);
+        if (i == std::string::npos) continue;
+        i += needle.size();
+        size_t j = json.find('"', i);
+        if (j != std::string::npos) return json.substr(i, j - i);
+    }
+    throw prism::Error("bad key file");
+}
+static std::string read_all(const std::string &path) {
+    FILE *f = std::fopen(path.c_str(), "rb");
+    if (!f) throw prism::Error("cannot open " + path);
+    std::string s;
+    char buf[4096];
+    size_t n;
+    while ((n = std::fread(buf, 1, sizeof buf, f)) > 0) s.append(buf, n);
+    std::fclose(f);
+    return s;
+}
+static prism::SigningKey load_key(const std::string &path) {
+    std::string json = read_all(path);
+    std::string hex = json_str(json, "publicKeyHex");
+    if (hex.size() != 130) throw prism::Error("bad key file");
+    prism::SigningKey k;
+    for (int i = 0; i < 65; i++)
+        k.pub[i] = (uint8_t)std::stoul(hex.substr((size_t)i * 2, 2), nullptr, 16);
+    if (!b64u_dec(json_str(json, "d"), k.priv.data(), 32)) throw prism::Error("bad key file");
+    return k;
+}
+static void save_key(const std::string &path, const prism::SigningKey &k) {
+    FILE *f = std::fopen(path.c_str(), "wb");
+    if (!f) throw prism::Error("cannot write " + path);
+    std::fprintf(f, "{\"publicKeyHex\":\"");
+    for (int i = 0; i < 65; i++) std::fprintf(f, "%02x", k.pub[i]);
+    std::fprintf(f, "\",\"privateJwk\":{\"crv\":\"P-256\",\"d\":\"%s\",\"kty\":\"EC\",\"x\":\"%s\",\"y\":\"%s\"}}\n",
+                 b64u_enc(k.priv.data(), 32).c_str(),
+                 b64u_enc(k.pub.data() + 1, 32).c_str(),
+                 b64u_enc(k.pub.data() + 33, 32).c_str());
+    std::fclose(f);
+}
 
 static void usage(const char *argv0) {
     std::fprintf(stderr,
@@ -12,7 +95,15 @@ static void usage(const char *argv0) {
         "\n"
         "Usage:\n"
         "  %s encode (--text TEXT | --file PATH) -o OUT.png [options]\n"
-        "  %s decode IN.png [-o OUT.bin]\n"
+        "  %s decode IN.png [-o OUT.bin] [--password PW]\n"
+        "  %s secure-seal IN -o OUT [--password PW] [--kdf argon2id|pbkdf2] [--sign-key KEY.json]\n"
+        "  %s secure-open IN [-o OUT] [--password PW]\n"
+        "  %s parts-split IN -o OUTDIR [--name NAME] [--size 2-5]   split a big file into parts\n"
+        "  %s parts-join PART.bin... [-o OUT]                       reassemble parts\n"
+        "  %s card-build wifi|vcard|ticket [fields] [-o OUT.txt]    build a card payload\n"
+        "  %s card-parse IN.txt                                     read a card payload\n"
+        "  %s issuer IN.png|IN.bin [--list issuers.json]            who signed this payload\n"
+        "  %s secure-genkey [-o KEY.json]\n"
         "  %s capacity\n"
         "\n"
         "Encode options:\n"
@@ -21,9 +112,12 @@ static void usage(const char *argv0) {
         "  --mode M       color | bw (default color; bw holds ~1/3)\n"
         "  --type T       text | binary (default: text for --text, binary for --file)\n"
         "  --scale N      PNG pixels per cell unit (default 12; live site uses 8/12/20/32)\n"
+        "  --password PW  lock the payload with Prism Secure (AES-256-GCM)\n"
+        "  --kdf K        argon2id (default) | pbkdf2\n"
+        "  --sign-key KF  sign the payload with a key from secure-genkey\n"
         "\n"
         "Decode prints text payloads to stdout; with -o it writes raw payload bytes.\n",
-        argv0, argv0, argv0);
+        argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0);
 }
 
 int main(int argc, char **argv) {
@@ -39,7 +133,8 @@ int main(int argc, char **argv) {
             return 0;
         }
         if (!std::strcmp(argv[1], "encode")) {
-            std::string text, file, out;
+            std::string text, file, out, password, keyf;
+            std::string kdf = "argon2id";
             bool hasText = false, hasFile = false;
             int size = -1, ecc = 1, mode = prism::MODE_COLOR, type = -1, scale = 12;
             for (int i = 2; i < argc; i++) {
@@ -56,6 +151,9 @@ int main(int argc, char **argv) {
                 else if (a == "--scale") scale = std::stoi(next("--scale"));
                 else if (a == "--mode") mode = next("--mode") == "bw" ? prism::MODE_BW : prism::MODE_COLOR;
                 else if (a == "--type") type = next("--type") == "binary" ? prism::TYPE_BINARY : prism::TYPE_TEXT;
+                else if (a == "--password") password = next("--password");
+                else if (a == "--kdf") kdf = next("--kdf");
+                else if (a == "--sign-key") keyf = next("--sign-key");
                 else { usage(argv[0]); return 2; }
             }
             if ((!hasText && !hasFile) || out.empty()) { usage(argv[0]); return 2; }
@@ -74,20 +172,38 @@ int main(int argc, char **argv) {
                 data.assign(text.begin(), text.end());
                 if (type < 0) type = prism::TYPE_TEXT;
             }
+            if (!password.empty() || !keyf.empty()) {
+                prism::SigningKey key;
+                prism::SigningKey *kp = nullptr;
+                if (!keyf.empty()) { key = load_key(keyf); kp = &key; }
+                data = prism::secureSeal(data, password, kdf, kp);
+                type = prism::TYPE_BINARY;
+            }
             prism::encodePng(data, out, size, ecc, mode, type, scale);
             std::printf("wrote %s (%zu payload bytes)\n", out.c_str(), data.size());
             return 0;
         }
         if (!std::strcmp(argv[1], "decode")) {
-            std::string in, out;
+            std::string in, out, password;
             for (int i = 2; i < argc; i++) {
                 std::string a = argv[i];
                 if (a == "-o" && i + 1 < argc) out = argv[++i];
+                else if (a == "--password" && i + 1 < argc) password = argv[++i];
                 else if (in.empty()) in = a;
                 else { usage(argv[0]); return 2; }
             }
             if (in.empty()) { usage(argv[0]); return 2; }
             prism::DecodeResult res = prism::decodePng(in);
+            if (prism::secureIsSecure(res.bytes)) {
+                prism::SecureResult opened = prism::secureOpen(res.bytes, password);
+                if (opened.signatureValid == 0) throw prism::Error(opened.error);
+                if (opened.bytes.empty() && (opened.error.size() || opened.needsPassword))
+                    throw prism::Error(opened.error.size() ? opened.error : "this code is locked; pass --password");
+                if (opened.signed_)
+                    std::fprintf(stderr, "signature: valid, signer %s\n", opened.signerFingerprint.c_str());
+                res.bytes = opened.bytes;
+                res.type = prism::TYPE_TEXT;
+            }
             if (!out.empty()) {
                 FILE *f = std::fopen(out.c_str(), "wb");
                 if (!f) throw prism::Error("cannot open " + out);
@@ -102,6 +218,197 @@ int main(int argc, char **argv) {
                 std::fputc('\n', stdout);
             } else {
                 std::printf("(%zu binary payload bytes; use -o OUT.bin to save)\n", res.bytes.size());
+            }
+            return 0;
+        }
+        if (!std::strcmp(argv[1], "secure-genkey")) {
+            std::string out;
+            for (int i = 2; i < argc; i++)
+                if (!std::strcmp(argv[i], "-o") && i + 1 < argc) out = argv[++i];
+            prism::SigningKey k = prism::generateSigningKey();
+            std::printf("fingerprint: %s\n", prism::fingerprint(k.pub).c_str());
+            if (!out.empty()) { save_key(out, k); std::printf("wrote %s\n", out.c_str()); }
+            return 0;
+        }
+        if (!std::strcmp(argv[1], "secure-seal") || !std::strcmp(argv[1], "secure-open")) {
+            std::string in, out, password, keyf, kdf = "argon2id";
+            for (int i = 2; i < argc; i++) {
+                std::string a = argv[i];
+                auto next = [&](const char *name) -> std::string {
+                    if (i + 1 >= argc) throw prism::Error(std::string("missing value for ") + name);
+                    return argv[++i];
+                };
+                if (a == "-o") out = next("-o");
+                else if (a == "--password") password = next("--password");
+                else if (a == "--kdf") kdf = next("--kdf");
+                else if (a == "--sign-key") keyf = next("--sign-key");
+                else if (in.empty()) in = a;
+                else { usage(argv[0]); return 2; }
+            }
+            if (in.empty()) { usage(argv[0]); return 2; }
+            std::string raw = read_all(in);
+            std::vector<uint8_t> data(raw.begin(), raw.end());
+            if (!std::strcmp(argv[1], "secure-seal")) {
+                prism::SigningKey key;
+                prism::SigningKey *kp = nullptr;
+                if (!keyf.empty()) { key = load_key(keyf); kp = &key; }
+                std::vector<uint8_t> sealed = prism::secureSeal(data, password, kdf, kp);
+                if (!out.empty()) {
+                    FILE *f = std::fopen(out.c_str(), "wb");
+                    if (!f) throw prism::Error("cannot write " + out);
+                    std::fwrite(sealed.data(), 1, sealed.size(), f);
+                    std::fclose(f);
+                    std::printf("wrote %s (%zu -> %zu bytes)\n", out.c_str(), data.size(), sealed.size());
+                } else std::fwrite(sealed.data(), 1, sealed.size(), stdout);
+                return 0;
+            }
+            prism::SecureResult r = prism::secureOpen(data, password);
+            if (r.signatureValid == 0) throw prism::Error(r.error);
+            if (r.bytes.empty() && (r.error.size() || r.needsPassword))
+                throw prism::Error(r.error.size() ? r.error : "needs a password");
+            if (r.signed_) std::fprintf(stderr, "signature: valid, signer %s\n", r.signerFingerprint.c_str());
+            if (!out.empty()) {
+                FILE *f = std::fopen(out.c_str(), "wb");
+                if (!f) throw prism::Error("cannot write " + out);
+                if (!r.bytes.empty()) std::fwrite(r.bytes.data(), 1, r.bytes.size(), f);
+                std::fclose(f);
+                std::printf("wrote %s (%zu bytes)\n", out.c_str(), r.bytes.size());
+            } else { std::fwrite(r.bytes.data(), 1, r.bytes.size(), stdout); std::fputc('\n', stdout); }
+            return 0;
+        }
+        if (!std::strcmp(argv[1], "parts-split")) {
+            std::string in, name = "file", outdir;
+            int size = 3;
+            for (int i = 2; i < argc; i++) {
+                if (!std::strcmp(argv[i], "--name") && i + 1 < argc) name = argv[++i];
+                else if (!std::strcmp(argv[i], "--size") && i + 1 < argc) size = std::atoi(argv[++i]);
+                else if (!std::strcmp(argv[i], "-o") && i + 1 < argc) outdir = argv[++i];
+                else if (in.empty()) in = argv[i];
+                else { usage(argv[0]); return 2; }
+            }
+            if (in.empty() || outdir.empty()) { usage(argv[0]); return 2; }
+            std::string dtmp = read_all(in);
+            std::vector<uint8_t> data(dtmp.begin(), dtmp.end());
+            ::mkdir(outdir.c_str(), 0755); /* ok if it already exists */
+            auto parts = prism::partsSplit(data, name, size);
+            for (size_t i = 0; i < parts.size(); i++) {
+                char p[1024];
+                std::snprintf(p, sizeof p, "%s/part-%02d.bin", outdir.c_str(), (int)i + 1);
+                FILE *f = std::fopen(p, "wb");
+                if (!f) throw prism::Error(std::string("cannot write ") + p);
+                std::fwrite(parts[i].data(), 1, parts[i].size(), f);
+                std::fclose(f);
+            }
+            std::printf("%d parts written to %s (encode each at --ecc 2, color mode)\n", (int)parts.size(), outdir.c_str());
+            return 0;
+        }
+        if (!std::strcmp(argv[1], "parts-join")) {
+            std::string out;
+            prism::Assembler a;
+            for (int i = 2; i < argc; i++) {
+                if (!std::strcmp(argv[i], "-o") && i + 1 < argc) { out = argv[++i]; continue; }
+                std::string btmp = read_all(argv[i]);
+                std::vector<uint8_t> b(btmp.begin(), btmp.end());
+                auto r = a.add(b);
+                if (r.status == prism::Assembler::NotPart) throw prism::Error(std::string(argv[i]) + " is not a part");
+                if (r.status == prism::Assembler::Bad || r.status == prism::Assembler::OtherFile)
+                    throw prism::Error(r.message);
+                if (r.status != prism::Assembler::Duplicate)
+                    std::printf("part %d of %d added (%d/%d)\n", r.n, a.total(), a.have(), a.total());
+            }
+            std::vector<uint8_t> res = a.finish();
+            if (out.empty()) out = a.name();
+            FILE *f = std::fopen(out.c_str(), "wb");
+            if (!f) throw prism::Error("cannot write " + out);
+            if (!res.empty()) std::fwrite(res.data(), 1, res.size(), f);
+            std::fclose(f);
+            std::printf("wrote %s (%zu bytes, whole-file check passed)\n", out.c_str(), res.size());
+            return 0;
+        }
+        if (!std::strcmp(argv[1], "card-build")) {
+            if (argc < 3) { usage(argv[0]); return 2; }
+            std::string kind = argv[2], out, ssid, sec = "WPA", pass, name, org, title,
+                        phone, email, url, addr, note, text;
+            int64_t expiryMs = 0; bool hidden = false;
+            for (int i = 3; i < argc; i++) {
+                auto take = [&](const char *flag, std::string &dst) {
+                    if (!std::strcmp(argv[i], flag) && i + 1 < argc) { dst = argv[++i]; return true; }
+                    return false;
+                };
+                if (take("-o", out) || take("--ssid", ssid) || take("--sec", sec) || take("--pass", pass) ||
+                    take("--name", name) || take("--org", org) || take("--title", title) || take("--phone", phone) ||
+                    take("--email", email) || take("--url", url) || take("--addr", addr) || take("--note", note) ||
+                    take("--text", text)) continue;
+                if (!std::strcmp(argv[i], "--expiry-ms") && i + 1 < argc) { expiryMs = std::atoll(argv[++i]); continue; }
+                if (!std::strcmp(argv[i], "--hidden")) { hidden = true; continue; }
+                usage(argv[0]); return 2;
+            }
+            std::string payload;
+            if (kind == "wifi") payload = prism::wifiPayload({ssid, sec, pass, hidden});
+            else if (kind == "vcard") payload = prism::vcardPayload(name, org, title, phone, email, url, addr, note);
+            else if (kind == "ticket") payload = prism::ticketPayload(expiryMs, text);
+            else { usage(argv[0]); return 2; }
+            if (!out.empty()) {
+                FILE *f = std::fopen(out.c_str(), "wb");
+                if (!f) throw prism::Error("cannot write " + out);
+                std::fwrite(payload.data(), 1, payload.size(), f);
+                std::fclose(f);
+                std::printf("wrote %s (%zu bytes)\n", out.c_str(), payload.size());
+            } else { std::fwrite(payload.data(), 1, payload.size(), stdout); std::fputc('\n', stdout); }
+            return 0;
+        }
+        if (!std::strcmp(argv[1], "card-parse")) {
+            if (argc < 3) { usage(argv[0]); return 2; }
+            std::string text = read_all(argv[2]);
+            prism::TicketFields t; prism::WifiFields w; prism::VcardFields v;
+            if (prism::ticketParse(text, t)) {
+                std::printf("ticket: expires %lld, body:\n%s\n", (long long)t.expiryMs, t.body.c_str());
+            } else if (prism::wifiParse(text, w)) {
+                std::printf("wifi: ssid \"%s\" security %s password \"%s\"%s\n",
+                            w.ssid.c_str(), w.sec.c_str(), w.pass.c_str(), w.hidden ? " hidden" : "");
+            } else if (prism::vcardParse(text, v)) {
+                std::printf("contact: %s", v.name.c_str());
+                if (!v.org.empty()) std::printf(", %s", v.org.c_str());
+                if (!v.title.empty()) std::printf(" (%s)", v.title.c_str());
+                std::printf("\n");
+                for (auto &p : v.phones) std::printf("  phone: %s\n", p.c_str());
+                for (auto &e : v.emails) std::printf("  email: %s\n", e.c_str());
+                for (auto &u : v.urls) std::printf("  url: %s\n", u.c_str());
+                if (!v.addr.empty()) std::printf("  address: %s\n", v.addr.c_str());
+                if (!v.note.empty()) std::printf("  note: %s\n", v.note.c_str());
+            } else std::printf("not a card payload\n");
+            return 0;
+        }
+        if (!std::strcmp(argv[1], "issuer")) {
+            std::string in, listPath;
+            for (int i = 2; i < argc; i++) {
+                if (!std::strcmp(argv[i], "--list") && i + 1 < argc) listPath = argv[++i];
+                else if (in.empty()) in = argv[i];
+                else { usage(argv[0]); return 2; }
+            }
+            if (in.empty()) { usage(argv[0]); return 2; }
+            std::vector<uint8_t> b;
+            if (in.size() > 4 && in.substr(in.size() - 4) == ".png") {
+                b = prism::decodePng(in).bytes;
+            } else { std::string t = read_all(in); b.assign(t.begin(), t.end()); }
+            prism::IssuerIdentity id;
+            if (!prism::issuerIdentify(b, id)) {
+                std::printf("not a signed Prism Secure payload\n");
+                return 0;
+            }
+            if (!id.signatureValid) {
+                std::printf("Signature check failed. This code was changed after it was signed, or was not signed by the key it names.\n");
+            } else {
+                std::printf("signature: valid, signer %s", id.fingerprint.c_str());
+                if (!listPath.empty()) {
+                    auto list = prism::issuersLoad(listPath);
+                    auto hit = prism::issuersFind(list, id.fingerprint);
+                    if (hit) std::printf(", issuer: %s", hit->name.c_str());
+                    else std::printf(" (not on the issuer list)");
+                }
+                std::printf("\n");
+                if (id.hasMessage) std::printf("message: %s\n", id.message.c_str());
+                else if (id.encrypted) std::printf("the content is locked with a password\n");
             }
             return 0;
         }
