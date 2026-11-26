@@ -7,5 +7,5 @@
     "types": ["node"],
     "outDir": "."
   },
-  "files": ["prism.ts"]
+  "files": ["prism.ts", "secure.ts", "parts.ts", "cards.ts", "issuers.ts"]
 }
