@@ -67,3 +67,34 @@ As a library: `import prism` → `prism.encode(payload, size=-1, ecc=1, mode=0)`
   it for completeness.
 - CLI `--text` with non-ASCII needs a UTF-8 locale (`LANG=C.UTF-8`); `--input`
   files are always raw bytes.
+
+## Prism Secure (password lock + maker signatures)
+
+`prism_secure.py` + `prism_secure_cli.py` port the live site's Prism Secure module
+(`prism-secure.html`). **Zero dependencies** — Argon2id (RFC 9106), AES-256
+(FIPS-197), GCM (SP 800-38D) and ECDSA P-256 (FIPS 186-5) are implemented from
+scratch; Blake2b/PBKDF2 use `hashlib`. Wire-compatible v2 and legacy v1.
+
+```bash
+python3 prism_secure_cli.py keygen --out maker.json
+python3 prism_secure_cli.py seal --in file --out file.psc --password 'S3cret' [--kdf argon2id|pbkdf2] [--argon-mem KiB --argon-t N] [--signkey maker.json]
+python3 prism_secure_cli.py open --in file.psc --out file --password 'S3cret' [--trusted FING-ERPR-INTS,...]
+python3 prism_secure_cli.py passphrase          # 140-bit random passphrase
+python3 prism_secure_cli.py strength --password '...'
+```
+
+Defaults mirror the site (Argon2id 128 MiB / 3 passes). Pure-Python Argon2id at
+those parameters takes ~80 s per derivation; pass `--argon-mem 8192 --argon-t 1`
+(lowest parameters the live reader accepts) or `--kdf pbkdf2` when speed matters.
+Key files accept this port's JSON and the live site's `{"publicKey":{...},"privateJwk":{...}}`.
+
+### Compatibility with the live JS module (verified)
+
+- 18/18 cross-compat checks, both directions against the unmodified JS module:
+  Argon2id, PBKDF2, sign-only, encrypt+sign, wrong-password/tamper/forgery
+  rejection, keygen interchange both ways, empty payload, v1 legacy, passphrase
+  format, non-ASCII passwords (NFKC parity).
+- Full site parameters proven both directions: JS-sealed (128 MiB/t=3) opens in
+  Python; Python-sealed (128 MiB/t=3) opens in JS.
+- AES-GCM matches NIST vectors; Argon2id matches hash-wasm byte for byte;
+  `strength()` matches the JS heuristic exactly on the tested set.
