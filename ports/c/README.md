@@ -22,6 +22,18 @@ checksum. A scan only shows a message when its checksum matches.
   are for), verifies the header checksum, repairs with Reed-Solomon, verifies
   the payload CRC32, and returns the payload. Never shows a wrong result:
   if the checksum does not pass, it reports an error instead.
+- **Prism Secure** (envelope v2, reads v1): AES-256-GCM payload locking with
+  Argon2id (128 MiB, 3 passes — implemented from RFC 9106, no libraries) or
+  PBKDF2-SHA256 (600,000 rounds), and ECDSA P-256 / SHA-256 signing with the
+  site's raw public key + JWK private key format and XXXX-XXXX fingerprints.
+  Password unlock, signing, sign+lock, trusted fingerprints, passphrase
+  generator, and the site's password strength meter. All crypto
+  (SHA-256/HMAC/PBKDF2, AES-GCM, Blake2b, Argon2id, P-256 with RFC 6979) is
+  written from the public specifications in prism_crypto.c / prism_ecdsa.c.
+  Byte-compatible with the live JS both directions (below). Password note:
+  passwords are used as their UTF-8 bytes; the website normalizes Unicode
+  (NFKC) first, so non-ASCII passwords should be in composed (NFC) form —
+  what keyboards produce. ASCII passwords are unaffected.
 - **CLI** and this README.
 
 ## Build
@@ -43,6 +55,9 @@ Free libraries only: standard C library + zlib for PNG compression.
 ./prism decode hello.png
 ./prism decode data.png -o data.out
 ./prism capacity
+./prism secure-genkey -o key.json
+./prism secure-seal data.bin -o locked.bin --password 'pw' --kdf argon2id --sign-key key.json
+./prism secure-open locked.bin -o data.out --password 'pw'
 ```
 
 Encode reads `--text` (UTF-8, stored as a text code) or `--file` (raw bytes,
@@ -69,12 +84,28 @@ processing budget in headless tests; the same PNG decodes through the
 reader's guided-geometry path (known size/position), and every other case
 passes through the normal page path.
 
+Prism Secure is verified against the live JS module (the same code the
+website runs) on empty, text-with-`&`-and-Unicode, and 1 KB payloads:
+
+- **58/58** C-side checks: opens every JS-sealed envelope (PBKDF2, Argon2id,
+  sign-only, lock+sign), fingerprint match, wrong-password /
+  missing-password / tampered-ciphertext rejection.
+- **18/18** JS-side checks: the live JS opens and trust-verifies every
+  C-sealed envelope.
+- The Argon2id core matches 12 differential vectors against the site's own
+  hash-wasm build plus libargon2, including the production 128 MiB / 3-pass
+  parameters (~0.25 s), and the AES-GCM and ECDSA implementations match
+  WebCrypto both directions (sign in C, verify in JS, and vice versa).
+- Full-code end-to-end: a locked+signed PNG made by this CLI is decoded by
+  the live JS reader and opened by the live JS Secure module with a valid
+  signature; a JS-sealed code decodes and opens here; wrong passwords are
+  rejected. Signing keys are interchangeable with the C# port's key files.
+
 ## Not in this port (yet)
 
 The phone-camera reading pipeline (glare, blur, perspective — that stays on
-the website's reader pages), Prism Secure (password lock / signing), file
-splitting into parts, tickets/cards, and the contact-card input types. Those
-are being ported next.
+the website's reader pages), file splitting into parts, tickets/cards, and
+the contact-card input types. Those are being ported next.
 
 ## License
 
