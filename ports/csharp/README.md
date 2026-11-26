@@ -93,11 +93,21 @@ website runs) on empty, text-with-`&`-and-Unicode, and 1 KB payloads:
   vectors against the site's own hash-wasm build, including the production
   128 MiB / 3-pass parameters.
 
+## Features: verified issuers, big files in parts, tickets and cards
+
+`PrismIssuers.cs`, `PrismParts.cs` and `PrismCards.cs`, byte-compatible
+with prism-issuers.js, prism-parts.js and prism-cards.js (BCL only).
+CLI verbs: `issuer IN.png|IN.bin [--list issuers.json]`,
+`parts-split IN -o OUTDIR [--name NAME] [--size 2-5]`,
+`parts-join PART.bin... [-o OUT]`, `card-build wifi|vcard|ticket ...`,
+`card-parse IN.txt`. Part geometry and card payloads match the JS
+bit-for-bit; splits and joins interoperate with the C and C++ ports and
+with the live JS module.
+
 ## Not in this port (yet)
 
 The phone-camera reading pipeline (glare, blur, perspective — that stays on
-the website's reader pages), file splitting into parts, tickets/cards, and
-the contact-card input types. Those are being ported next.
+the website's reader pages) is being ported next.
 
 ## License
 
