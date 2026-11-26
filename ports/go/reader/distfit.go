@@ -393,5 +393,9 @@ func fastRead(A *ImageData) (*ReadResult, error) {
 		return r, nil
 	}
 	n := normalizeLocal(A)
+	if isCalmed(A) {
+		markCalmed(n)
+		defer unmarkCalmed(n)
+	}
 	return distFitRead(n)
 }
