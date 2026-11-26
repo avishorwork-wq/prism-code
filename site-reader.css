@@ -32,3 +32,6 @@ summary{cursor:pointer;min-height:44px;display:flex;align-items:center}
 footer{color:#6e6e73;font-size:12px;border-top:1px solid var(--line)}
 footer a{color:#2E5BFF;text-decoration:none}
 .capacity{color:#1d7a3a;font-size:13px;font-weight:600}
+
+/* Mobile: 16px inputs so iOS Safari does not zoom on focus */
+@media(max-width:600px){textarea,select,input[type=text],input[type=number]{font-size:16px}}
