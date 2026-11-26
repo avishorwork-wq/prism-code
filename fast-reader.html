@@ -427,8 +427,30 @@ window.__pres.ml0=img=>ml(img,0);
 window.__pres.ml90=img=>ml(img,90);
 window.__pres.ml135=img=>ml(img,135);
 })();
+// glare inversion prepasses (retry-only). v = base*s + c ; estimate local black floor B from block-min of min-channel, invert.
+window.__glmk=function(blk,sm,gam){return function(img){const w=img.width,h=img.height,d=img.data,N=w*h;
+ const mn=new Float32Array(N);for(let i=0,p=0;i<N;i++,p+=4)mn[i]=Math.min(d[p],d[p+1],d[p+2]);
+ const gw=Math.ceil(w/blk),gh=Math.ceil(h/blk),bm=new Float32Array(gw*gh).fill(255);
+ for(let y=0;y<h;y++)for(let x=0;x<w;x++){const k=(y/blk|0)*gw+(x/blk|0);if(mn[y*w+x]<bm[k])bm[k]=mn[y*w+x];}
+ // smooth block grid with box radius sm
+ let g=bm;for(let it=0;it<2;it++){const t=new Float32Array(gw*gh);for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){let s=0,c=0;for(let dy=-sm;dy<=sm;dy++)for(let dx=-sm;dx<=sm;dx++){const yy=y+dy,xx=x+dx;if(yy>=0&&yy<gh&&xx>=0&&xx<gw){s+=g[yy*gw+xx];c++;}}t[y*gw+x]=s/c;}g=t;}
+ const o=new Uint8ClampedArray(d.length);
+ for(let y=0;y<h;y++){const fy=Math.min(gh-1,Math.max(0,y/blk-.5)),y0=Math.floor(fy),y1=Math.min(gh-1,y0+1),ty=fy-y0;
+  for(let x=0;x<w;x++){const fx=Math.min(gw-1,Math.max(0,x/blk-.5)),x0=Math.floor(fx),x1=Math.min(gw-1,x0+1),tx=fx-x0;
+   const B=(g[y0*gw+x0]*(1-tx)+g[y0*gw+x1]*tx)*(1-ty)+(g[y1*gw+x0]*(1-tx)+g[y1*gw+x1]*tx)*ty;
+   const Bc=Math.max(0,B-gam),sc=255/Math.max(40,255-Bc),p=(y*w+x)*4;
+   o[p]=(d[p]-Bc)*sc;o[p+1]=(d[p+1]-Bc)*sc;o[p+2]=(d[p+2]-Bc)*sc;o[p+3]=255;}}
+ return new ImageData(o,w,h);};};
+window.__pres.gl1=window.__glmk(12,1,0);
+window.__pres.gl2=window.__glmk(8,1,8);
+window.__pres.gl3=window.__glmk(16,2,10);
+window.__pres.gl4=window.__glmk(16,2,14);
+window.__pres.gl5=window.__glmk(20,2,10);
+window.__pres.gl6=window.__glmk(12,3,10);
 
-const AsyncPrismReader={read:async(img,o)=>{try{return await roiRead(img,o)}catch(e){if((o&&o.fusion)||/stopped|already/i.test(e.message||''))throw e;const sb=document.getElementById('scanStatus');try{const chain=['liftdn','crplain','zoom','zoomauto','zooman','gs3a2','deblkS','zoomw','lr2','ml45','ml0','ml90','ml135'];let step=0;for(const nm of chain){step++;if(sb){sb.textContent=step<6?'Taking a closer look\u2026':'Still looking closely\u2026 step '+step+' of '+chain.length;sb.classList.add('working')}await new Promise(r=>{let d=false;const f=()=>{if(!d){d=true;r()}};requestAnimationFrame(()=>setTimeout(f,0));setTimeout(f,80)});let im2=null;try{im2=PrismRetry[nm](img)}catch(x){}if(!im2)continue;try{return await roiRead(im2,o)}catch(e2){}}}finally{if(sb)sb.classList.remove('working')}try{e.message='Try a clearer photo.'}catch(_){}throw e}},reset:PrismBoundedWorker.stop};
+
+
+const AsyncPrismReader={read:async(img,o)=>{try{return await roiRead(img,o)}catch(e){if((o&&o.fusion)||/stopped|already/i.test(e.message||''))throw e;const sb=document.getElementById('scanStatus');try{const chain=['liftdn','crplain','zoom','zoomauto','zooman','gl5','gl3','gl6','gs3a2','deblkS','zoomw','lr2','ml45','ml0','ml90','ml135'];let step=0;for(const nm of chain){step++;if(sb){sb.textContent=step<6?'Taking a closer look\u2026':'Still looking closely\u2026 step '+step+' of '+chain.length;sb.classList.add('working')}await new Promise(r=>{let d=false;const f=()=>{if(!d){d=true;r()}};requestAnimationFrame(()=>setTimeout(f,0));setTimeout(f,80)});let im2=null;try{im2=PrismRetry[nm](img)}catch(x){}if(!im2)continue;try{return await roiRead(im2,o)}catch(e2){}}}finally{if(sb)sb.classList.remove('working')}try{e.message='Try a clearer photo.'}catch(_){}throw e}},reset:PrismBoundedWorker.stop};
 const PrismTraceView=(()=>{
 function mount(host){let root=document.createElement('section');root.className='prismTrace';root.hidden=true;root.innerHTML=`<h3>Scan, step by step</h3><p class="traceSummary"></p><label class="traceToggle"><input type="checkbox" class="traceAll"> Show candidate and ECC attempts</label><label>Stage <select class="traceSelect" aria-label="Debug stage"></select></label><div class="traceNav"><button type="button" class="tracePrev">Previous</button><span class="traceIndex"></span><button type="button" class="traceNext">Next</button></div><div class="traceFrame"><canvas class="traceCanvas" aria-label="Selected decoder stage image"></canvas></div><p class="traceCaption"></p><pre class="traceData"></pre><button type="button" class="traceDownload">Save trace JSON</button><p class="traceNote"></p>`;host.append(root);let trace=null,indices=[],pos=0,sourceImage=0,selectedCells=null;const $=q=>root.querySelector(q),canvas=$('.traceCanvas'),ctx=canvas.getContext('2d');function candidates(e){return /hypothesis$|RS erasure ladder|RS block corrected|ECC or CRC rejected/.test(e.name);}
 function refill(){let selected=indices[pos];indices=trace.events.map((e,i)=>i).filter(i=>$('.traceAll').checked||!candidates(trace.events[i]));$('.traceSelect').replaceChildren(...indices.map(i=>{let e=trace.events[i],o=document.createElement('option');o.value=i;o.textContent=`${i+1}. ${e.name} · ${e.state==='fail'?'FAIL · ':e.state==='pass'?'PASS · ':''}${Math.round(e.at)} ms`;return o;}));pos=Math.max(0,indices.indexOf(selected));render();}
