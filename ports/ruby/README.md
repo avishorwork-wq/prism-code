@@ -22,16 +22,29 @@ checksum. A scan only shows a message when its checksum matches.
   are for), verifies the header checksum, repairs with Reed-Solomon, verifies
   the payload CRC32, and returns the payload. Never shows a wrong result:
   if the checksum does not pass, it reports an error instead.
-- **CLI** and this README. Everything is in the single file `prism.rb`.
-
-Prism Secure, big-file parts, tickets/cards and verified issuers are planned
-next (they already exist in the C, Go, Kotlin and Rust ports).
+- **Prism Secure** (`prism_secure.rb`): AES-256-GCM payload locking with
+  Argon2id (128 MiB, 3 passes) or PBKDF2-SHA256 (600,000 rounds), ECDSA
+  P-256 / SHA-256 signing with deterministic RFC 6979 nonces, passphrase
+  generator and password-strength meter. Byte-compatible with the C, Go,
+  Kotlin, Rust and PHP ports (same envelope, byte-identical signatures).
+- **Big files in parts** (`prism_parts.rb`): split a file of any size into
+  PPT1 parts (one Prism code each, ECC 30%) and reassemble them with
+  whole-file CRC-32 verification.
+- **Tickets and cards** (`prism_cards.rb`): Wi-Fi, vCard 3.0 contact and
+  expiring-ticket payload builders and parsers.
+- **Verified issuers** (`prism_issuers.rb`): identify a signed payload's
+  signer fingerprint and look it up in an issuer list.
+- **CLI** and this README. The core encoder/decoder is `prism.rb`; the
+  feature commands load the other files from the same directory.
 
 ## Requirements
 
-Ruby 3.0+ with the standard zlib and json libraries. No gems, no native
-build tools, no GD/ImageMagick (the PNG writer/reader is built in, on top
-of zlib).
+Ruby 3.0+ with the standard zlib, json and openssl libraries. No gems, no
+native build tools, no GD/ImageMagick (the PNG writer/reader is built in,
+on top of zlib). For Argon2id locks the system libargon2 is loaded via
+fiddle (present by default on most Linux installs); without it,
+`--kdf pbkdf2` still works and Argon2id-locked payloads can still be
+opened once libargon2 is available.
 
 ## Use
 
@@ -42,6 +55,29 @@ ruby prism.rb encode --text "big" --out big.png --size 5 --radius 20
 ruby prism.rb decode hello.png
 ruby prism.rb decode hello.png --out data.out
 ruby prism.rb capacity
+
+# Prism Secure
+ruby prism.rb secure-genkey -o key.json
+ruby prism.rb secure-seal secret.txt --password "correct horse" -o locked.bin
+ruby prism.rb secure-seal note.txt --sign-key key.json -o signed.bin
+ruby prism.rb secure-seal doc.pdf --password "pw" --kdf pbkdf2 --sign-key key.json -o both.bin
+ruby prism.rb secure-open locked.bin --password "correct horse" -o secret.out
+ruby prism.rb secure-passphrase
+ruby prism.rb secure-strength "my password"
+
+# Big files in parts
+ruby prism.rb parts-split video.mp4 -o parts/ --name "video.mp4" --size 4
+# (encode each parts/part-NN.bin with: ruby prism.rb encode --input ... --ecc 2 --mode 0)
+ruby prism.rb parts-join parts/part-*.bin -o video.mp4
+
+# Tickets and cards
+ruby prism.rb card-build wifi --ssid "My Cafe" --sec WPA --pass "coffee123" -o wifi.txt
+ruby prism.rb card-build vcard --name "Ada Lovelace" --email ada@example.com -o card.txt
+ruby prism.rb card-build ticket --expiry-ms 1767225600000 --text "Admit one" -o ticket.txt
+ruby prism.rb card-parse wifi.txt
+
+# Verified issuers
+ruby prism.rb issuer signed.bin --list issuers.json
 ```
 
 Flags: `--size -1..5` (-1 = auto grow to fit), `--ecc 0..3` (10/20/30/40%
@@ -65,6 +101,11 @@ compat suite (Node oracle + the live fast-reader worker):
   suite, the 6 failures all being the documented ceiling where the live fast
   reader cannot read the largest perfectly-clean generator PNGs even when
   the JS encoder made them - not a port bug.
+- Prism Secure / parts / cards / issuers: the 51-check cross-language
+  feature battery passes against the C reference implementation (envelope
+  bytes, deterministic signatures, Argon2id and PBKDF2 locks opened both
+  ways, part splits reassembled across implementations, card payload
+  round-trips, issuer fingerprint lookups).
 
 These are automated compatibility tests only: nothing here has been exercised
 against a live phone-camera reader.
