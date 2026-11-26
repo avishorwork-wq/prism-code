@@ -14,6 +14,9 @@
 require 'zlib'
 require 'json'
 
+module PrismCore
+module_function
+
 S3 = 1.7320508075688772 # Math.sqrt(3), same f64 as the other ports
 
 SIZES = [[21, 24], [29, 33], [41, 47], [57, 66], [81, 94], [113, 130]].freeze
@@ -42,8 +45,8 @@ class Rng
   # Exact port of the JS mulberry-style rng (returns floats in [0,1)).
   def next
     @seed = (@seed + 0x6D2B79F5) & 0xFFFFFFFF
-    t = mul32(@seed ^ (@seed >> 15), (1 | @seed) & 0xFFFFFFFF)
-    t = ((t + mul32(t ^ (t >> 7), (61 | t) & 0xFFFFFFFF)) ^ t) & 0xFFFFFFFF
+    t = PrismCore.mul32(@seed ^ (@seed >> 15), (1 | @seed) & 0xFFFFFFFF)
+    t = ((t + PrismCore.mul32(t ^ (t >> 7), (61 | t) & 0xFFFFFFFF)) ^ t) & 0xFFFFFFFF
     ((t ^ (t >> 14)) & 0xFFFFFFFF) / 4294967296.0
   end
 end
@@ -750,6 +753,13 @@ def arg_opt(a, name, dflt)
   dflt
 end
 
+def arg_positional(a)
+  (1...a.length).each do |i|
+    return a[i] unless a[i].start_with?('-')
+  end
+  nil
+end
+
 def mode_name(m)
   m == 0 ? 'color' : 'bw'
 end
@@ -831,9 +841,218 @@ def cli_main(argv)
         end
       end
     end
+  when 'secure-genkey'
+    require_relative 'prism_secure'
+    priv, pub = PrismSecure.genkey
+    puts "fingerprint: #{PrismSecure.fingerprint(pub)}"
+    if (out = arg_opt(argv, 'o', nil))
+      PrismSecure.save_key(out, priv, pub)
+      puts "wrote #{out}"
+    end
+  when 'secure-seal'
+    require_relative 'prism_secure'
+    inp = arg_positional(argv) || usage
+    begin
+      data = File.binread(inp)
+    rescue SystemCallError
+      fail "cannot read #{inp}"
+    end
+    priv = nil
+    pub = nil
+    if (keyf = arg_opt(argv, 'sign-key', nil))
+      begin
+        priv, pub = PrismSecure.load_key(keyf)
+      rescue StandardError
+        fail "bad key file #{keyf}"
+      end
+    end
+    begin
+      sealed = PrismSecure.seal(data, arg_opt(argv, 'password', ''), arg_opt(argv, 'kdf', 'argon2id'), priv, pub)
+    rescue StandardError => e
+      fail e.message
+    end
+    if (out = arg_opt(argv, 'o', nil))
+      File.binwrite(out, sealed)
+      puts "wrote #{out} (#{data.bytesize} -> #{sealed.bytesize} bytes)"
+    else
+      $stdout.write(sealed)
+    end
+  when 'secure-open'
+    require_relative 'prism_secure'
+    inp = arg_positional(argv) || usage
+    begin
+      data = File.binread(inp)
+    rescue SystemCallError
+      fail "cannot read #{inp}"
+    end
+    r = PrismSecure.open(data, arg_opt(argv, 'password', ''))
+    fail(r[:error] || 'bad signature') if r[:signature_valid] == 0
+    fail(r[:error] || 'needs a password') if r[:bytes].nil?
+    warn "signature: valid, signer #{r[:fingerprint]}" if r[:signed]
+    if (out = arg_opt(argv, 'o', nil))
+      File.binwrite(out, r[:bytes])
+      puts "wrote #{out} (#{r[:bytes].bytesize} bytes)"
+    else
+      $stdout.write(r[:bytes])
+      $stdout.write("\n")
+    end
+  when 'secure-passphrase'
+    require_relative 'prism_secure'
+    puts PrismSecure.passphrase
+  when 'secure-strength'
+    require_relative 'prism_secure'
+    pw = arg_opt(argv, 'password', nil) || arg_positional(argv) || ''
+    bits, level, label = PrismSecure.strength(pw)
+    puts "#{bits} bits, level #{level} (#{label})"
+  when 'parts-split'
+    require_relative 'prism_parts'
+    inp = arg_positional(argv)
+    outdir = arg_opt(argv, 'o', nil)
+    usage if inp.nil? || outdir.nil?
+    name = arg_opt(argv, 'name', 'file')
+    size = arg_opt(argv, 'size', '3').to_i
+    begin
+      data = File.binread(inp)
+    rescue SystemCallError
+      fail "cannot read #{inp}"
+    end
+    begin
+      parts = PrismParts.split(data, name, size)
+    rescue StandardError => e
+      fail e.message
+    end
+    require 'fileutils'
+    FileUtils.mkdir_p(outdir)
+    parts.each_with_index do |p, i|
+      File.binwrite(File.join(outdir, format('part-%02d.bin', i + 1)), p)
+    end
+    puts "#{parts.length} parts written to #{outdir} (encode each at --ecc 2, color mode)"
+  when 'parts-join'
+    require_relative 'prism_parts'
+    asm = PrismParts::Assembler.new
+    out = arg_opt(argv, 'o', nil)
+    nfiles = 0
+    i = 1
+    while i < argv.length
+      if argv[i] == '-o' || argv[i] == '--o'
+        i += 2
+        next
+      end
+      if argv[i].start_with?('-')
+        i += 2
+        next
+      end
+      begin
+        data = File.binread(argv[i])
+      rescue SystemCallError
+        fail "cannot read #{argv[i]}"
+      end
+      nfiles += 1
+      st, pn, msg = asm.add(data)
+      case st
+      when PrismParts::NOT_PART then fail "#{argv[i]} is not a part"
+      when PrismParts::BAD, PrismParts::OTHER then fail msg
+      when PrismParts::DUPLICATE then nil
+      else puts "part #{pn} of #{asm.total} added (#{asm.have}/#{asm.total})"
+      end
+      i += 1
+    end
+    usage if nfiles.zero?
+    begin
+      res, name = asm.finish
+    rescue StandardError => e
+      fail e.message
+    end
+    out ||= name
+    File.binwrite(out, res)
+    puts "wrote #{out} (#{res.bytesize} bytes, whole-file check passed)"
+  when 'card-build'
+    require_relative 'prism_cards'
+    usage if argv.length < 2
+    kind = argv[1]
+    hidden = argv.include?('--hidden') || argv.include?('-hidden')
+    payload = case kind
+              when 'wifi'
+                PrismCards.wifi_build(arg_opt(argv, 'ssid', ''), arg_opt(argv, 'sec', 'WPA'), arg_opt(argv, 'pass', ''), hidden)
+              when 'vcard'
+                PrismCards.vcard_build(arg_opt(argv, 'name', ''), arg_opt(argv, 'org', ''), arg_opt(argv, 'title', ''),
+                                       arg_opt(argv, 'phone', ''), arg_opt(argv, 'email', ''), arg_opt(argv, 'url', ''),
+                                       arg_opt(argv, 'addr', ''), arg_opt(argv, 'note', ''))
+              when 'ticket'
+                PrismCards.ticket_build(arg_opt(argv, 'expiry-ms', '0').to_i, arg_opt(argv, 'text', ''))
+              else
+                usage
+              end
+    if (out = arg_opt(argv, 'o', nil))
+      File.binwrite(out, payload)
+      puts "wrote #{out} (#{payload.bytesize} bytes)"
+    else
+      puts payload
+    end
+  when 'card-parse'
+    require_relative 'prism_cards'
+    fail 'need card file' if argv.length < 2
+    begin
+      text = File.binread(argv[1])
+    rescue SystemCallError
+      fail "cannot read #{argv[1]}"
+    end
+    if (t = PrismCards.ticket_parse(text))
+      puts "ticket: expires #{t[:expiry_ms]}, body:\n#{t[:body]}"
+    elsif (w = PrismCards.wifi_parse(text))
+      puts "wifi: ssid \"#{w[:ssid]}\" security #{w[:sec]} password \"#{w[:pass]}\"#{w[:hidden] ? ' hidden' : ''}"
+    elsif (v = PrismCards.vcard_parse(text))
+      print "contact: #{v[:name]}"
+      print ", #{v[:org]}" unless v[:org].empty?
+      print " (#{v[:title]})" unless v[:title].empty?
+      puts
+      v[:phones].each { |p| puts "  phone: #{p}" }
+      v[:emails].each { |e| puts "  email: #{e}" }
+      v[:urls].each { |u| puts "  url: #{u}" }
+      puts "  address: #{v[:addr]}" unless v[:addr].empty?
+      puts "  note: #{v[:note]}" unless v[:note].empty?
+    else
+      puts 'not a card payload'
+    end
+  when 'issuer'
+    require_relative 'prism_issuers'
+    inp = arg_positional(argv) || usage
+    begin
+      data = File.binread(inp)
+    rescue SystemCallError
+      fail "cannot read #{inp}"
+    end
+    if data.bytesize > 8 && data.getbyte(0) == 0x89 && data[1] == 'P' && data[2] == 'N' && data[3] == 'G'
+      begin
+        data, = decode_png(data)
+      rescue StandardError => e
+        fail e.message
+      end
+    end
+    id = PrismIssuers.identify(data)
+    if id.nil?
+      puts 'not a signed Prism Secure payload'
+    elsif !id[:signature_valid]
+      puts 'Signature check failed. This code was changed after it was signed, or was not signed by the key it names.'
+    else
+      print "signature: valid, signer #{id[:fingerprint]}"
+      if (lp = arg_opt(argv, 'list', nil))
+        list = PrismIssuers.load(lp)
+        idx = PrismIssuers.find_index(list, id[:fingerprint])
+        print(idx >= 0 ? ", issuer: #{list[idx][:name]}" : ' (not on the issuer list)')
+      end
+      puts
+      if id[:has_message]
+        puts "message: #{id[:message]}"
+      elsif id[:encrypted]
+        puts 'the content is locked with a password'
+      end
+    end
   else
     fail "unknown command #{argv[0]}"
   end
 end
 
-cli_main(ARGV)
+end
+
+PrismCore.cli_main(ARGV)
