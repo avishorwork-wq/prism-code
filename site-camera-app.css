@@ -82,6 +82,7 @@ main .options label{flex:1;justify-content:center;min-width:0;white-space:nowrap
 main .options input[type=checkbox]{position:absolute;opacity:0;width:1px;height:1px;margin:0}
 main .options label{position:relative;cursor:pointer}
 main .options label:has(input:checked){background:#2E5BFF;border-color:#2E5BFF;color:#fff}
+main .options label:focus-within{filter:brightness(.93)}
 main .options label:has(input:disabled){opacity:.45}
 main .options .photo{border:1px solid #e6e6eb}
 
