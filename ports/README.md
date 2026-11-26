@@ -12,6 +12,6 @@ Ports of the Prism Code encoder and reader to other languages. Each folder has i
 | `swift/` | Swift | Available |
 | `go/` | Go | Available |
 | `kotlin/` | Kotlin | Available |
-| `rust/` | Rust | Available (core) |
+| `rust/` | Rust | Available |
 
 Prism Code, Copyright (c) 2026 Avi Shor. Free to use, with or without credit. See the repository LICENSE.md. No warranty.
