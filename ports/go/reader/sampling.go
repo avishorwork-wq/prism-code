@@ -399,10 +399,23 @@ type Calibration struct {
 	refs  []calibRef
 	M     [][]float64
 	tree  *kdTree
+	calmed bool
 }
 
 func (cal *Calibration) correction(rgb [3]float64, c *cell) [3]float64 {
 	t := cal.apply(rgb)
+	if cal.calmed {
+		rs := cal.tree.query(c.x, c.y, 10, -1)
+		var out [3]float64
+		for A := 0; A < 3; A++ {
+			vals := make([]float64, len(rs))
+			for i, rr := range rs {
+				vals[i] = rr.v.(*calibRef).res[A]
+			}
+			out[A] = clampf(t[A]+median(vals), 0, 1)
+		}
+		return out
+	}
 	res := cal.tree.query(c.x, c.y, 6, -1)
 	var o float64
 	var a [3]float64
@@ -486,7 +499,7 @@ func calibrate(f *Frame, H *Homography, l *Layout, mode int, white [3]float64, m
 	var B []float64
 	for _, A := range refs {
 		if A.c.role == "pilot" {
-			cal := &Calibration{M: s, tree: tree}
+			cal := &Calibration{M: s, tree: tree, calmed: f.calmed}
 			corr := cal.correction(A.o, A.c)
 			B = append(B, math.Sqrt(hDist(labOf(corr), labOf(A.E))))
 		}
@@ -503,7 +516,7 @@ func calibrate(f *Frame, H *Homography, l *Layout, mode int, white [3]float64, m
 			sig = v
 		}
 	}
-	return &Calibration{sigma: sig, refs: refs, M: s, tree: tree}
+	return &Calibration{sigma: sig, refs: refs, M: s, tree: tree, calmed: f.calmed}
 }
 
 // llr BA
