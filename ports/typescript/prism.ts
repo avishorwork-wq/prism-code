@@ -707,6 +707,13 @@ function arg(a: string[], name: string, dflt: string | null): string | null {
   return dflt;
 }
 
+function positional(a: string[]): string | null {
+  for (let i = 1; i < a.length; i++) {
+    if (!a[i].startsWith("-")) return a[i];
+  }
+  return null;
+}
+
 function modeName(m: number): string { return m === 0 ? "color" : "bw"; }
 
 function fail(msg: string): never {
@@ -718,7 +725,17 @@ function usage(): never {
   console.error(
     "usage: prism encode --text T | --input F --out O.png [--size -1..5] [--ecc 0..3] [--mode 0|1|color|bw] [--radius N] [--type 0|1] [--logo 0|1] [--symbols J]\n" +
     "       prism decode I.png [--out O]\n" +
-    "       prism capacity"
+    "       prism capacity\n" +
+    "       prism secure-genkey [-o key.json]\n" +
+    "       prism secure-seal IN [--password P] [--kdf argon2id|pbkdf2] [--sign-key key.json] [-o OUT]\n" +
+    "       prism secure-open IN [--password P] [-o OUT]\n" +
+    "       prism secure-passphrase\n" +
+    "       prism secure-strength [PW]\n" +
+    "       prism parts-split IN -o DIR [--name N] [--size 0..5]\n" +
+    "       prism parts-join PART... [-o OUT]\n" +
+    "       prism card-build wifi|vcard|ticket [flags] [-o OUT]\n" +
+    "       prism card-parse IN\n" +
+    "       prism issuer IN [--list issuers.json]"
   );
   process.exit(2);
 }
@@ -792,9 +809,237 @@ function main(): void {
       }
       break;
     }
+    case "secure-genkey": {
+      const S = require("./secure");
+      const [priv, pub] = S.genkey();
+      console.log(`fingerprint: ${S.fingerprint(pub)}`);
+      const out = arg(a, "o", null);
+      if (out !== null) {
+        S.saveKey(out, priv, pub);
+        console.log(`wrote ${out}`);
+      }
+      break;
+    }
+    case "secure-seal": {
+      const S = require("./secure");
+      const inp = positional(a);
+      if (inp === null) usage();
+      let data: Buffer;
+      try {
+        data = fs.readFileSync(inp!);
+      } catch { fail(`cannot read ${inp}`); }
+      let priv: Buffer | null = null;
+      let pub: Buffer | null = null;
+      const keyf = arg(a, "sign-key", null);
+      if (keyf !== null) {
+        try {
+          [priv, pub] = S.loadKey(keyf);
+        } catch { fail(`bad key file ${keyf}`); }
+      }
+      let sealed: Buffer;
+      try {
+        sealed = S.seal(data!, Buffer.from(arg(a, "password", "")!, "utf8"), arg(a, "kdf", "argon2id")!, priv, pub);
+      } catch (e) {
+        fail(e instanceof Error ? e.message : String(e));
+      }
+      const out = arg(a, "o", null);
+      if (out !== null) {
+        fs.writeFileSync(out, sealed!);
+        console.log(`wrote ${out} (${data!.length} -> ${sealed!.length} bytes)`);
+      } else {
+        process.stdout.write(sealed!);
+      }
+      break;
+    }
+    case "secure-open": {
+      const S = require("./secure");
+      const inp = positional(a);
+      if (inp === null) usage();
+      let data: Buffer;
+      try {
+        data = fs.readFileSync(inp!);
+      } catch { fail(`cannot read ${inp}`); }
+      const r = S.open(data!, Buffer.from(arg(a, "password", "")!, "utf8"));
+      if (r.signatureValid === 0) fail(r.error || "bad signature");
+      if (r.bytes === null) fail(r.error || "needs a password");
+      if (r.signed) console.error(`signature: valid, signer ${r.fingerprint}`);
+      const out = arg(a, "o", null);
+      if (out !== null) {
+        fs.writeFileSync(out, r.bytes);
+        console.log(`wrote ${out} (${r.bytes.length} bytes)`);
+      } else {
+        process.stdout.write(r.bytes);
+        process.stdout.write("\n");
+      }
+      break;
+    }
+    case "secure-passphrase": {
+      const S = require("./secure");
+      console.log(S.passphrase());
+      break;
+    }
+    case "secure-strength": {
+      const S = require("./secure");
+      const pw = arg(a, "password", null) || positional(a) || "";
+      const [bits, level, label] = S.strength(pw);
+      console.log(`${bits} bits, level ${level} (${label})`);
+      break;
+    }
+    case "parts-split": {
+      const PP = require("./parts");
+      const inp = positional(a);
+      const outdir = arg(a, "o", null);
+      if (inp === null || outdir === null) usage();
+      const name = arg(a, "name", "file")!;
+      const size = parseInt(arg(a, "size", "3")!);
+      let data: Buffer;
+      try {
+        data = fs.readFileSync(inp!);
+      } catch { fail(`cannot read ${inp}`); }
+      let parts: Buffer[];
+      try {
+        parts = PP.split(data!, name, size);
+      } catch (e) {
+        fail(e instanceof Error ? e.message : String(e));
+      }
+      fs.mkdirSync(outdir!, { recursive: true });
+      parts!.forEach((p: Buffer, i: number) => {
+        fs.writeFileSync(`${outdir}/part-${String(i + 1).padStart(2, "0")}.bin`, p);
+      });
+      console.log(`${parts!.length} parts written to ${outdir} (encode each at --ecc 2, color mode)`);
+      break;
+    }
+    case "parts-join": {
+      const PP = require("./parts");
+      const asm = new PP.Assembler();
+      let out = arg(a, "o", null);
+      let nfiles = 0;
+      let i = 1;
+      while (i < a.length) {
+        if (a[i] === "-o" || a[i] === "--o") {
+          i += 2;
+          continue;
+        }
+        if (a[i].startsWith("-")) {
+          i += 2;
+          continue;
+        }
+        let data: Buffer;
+        try {
+          data = fs.readFileSync(a[i]);
+        } catch { fail(`cannot read ${a[i]}`); }
+        nfiles += 1;
+        const [st, pn, msg] = asm.add(data!);
+        if (st === PP.NOT_PART) fail(`${a[i]} is not a part`);
+        else if (st === PP.BAD || st === PP.OTHER) fail(msg);
+        else if (st === PP.DUPLICATE) { /* skip */ }
+        else console.log(`part ${pn} of ${asm.total} added (${asm.have}/${asm.total})`);
+        i += 1;
+      }
+      if (nfiles === 0) usage();
+      let res: Buffer, name: string;
+      try {
+        [res, name] = asm.finish();
+      } catch (e) {
+        fail(e instanceof Error ? e.message : String(e));
+      }
+      if (out === null) out = name!;
+      fs.writeFileSync(out, res!);
+      console.log(`wrote ${out} (${res!.length} bytes, whole-file check passed)`);
+      break;
+    }
+    case "card-build": {
+      const C = require("./cards");
+      if (a.length < 2) usage();
+      const kind = a[1];
+      const hidden = a.includes("--hidden") || a.includes("-hidden");
+      let payload: string;
+      if (kind === "wifi") {
+        payload = C.wifiBuild(arg(a, "ssid", "")!, arg(a, "sec", "WPA")!, arg(a, "pass", "")!, hidden);
+      } else if (kind === "vcard") {
+        payload = C.vcardBuild(arg(a, "name", "")!, arg(a, "org", "")!, arg(a, "title", "")!,
+                               arg(a, "phone", "")!, arg(a, "email", "")!, arg(a, "url", "")!,
+                               arg(a, "addr", "")!, arg(a, "note", "")!);
+      } else if (kind === "ticket") {
+        payload = C.ticketBuild(parseInt(arg(a, "expiry-ms", "0")!), arg(a, "text", "")!);
+      } else {
+        usage();
+      }
+      const out = arg(a, "o", null);
+      if (out !== null) {
+        fs.writeFileSync(out, Buffer.from(payload!, "utf8"));
+        console.log(`wrote ${out} (${Buffer.from(payload!, "utf8").length} bytes)`);
+      } else {
+        console.log(payload!);
+      }
+      break;
+    }
+    case "card-parse": {
+      const C = require("./cards");
+      if (a.length < 2) fail("need card file");
+      let text: string;
+      try {
+        text = fs.readFileSync(a[1], "utf8");
+      } catch { fail(`cannot read ${a[1]}`); }
+      const t = C.ticketParse(text!);
+      const w = t ? null : C.wifiParse(text!);
+      const v = t || w ? null : C.vcardParse(text!);
+      if (t) {
+        console.log(`ticket: expires ${t.expiryMs}, body:\n${t.body}`);
+      } else if (w) {
+        console.log(`wifi: ssid "${w.ssid}" security ${w.sec} password "${w.pass}"${w.hidden ? " hidden" : ""}`);
+      } else if (v) {
+        let line = `contact: ${v.name}`;
+        if (v.org.length > 0) line += `, ${v.org}`;
+        if (v.title.length > 0) line += ` (${v.title})`;
+        console.log(line);
+        v.phones.forEach((p: string) => console.log(`  phone: ${p}`));
+        v.emails.forEach((e: string) => console.log(`  email: ${e}`));
+        v.urls.forEach((u: string) => console.log(`  url: ${u}`));
+        if (v.addr.length > 0) console.log(`  address: ${v.addr}`);
+        if (v.note.length > 0) console.log(`  note: ${v.note}`);
+      } else {
+        console.log("not a card payload");
+      }
+      break;
+    }
+    case "issuer": {
+      const I = require("./issuers");
+      const inp = positional(a);
+      if (inp === null) usage();
+      let data: Buffer;
+      try {
+        data = fs.readFileSync(inp!);
+      } catch { fail(`cannot read ${inp}`); }
+      if (data!.length > 8 && data![0] === 0x89 && data![1] === 0x50 && data![2] === 0x4e && data![3] === 0x47) {
+        try {
+          data = Buffer.from(decodePng(data!).payload);
+        } catch (e) {
+          fail(e instanceof Error ? e.message : String(e));
+        }
+      }
+      const id = I.identify(data!);
+      if (id === null) {
+        console.log("not a signed Prism Secure payload");
+      } else if (!id.signatureValid) {
+        console.log("Signature check failed. This code was changed after it was signed, or was not signed by the key it names.");
+      } else {
+        let line = `signature: valid, signer ${id.fingerprint}`;
+        const lp = arg(a, "list", null);
+        if (lp !== null) {
+          const list = I.load(lp);
+          const idx = I.findIndex(list, id.fingerprint);
+          line += idx >= 0 ? `, issuer: ${list[idx].name}` : " (not on the issuer list)";
+        }
+        console.log(line);
+        if (id.hasMessage) console.log(`message: ${id.message}`);
+        else if (id.encrypted) console.log("the content is locked with a password");
+      }
+      break;
+    }
     default:
       fail(`unknown command ${a[0]}`);
   }
 }
 
-main();
+if (require.main === module) main();
