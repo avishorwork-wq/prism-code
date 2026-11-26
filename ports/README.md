@@ -15,5 +15,6 @@ Ports of the Prism Code encoder and reader to other languages. Each folder has i
 | `rust/` | Rust | Available |
 | `typescript/` | TypeScript (Node) | Available |
 | `php/` | PHP | Available |
+| `ruby/` | Ruby | Available |
 
 Prism Code, Copyright (c) 2026 Avi Shor. Free to use, with or without credit. See the repository LICENSE.md. No warranty.
