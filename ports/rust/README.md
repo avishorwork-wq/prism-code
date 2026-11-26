@@ -22,12 +22,28 @@ checksum. A scan only shows a message when its checksum matches.
   are for), verifies the header checksum, repairs with Reed-Solomon, verifies
   the payload CRC32, and returns the payload. Never shows a wrong result:
   if the checksum does not pass, it reports an error instead.
+- **Prism Secure**: envelope v2 (reads v1). AES-256-GCM payload locking with
+  Argon2id (128 MiB, 3 passes) or PBKDF2-SHA256 (600,000 rounds), and
+  ECDSA P-256 / SHA-256 signing with RFC 6979 deterministic nonces and
+  P1363 r||s signatures, byte-compatible with the live site's
+  prism-secure.html JS: deterministic signatures come out byte-identical to
+  the C port for the same key and message.
+- **Big files in parts** (PPT1): split a file into per-part payloads (each
+  its own code at ecc 30%), reassemble with per-part and whole-file CRC-32
+  checks, same layout and error messages as prism-parts.js.
+- **Tickets and cards**: Wi-Fi, contact card (vCard 3.0) and expiring ticket
+  payload builders and parsers (card-build / card-parse), payload-compatible
+  with prism-cards.js - builds are byte-identical to the C port.
+- **Verified issuers**: identify signed Prism Secure payloads, verify the
+  signature and look the signer's fingerprint up in an issuers.json list,
+  same semantics as prism-issuers.js.
 - **CLI** and this README.
 
 ## Build
 
-Requires a recent stable Rust (built with rustc 1.100). One dependency: flate2 with its
-pure-Rust backend (miniz_oxide) for PNG zlib - no C libraries, nothing else.
+Requires a recent stable Rust (built with rustc 1.100). Dependencies are all
+pure Rust from crates.io: flate2 (miniz_oxide) for PNG zlib, aes-gcm, argon2,
+sha2, hmac, num-bigint, rand, base64, serde/serde_json. No C libraries.
 
 ```
 cargo build --release   # produces ./target/release/prism
@@ -42,6 +58,18 @@ cargo build --release   # produces ./target/release/prism
 ./target/release/prism decode hello.png
 ./target/release/prism decode data.png --out data.out
 ./target/release/prism capacity
+./target/release/prism secure-genkey -o key.json
+./target/release/prism secure-seal IN --password P [--kdf argon2id|pbkdf2] [--sign-key key.json] -o OUT
+./target/release/prism secure-open IN [--password P] [-o OUT]
+./target/release/prism secure-passphrase
+./target/release/prism secure-strength [PASSWORD]
+./target/release/prism parts-split IN -o OUTDIR [--name NAME] [--size 0..5]
+./target/release/prism parts-join PART... [-o OUT]
+./target/release/prism card-build wifi --ssid S [--sec WPA|WEP|nopass] [--pass P] [--hidden]
+./target/release/prism card-build vcard --name N [--org O] [--title T] [--phone P] [--email E] [--url U] [--addr A] [--note N]
+./target/release/prism card-build ticket --expiry-ms MS --text TEXT
+./target/release/prism card-parse card.txt
+./target/release/prism issuer signed.bin --list issuers.json
 ```
 
 Flags: `--size -1..5` (-1 = auto grow to fit), `--ecc 0..3` (10/20/30/40%
@@ -53,16 +81,36 @@ repair data), `--mode 0|1` (0 = color, 1 = black & white), `--radius N`
 ## Verification
 
 Verified against the live JavaScript encoder/reader with the cross-language
-compat suite (Node oracle + the live fast-reader worker):
+compat suite (Node oracle + the live fast-reader worker), and
+feature-for-feature against the C port as the reference implementation:
 
 - Symbol grids identical to the JS encoder on all 40 cases (empty, 1-byte,
   text, 1 KB, max-size color and B&W payloads; every size; every ECC level;
   color and B&W; radii 8/12/20).
-- Cross-decode: PNGs made by the JS, Python and Go encoders all decode
-  correctly with the Go decoder, and Go-made PNGs decode correctly with the
-  Python decoder and the live fast reader. (The live fast reader cannot read
-  the largest perfectly-clean generator PNGs even when the JS encoder made
-  them — a documented ceiling of the live reader, not of this port.)
+- Cross-decode: PNGs made by the JS, Python, Go, Kotlin and Rust encoders
+  all decode correctly with the Rust decoder, and Rust-made PNGs decode
+  correctly with the Python/Go decoders and the live fast reader. (The live
+  fast reader cannot read the largest perfectly-clean generator PNGs even
+  when the JS encoder made them - a documented ceiling of the live reader,
+  not of this port.)
+- Prism Secure: lock (Argon2id and PBKDF2) opens correctly in both
+  directions against the C port; sign verifies in both directions (including
+  C signing with a Rust-generated key and vice versa); lock+sign works in
+  both directions; deterministic signatures are byte-identical to C for the
+  same key and message; wrong passwords fail with an error, never a wrong
+  payload.
+- Parts: 100 KB file split and reassembled both directions against C
+  (121 parts at size 3), whole-file check passing.
+- Cards: Wi-Fi (with hidden flag and escaping), vCard and ticket builds are
+  byte-identical to C; parses agree.
+- Issuers: fingerprint of a signed payload matches C exactly; issuers.json
+  lookup (with separator/case-insensitive fingerprint matching) finds the
+  issuer name.
+- Password-strength heuristic matches the Go port bit-for-bit on sample
+  passwords.
+
+These are automated compatibility tests only: nothing here has been exercised
+against a live phone-camera reader.
 
 Prism Code, Copyright (c) 2026 Avi Shor. Free to use, with or without credit.
 See the repository LICENSE.md. No warranty.
