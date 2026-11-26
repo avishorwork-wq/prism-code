@@ -69,3 +69,39 @@ As a library: `Prism.encode(byte[], size, ecc, mode, type, logo)`,
   it for completeness.
 - CLI `--text` with non-ASCII needs a UTF-8 locale (`LANG=C.UTF-8`); `--input`
   files are always raw bytes.
+
+## Prism Secure (password lock + maker signatures)
+
+`PrismSecure.java` ports the live site's Prism Secure module (`prism-secure.html`),
+standard library only, including a from-scratch Argon2id (RFC 9106) and Blake2b
+(RFC 7693). Wire format is byte-compatible with the live site, v2 and legacy v1.
+
+- **Password lock**: AES-256-GCM, key from Argon2id (128 MiB, 3 passes, default)
+  or PBKDF2-SHA256 600,000 iterations. Whole header authenticated as AAD.
+- **Signatures**: ECDSA P-256/SHA-256, raw 64-byte r||s signatures, maker
+  fingerprint = first 8 hex of SHA-256(public key), dashed.
+- **Passphrase generator** (140 bits) and **password strength** estimate, same as the site.
+
+```bash
+javac -d out src/PrismSecure.java src/PrismSecureCli.java
+
+java -Xmx2g -cp out PrismSecureCli keygen --out maker.json        # prints fingerprint
+java -Xmx2g -cp out PrismSecureCli seal --in file --out file.psc --password 'S3cret' [--kdf argon2id|pbkdf2] [--signkey maker.json]
+java -Xmx2g -cp out PrismSecureCli open --in file.psc --out file --password 'S3cret' [--trusted FING-ERPR-INTS,...]
+java -cp out PrismSecureCli passphrase
+```
+
+`-Xmx2g` is for the default 128 MiB Argon2id memory; PBKDF2 needs no extra heap.
+Key files accept both this port's `{"publicKey":[...],"privateScalar":[...]}` and the
+live site's `{"publicKey":{...},"privateJwk":{...}}` JSON.
+
+### Compatibility with the live JS module (verified)
+
+- Java-sealed codes open in the live JS module and JS-sealed codes open here,
+  for Argon2id, PBKDF2, sign-only and encrypt+sign (empty and 1000-byte payloads,
+  ASCII and non-ASCII passwords — passwords are NFKC-normalised exactly as the site).
+- Legacy v1 (PBKDF2-only) codes open identically in both.
+- From-scratch Argon2id matches hash-wasm/argon2-cffi byte for byte
+  (8192 KiB t=1/t=3 and 131072 KiB t=3 vectors); Blake2b matches RFC 7693 vectors.
+- Wrong-password, tampered-code and forged-signature rejection verified both directions.
+- Full suite: 15/15 cross-compat checks pass, plus v1 parity.
