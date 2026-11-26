@@ -722,6 +722,13 @@ function usage(): never {
     exit(2);
 }
 
+function arg_positional(array $a): ?string {
+    for ($i = 1; $i < count($a); $i++) {
+        if ($a[$i][0] !== '-') return $a[$i];
+    }
+    return null;
+}
+
 function cli_main(array $argv): void {
     $a = array_slice($argv, 1);
     if (count($a) === 0) usage();
@@ -789,6 +796,199 @@ function cli_main(array $argv): void {
                         echo "size $s (" . SIZES[$s][0] . "x" . SIZES[$s][1] . ") ecc $ecc " . mode_name($mode) . ": {$cap['payload']} payload bytes\n";
                     }
                 }
+            }
+            break;
+        }
+        case 'secure-genkey': {
+            require_once __DIR__ . '/prism_secure.php';
+            [$priv, $pub] = psec_genkey();
+            echo "fingerprint: " . psec_fingerprint($pub) . "\n";
+            $out = arg_opt($a, 'o', null);
+            if ($out !== null) {
+                psec_save_key($out, $priv, $pub);
+                echo "wrote $out\n";
+            }
+            break;
+        }
+        case 'secure-seal': {
+            require_once __DIR__ . '/prism_secure.php';
+            $inp = arg_positional($a);
+            if ($inp === null) usage();
+            $data = @file_get_contents($inp);
+            if ($data === false) fail("cannot read $inp");
+            $priv = null; $pub = null;
+            $keyf = arg_opt($a, 'sign-key', null);
+            if ($keyf !== null) {
+                try { [$priv, $pub] = psec_load_key($keyf); }
+                catch (Exception $e) { fail("bad key file $keyf"); }
+            }
+            try {
+                $sealed = psec_seal($data, arg_opt($a, 'password', ''), arg_opt($a, 'kdf', 'argon2id'), $priv, $pub);
+            } catch (Exception $e) {
+                fail($e->getMessage());
+            }
+            $out = arg_opt($a, 'o', null);
+            if ($out !== null) {
+                file_put_contents($out, $sealed);
+                echo "wrote $out (" . strlen($data) . " -> " . strlen($sealed) . " bytes)\n";
+            } else {
+                fwrite(STDOUT, $sealed);
+            }
+            break;
+        }
+        case 'secure-open': {
+            require_once __DIR__ . '/prism_secure.php';
+            $inp = arg_positional($a);
+            if ($inp === null) usage();
+            $data = @file_get_contents($inp);
+            if ($data === false) fail("cannot read $inp");
+            $r = psec_open($data, arg_opt($a, 'password', ''));
+            if ($r['signature_valid'] === 0) fail($r['error'] ?? "bad signature");
+            if ($r['bytes'] === null) {
+                fail($r['error'] ?? "needs a password");
+            }
+            if ($r['signed']) fwrite(STDERR, "signature: valid, signer {$r['fingerprint']}\n");
+            $out = arg_opt($a, 'o', null);
+            if ($out !== null) {
+                file_put_contents($out, $r['bytes']);
+                echo "wrote $out (" . strlen($r['bytes']) . " bytes)\n";
+            } else {
+                fwrite(STDOUT, $r['bytes']);
+                fwrite(STDOUT, "\n");
+            }
+            break;
+        }
+        case 'secure-passphrase': {
+            require_once __DIR__ . '/prism_secure.php';
+            echo psec_passphrase() . "\n";
+            break;
+        }
+        case 'secure-strength': {
+            require_once __DIR__ . '/prism_secure.php';
+            $pw = arg_opt($a, 'password', null);
+            if ($pw === null) $pw = arg_positional($a) ?? '';
+            [$bits, $level, $label] = psec_strength($pw);
+            echo "$bits bits, level $level ($label)\n";
+            break;
+        }
+        case 'parts-split': {
+            require_once __DIR__ . '/prism_parts.php';
+            $inp = arg_positional($a);
+            $outdir = arg_opt($a, 'o', null);
+            if ($inp === null || $outdir === null) usage();
+            $name = arg_opt($a, 'name', 'file');
+            $size = (int)arg_opt($a, 'size', '3');
+            $data = @file_get_contents($inp);
+            if ($data === false) fail("cannot read $inp");
+            try { $parts = pp_split($data, $name, $size); }
+            catch (Exception $e) { fail($e->getMessage()); }
+            if (!is_dir($outdir) && !mkdir($outdir, 0777, true)) fail("cannot create $outdir");
+            foreach ($parts as $i => $p) {
+                file_put_contents($outdir . '/part-' . str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT) . '.bin', $p);
+            }
+            echo count($parts) . " parts written to $outdir (encode each at --ecc 2, color mode)\n";
+            break;
+        }
+        case 'parts-join': {
+            require_once __DIR__ . '/prism_parts.php';
+            $asm = new PpAssembler();
+            $out = arg_opt($a, 'o', null);
+            $nfiles = 0;
+            for ($i = 1; $i < count($a); $i++) {
+                if ($a[$i] === '-o' || $a[$i] === '--o') { $i++; continue; }
+                if ($a[$i][0] === '-') { $i++; continue; }
+                $data = @file_get_contents($a[$i]);
+                if ($data === false) fail("cannot read " . $a[$i]);
+                $nfiles++;
+                [$st, $pn, $msg] = $asm->add($data);
+                if ($st === PP_NOT_PART) fail($a[$i] . " is not a part");
+                elseif ($st === PP_BAD || $st === PP_OTHER) fail($msg);
+                elseif ($st === PP_DUPLICATE) {}
+                else echo "part $pn of {$asm->total} added ({$asm->have}/{$asm->total})\n";
+            }
+            if ($nfiles === 0) usage();
+            try { [$res, $name] = $asm->finish(); }
+            catch (Exception $e) { fail($e->getMessage()); }
+            if ($out === null) $out = $name;
+            file_put_contents($out, $res);
+            echo "wrote $out (" . strlen($res) . " bytes, whole-file check passed)\n";
+            break;
+        }
+        case 'card-build': {
+            require_once __DIR__ . '/prism_cards.php';
+            if (count($a) < 2) usage();
+            $kind = $a[1];
+            $hidden = in_array('--hidden', $a, true) || in_array('-hidden', $a, true);
+            if ($kind === 'wifi') {
+                $payload = card_wifi_build(arg_opt($a, 'ssid', ''), arg_opt($a, 'sec', 'WPA'), arg_opt($a, 'pass', ''), $hidden);
+            } elseif ($kind === 'vcard') {
+                $payload = card_vcard_build(arg_opt($a, 'name', ''), arg_opt($a, 'org', ''), arg_opt($a, 'title', ''),
+                    arg_opt($a, 'phone', ''), arg_opt($a, 'email', ''), arg_opt($a, 'url', ''),
+                    arg_opt($a, 'addr', ''), arg_opt($a, 'note', ''));
+            } elseif ($kind === 'ticket') {
+                $payload = card_ticket_build((int)arg_opt($a, 'expiry-ms', '0'), arg_opt($a, 'text', ''));
+            } else usage();
+            $out = arg_opt($a, 'o', null);
+            if ($out !== null) {
+                file_put_contents($out, $payload);
+                echo "wrote $out (" . strlen($payload) . " bytes)\n";
+            } else {
+                echo $payload . "\n";
+            }
+            break;
+        }
+        case 'card-parse': {
+            require_once __DIR__ . '/prism_cards.php';
+            if (count($a) < 2) fail("need card file");
+            $data = @file_get_contents($a[1]);
+            if ($data === false) fail("cannot read " . $a[1]);
+            $text = $data;
+            if (($t = card_ticket_parse($text)) !== null) {
+                echo "ticket: expires {$t['expiry_ms']}, body:\n{$t['body']}\n";
+            } elseif (($w = card_wifi_parse($text)) !== null) {
+                echo 'wifi: ssid "' . $w['ssid'] . '" security ' . $w['sec'] . ' password "' . $w['pass'] . '"' . ($w['hidden'] ? ' hidden' : '') . "\n";
+            } elseif (($v = card_vcard_parse($text)) !== null) {
+                echo 'contact: ' . $v['name'];
+                if ($v['org'] !== '') echo ', ' . $v['org'];
+                if ($v['title'] !== '') echo ' (' . $v['title'] . ')';
+                echo "\n";
+                foreach ($v['phones'] as $p) echo "  phone: $p\n";
+                foreach ($v['emails'] as $e) echo "  email: $e\n";
+                foreach ($v['urls'] as $u) echo "  url: $u\n";
+                if ($v['addr'] !== '') echo '  address: ' . $v['addr'] . "\n";
+                if ($v['note'] !== '') echo '  note: ' . $v['note'] . "\n";
+            } else {
+                echo "not a card payload\n";
+            }
+            break;
+        }
+        case 'issuer': {
+            require_once __DIR__ . '/prism_issuers.php';
+            $inp = arg_positional($a);
+            if ($inp === null) usage();
+            $data = @file_get_contents($inp);
+            if ($data === false) fail("cannot read $inp");
+            if (strlen($data) > 8 && $data[0] === "\x89" && $data[1] === 'P' && $data[2] === 'N' && $data[3] === 'G') {
+                try { [$dec, ] = decode_png($data); $data = $dec; }
+                catch (Exception $e) { fail($e->getMessage()); }
+            }
+            $id = issuer_identify($data);
+            if ($id === null) {
+                echo "not a signed Prism Secure payload\n";
+            } elseif (!$id['signature_valid']) {
+                echo "Signature check failed. This code was changed after it was signed, or was not signed by the key it names.\n";
+            } else {
+                echo 'signature: valid, signer ' . $id['fingerprint'];
+                $lp = arg_opt($a, 'list', null);
+                if ($lp !== null) {
+                    $list = issuers_load($lp);
+                    $idx = issuers_find($list, $id['fingerprint']);
+                    if ($idx >= 0) echo ', issuer: ' . $list[$idx]['name'];
+                    else echo ' (not on the issuer list)';
+                }
+                echo "\n";
+                if ($id['has_message']) echo 'message: ' . $id['message'] . "\n";
+                elseif ($id['encrypted']) echo "the content is locked with a password\n";
             }
             break;
         }
