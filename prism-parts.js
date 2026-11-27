@@ -69,7 +69,7 @@ function dl(blob,name){const a=document.createElement('a'),u=URL.createObjectURL
 const gen=HAVE?$('generate'):null;
 if(gen){
   const card=el('section','pp-card');card.id='ppMake';
-  card.innerHTML='<h3>Big file? Split it across codes</h3><p class="pp-sub">One code holds up to about 3.5 KB. Pick a file and Prism makes as many codes as it needs, numbered so they can be scanned in any order.</p>'+
+  card.innerHTML='<h3>Big file? Split it across codes</h3><p class="pp-sub">One part holds up to about 3.4 KB. Pick a file and Prism makes as many codes as it needs, numbered so they can be scanned in any order.</p>'+
    '<label for="ppFile">Choose a file</label><input id="ppFile" type="file"><label for="ppSize">Code size per part</label><select id="ppSize"></select><div class="pp-info" id="ppInfo" role="status"></div>'+
    '<div class="actions"><button class="primary" id="ppMakeBtn" disabled>Make the codes</button><button id="ppZip" disabled>Save all (ZIP)</button></div><div class="pp-grid" id="ppGrid"></div>';
   (gen.querySelector('.columns>div')||gen).append(card);
