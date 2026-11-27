@@ -171,24 +171,25 @@ return{read,warm:setup,stop:()=>{if(cancelActive)cancelActive();else dispose();}
 })();
 
 const PrismRoi=(()=>{function bbox(img){const W=img.width,H=img.height,d=img.data;
-const g=Math.max(1,Math.floor(Math.max(W,H)/200)),gw=Math.ceil(W/g),gh=Math.ceil(H/g);
-const px=[];for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){const i=((y*g)*W+x*g)*4;px.push([d[i],d[i+1],d[i+2]]);}
-const med=c=>{const a=px.map(p=>p[c]).sort((a,b)=>a-b);return a[a.length>>1];};
-const m=[med(0),med(1),med(2)];
-const out=new Uint8Array(gw*gh);
-for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){const p=px[y*gw+x];
-if(Math.abs(p[0]-m[0])+Math.abs(p[1]-m[1])+Math.abs(p[2]-m[2])>90)out[y*gw+x]=1;}
-const den=new Uint8Array(gw*gh);
+const g=Math.max(1,Math.floor(Math.max(W,H)/200)),gw=Math.ceil(W/g),gh=Math.ceil(H/g),N=gw*gh;
+const P=new Uint8Array(N*3),h0=new Int32Array(256),h1=new Int32Array(256),h2=new Int32Array(256);
+for(let y=0,k=0;y<gh;y++)for(let x=0;x<gw;x++,k+=3){const i=((y*g)*W+x*g)*4;const a=d[i],b=d[i+1],c=d[i+2];P[k]=a;P[k+1]=b;P[k+2]=c;h0[a]++;h1[b]++;h2[c]++;}
+const half=N>>1,med=h=>{let s=0;for(let v=0;v<256;v++){s+=h[v];if(s>half)return v}return 255};
+const m0=med(h0),m1=med(h1),m2=med(h2);
+const out=new Uint8Array(N);
+for(let k=0;k<N;k++){if(Math.abs(P[3*k]-m0)+Math.abs(P[3*k+1]-m1)+Math.abs(P[3*k+2]-m2)>90)out[k]=1;}
+const den=new Uint8Array(N);
 for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){if(!out[y*gw+x])continue;
-let n=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const yy=y+dy,xx=x+dx;
-if(yy>=0&&yy<gh&&xx>=0&&xx<gw&&out[yy*gw+xx])n++;}
+let n=0;for(let dy=-1;dy<=1;dy++){const yy=y+dy;if(yy<0||yy>=gh)continue;for(let dx=-1;dx<=1;dx++){const xx=x+dx;if(xx>=0&&xx<gw&&out[yy*gw+xx])n++;}}
 if(n>=3)den[y*gw+x]=1;}
-const lab=new Int32Array(gw*gh).fill(-1);let sizes=[];
+const lab=new Int32Array(N).fill(-1),stk=new Int32Array(N+4);let sizes=[];
 for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){if(!den[y*gw+x]||lab[y*gw+x]>=0)continue;
-const id=sizes.length;let sz=0;const st=[[x,y]];lab[y*gw+x]=id;
-while(st.length){const [cx,cy]=st.pop();sz++;
-for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const xx=cx+dx,yy=cy+dy;
-if(xx>=0&&xx<gw&&yy>=0&&yy<gh&&den[yy*gw+xx]&&lab[yy*gw+xx]<0){lab[yy*gw+xx]=id;st.push([xx,yy]);}}}
+const id=sizes.length;let sz=0,sp=0;stk[sp++]=y*gw+x;lab[y*gw+x]=id;
+while(sp){const p=stk[--sp],cx=p%gw,cy=(p-cx)/gw;sz++;
+if(cx+1<gw&&den[p+1]&&lab[p+1]<0){lab[p+1]=id;stk[sp++]=p+1}
+if(cx-1>=0&&den[p-1]&&lab[p-1]<0){lab[p-1]=id;stk[sp++]=p-1}
+if(cy+1<gh&&den[p+gw]&&lab[p+gw]<0){lab[p+gw]=id;stk[sp++]=p+gw}
+if(cy-1>=0&&den[p-gw]&&lab[p-gw]<0){lab[p-gw]=id;stk[sp++]=p-gw}}
 sizes.push(sz);}
 if(!sizes.length)return null;
 let best=0;for(let i=1;i<sizes.length;i++)if(sizes[i]>sizes[best])best=i;
